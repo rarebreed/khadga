@@ -1,0 +1,18 @@
+{
+  "author": "Sean Toner <placeoftheway@gmail.com>",
+  "name": "vision",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "rimraf dist pkg && webpack",
+    "start": "rimraf dist pkg && webpack-dev-server --open -d",
+    "test": "cargo test && wasm-pack test --headless"
+  },
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^0.4.2",
+    "copy-webpack-plugin": "^5.0.3",
+    "webpack": "^4.41.1",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.2",
+    "rimraf": "^2.6.3"
+  }
+}
