@@ -16,8 +16,8 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 // This is like the `main` function, except for JavaScript.
 #[wasm_bindgen(start)]
 pub fn main_js() -> Result<(), JsValue> {
-  // Use `web_sys`'s global `window` function to get a handle on the global
-  // window object.
+  // Use `web_sys`'s global `window` function to get a handle on the global window object.
+  // For now, we are just going to use the DOM directly
   let window = web_sys::window().expect("no global `window` exists");
   let document = window.document().expect("should have a document on window");
   let body = document.body().expect("document should have a body");
