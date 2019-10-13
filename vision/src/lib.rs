@@ -1,3 +1,6 @@
+pub mod components;
+use components::*;
+
 use wasm_bindgen::prelude::*;
 
 
