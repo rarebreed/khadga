@@ -1,8 +1,7 @@
 pub mod components;
-//use components::*;
-
+use components::{ MainNav };
 use wasm_bindgen::prelude::*;
-
+use web_sys::{ ElementCreationOptions };
 
 // When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
 // allocator.
@@ -27,6 +26,13 @@ pub fn main_js() -> Result<(), JsValue> {
   val.set_inner_html("Hello from Rust!");
 
   body.append_child(&val)?;
+
+  // Register the MainNav component
+  MainNav::register()?;
+  let mut options = ElementCreationOptions::new();
+  options.is("main-nav");
+  let nav = document.create_element_with_element_creation_options("main-nav", &options)?;
+  body.append_child(&nav)?;
 
   Ok(())
 }

@@ -41,7 +41,10 @@ features = [
   'Node',
   'Window',
   "CustomElementRegistry",
-  "console"
+  "console",
+  "ShadowRootInit",
+  "ShadowRootMode",
+  "ElementCreationOptions"
 ]
 
 [dependencies.js-sys]
