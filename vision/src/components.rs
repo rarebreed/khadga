@@ -7,6 +7,18 @@ use web_sys::{
     Document,
     CustomElementRegistry
 };
+use js_sys::{ Function };
+//use web_sys::console::{ log_1 };
+
+// Note that you can not make types pub in your extern
+// Also note the path to the module.
+#[wasm_bindgen(raw_module = "/js/custom_elements.js")]
+extern "C" {
+    type NavBar;
+
+    #[wasm_bindgen(constructor)]
+    fn new() -> NavBar;
+}
 
 #[wasm_bindgen]
 pub fn get_window() -> Window {
@@ -27,14 +39,33 @@ pub fn get_custom_registry() -> CustomElementRegistry {
 }
 
 /// Defines a navigation bar that can be used for top-level navigation of the application
-pub struct NavBar {
-  
+pub fn main_nav() {
+    let doc = get_document();
+
+    if let Ok(elem) = doc.create_element("nav") {
+        let he: JsValue = JsValue::from(elem);
+        let fun = Box::new(Function::from(he));
+
+        let registry = get_custom_registry();
+        let register = registry.define("main-nav", &fun);
+    }
 }
+
+
 
 /// The main application
 /// 
 /// This will most often be used in a react-like way, where the index.html loads only a single
 /// javascript file
+#[wasm_bindgen]
 pub struct App {
+  //nav: NavBar
+}
 
+impl App {
+    pub fn make_nav() {
+        let _nav = NavBar::new();
+        let _registry = get_custom_registry();
+        
+    }
 }
