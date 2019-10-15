@@ -1,7 +1,6 @@
-# You must change these to your own details.
 [package]
 name = "vision"
-description = "My super awesome Rust, WebAssembly, and Webpack project!"
+description = "Web Collaboration tool written in Rust, WebAssembly, and Webpack!"
 version = "0.1.0"
 authors = ["Sean Toner <placeoftheway@gmail.com"]
 categories = ["wasm"]
@@ -40,7 +39,16 @@ features = [
   'HtmlElement',
   'Node',
   'Window',
+  "CustomElementRegistry",
+  "console",
+  "ShadowRootInit",
+  "ShadowRoot",
+  "ShadowRootMode",
+  "ElementCreationOptions"
 ]
+
+[dependencies.js-sys]
+version = "0.3.28"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
@@ -53,5 +61,4 @@ console_error_panic_hook = "0.1.6"
 [dev-dependencies]
 wasm-bindgen-test = "0.3.1"
 futures-preview = "0.3.0-alpha.19"
-js-sys = "0.3.28"
 wasm-bindgen-futures = "0.4.1"
