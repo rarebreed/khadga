@@ -27,10 +27,7 @@ pub fn main_js() -> Result<(), JsValue> {
 
   body.append_child(&val)?;
 
-  MainNav::register()?;
-  let mut options = ElementCreationOptions::new();
-  options.is("main-nav");
-  let nav = document.create_element_with_element_creation_options("main-nav", &options)?;
+  let nav = MainNav::new()?;
   body.append_child(&nav)?;
 
   Ok(())

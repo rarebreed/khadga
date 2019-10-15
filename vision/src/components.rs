@@ -1,5 +1,4 @@
 //! Contains the web components and helper function that will be used for khadga.
-//! 
 
 use wasm_bindgen::prelude::*;
 use web_sys::{
@@ -12,17 +11,7 @@ use web_sys::{
     ShadowRootMode,
     console
 };
-use wasm_bindgen::JsCast;
-
-// Note the path to the module.  First note that it doesn't use a relative path.  The path is
-// assumed the root is the directory relative to the Cargo.toml file.
-#[wasm_bindgen(raw_module = "/js/custom_elements.js")]
-extern "C" {
-    type NavBar;
-
-    #[wasm_bindgen]
-    fn make_nav() -> NavBar;
-}
+use js_sys::{ Function };
 
 #[wasm_bindgen]
 pub fn get_window() -> Window {
@@ -58,7 +47,6 @@ pub fn get_body() -> HtmlElement {
 #[wasm_bindgen]
 pub struct MainNav { }
 
-/// TODO: Need a macro to autogenerate the create_element, and append_node
 #[wasm_bindgen]
 impl MainNav {
   #[wasm_bindgen(constructor)]
@@ -68,16 +56,20 @@ impl MainNav {
 
   /// Add this type to the custom element registry
   /// 
-  /// TODO: This should only be called once.  Might need to create a static mutable to get and set if it's registered
+  /// FIXME: This just doesn't work.  Not sure how to pass a function constructor to registry.define() as the 2nd
+  /// argument.  You would think you could do something like registry.define("main-nav", &MainNav::new).  Wrapping this
+  /// inside a Closure also did not work
   pub fn register() -> Result<(), JsValue> {
-    let registry = get_custom_registry();
+    let _registry = get_custom_registry();
 
     // FIXME: Unfortunately, this does not work.  When the custom element is called from document.create_element, an
-    // error appears saying that the 2nd argument to define is not a constructor.
-    let fun = Closure::wrap(Box::new(move || {
-      MainNav::new()
-    }) as Box<dyn Fn() -> Result<Element, JsValue>>);
-    registry.define("main-nav", fun.as_ref().unchecked_ref())?;
+    // error appears saying that the 2nd argument to define is not a constructor.  Looks like define requires a special
+    // constructor function type.  I have tried several other approaches but nothing has worked.
+    //  let fun = Closure::wrap(Box::new(move || {
+    //    MainNav::new()
+    //  }) as Box<dyn Fn() -> Result<Element, JsValue>>);
+
+    //registry.define("main-nav", &MainNav::new);
     Ok(())
   }
 }
