@@ -1,0 +1,5 @@
+[book]
+authors = ["Sean Toner"]
+multilingual = false
+src = "src"
+title = "Learn how to create a web app with rust and webassembly"

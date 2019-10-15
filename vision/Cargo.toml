@@ -1,7 +1,6 @@
-# You must change these to your own details.
 [package]
 name = "vision"
-description = "My super awesome Rust, WebAssembly, and Webpack project!"
+description = "Web Collaboration tool written in Rust, WebAssembly, and Webpack!"
 version = "0.1.0"
 authors = ["Sean Toner <placeoftheway@gmail.com"]
 categories = ["wasm"]
@@ -43,6 +42,7 @@ features = [
   "CustomElementRegistry",
   "console",
   "ShadowRootInit",
+  "ShadowRoot",
   "ShadowRootMode",
   "ElementCreationOptions"
 ]

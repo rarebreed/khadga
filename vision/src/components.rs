@@ -1,4 +1,4 @@
-//! Contains the web components that will be used for khadga.
+//! Contains the web components and helper function that will be used for khadga.
 //! 
 
 use wasm_bindgen::prelude::*;
@@ -7,20 +7,21 @@ use web_sys::{
     Document,
     CustomElementRegistry,
     HtmlElement,
-    Element
+    Element,
+    ShadowRootInit,
+    ShadowRootMode,
+    console
 };
-use js_sys::{ Function };
-//use web_sys::console::{ log_1 };
+use wasm_bindgen::JsCast;
 
-// Note that you can not make types pub in your extern
-// Also note the path to the module.  First note that it doesn't use a relative path.  The path is
+// Note the path to the module.  First note that it doesn't use a relative path.  The path is
 // assumed the root is the directory relative to the Cargo.toml file.
 #[wasm_bindgen(raw_module = "/js/custom_elements.js")]
 extern "C" {
     type NavBar;
 
-    #[wasm_bindgen(constructor)]
-    fn new() -> NavBar;
+    #[wasm_bindgen]
+    fn make_nav() -> NavBar;
 }
 
 #[wasm_bindgen]
@@ -48,11 +49,6 @@ pub fn get_body() -> HtmlElement {
     body
 }
 
-fn make_function(constructor: &str) -> Box<js_sys::Function> {
-  let fun = js_sys::Function::new_no_args(&format!("return new {}()", constructor));
-  Box::new(fun)
-}
-
 /// This is the main navigation site
 /// 
 /// From this component are the choices the user may make: 
@@ -60,18 +56,38 @@ fn make_function(constructor: &str) -> Box<js_sys::Function> {
 /// - Blog
 /// - Collaborative documents
 #[wasm_bindgen]
-pub struct MainNav {
-    //constructor: Box<js_sys::Function>
-}
+pub struct MainNav { }
 
 /// TODO: Need a macro to autogenerate the create_element, and append_node
 #[wasm_bindgen]
 impl MainNav {
   #[wasm_bindgen(constructor)]
   pub fn new() -> Result<Element, JsValue> {
+    main_nav()
+  }
+
+  /// Add this type to the custom element registry
+  /// 
+  /// TODO: This should only be called once.  Might need to create a static mutable to get and set if it's registered
+  pub fn register() -> Result<(), JsValue> {
+    let registry = get_custom_registry();
+
+    // FIXME: Unfortunately, this does not work.  When the custom element is called from document.create_element, an
+    // error appears saying that the 2nd argument to define is not a constructor.
+    let fun = Closure::wrap(Box::new(move || {
+      MainNav::new()
+    }) as Box<dyn Fn() -> Result<Element, JsValue>>);
+    registry.define("main-nav", fun.as_ref().unchecked_ref())?;
+    Ok(())
+  }
+}
+
+pub fn main_nav() -> Result<Element, JsValue> {
+    console::log_1(&"In MainNav::new".into());
     let doc = get_document();
     let element = doc.create_element("nav")?;
-    // Add the other elements
+
+    // Add the other elements to the <nav>
     element.insert_adjacent_html("afterbegin", r#"
         <ul>
           <li>Video Chat</li>
@@ -81,36 +97,14 @@ impl MainNav {
     "#)?;
 
     // Add the shadow DOM
-    //let shadow_mode = ShadowRootInit::new(ShadowRootMode::Open);
-    //element.attach_shadow(&shadow_mode);
+    let shadow_mode = ShadowRootInit::new(ShadowRootMode::Open);
+    let _shadow_root = element.attach_shadow(&shadow_mode)?;
 
-    //let body = get_body();
-    //body.append_child(&element)?;
     Ok(element)
-  }
-
-  pub fn register() -> Result<(), JsValue> {
-    // Add to the custom element registry
-    let registry = get_custom_registry();
-    let fun = make_function("MainNav");
-    registry.define("main-nav", &fun)?;
-    Ok(())
-  }
 }
 
 /// The main application
-/// 
-/// This will most often be used in a react-like way, where the index.html loads only a single
-/// javascript file
 #[wasm_bindgen]
 pub struct App {
   //nav: NavBar
-}
-
-impl App {
-    pub fn make_nav() {
-        let _nav = NavBar::new();
-        let _registry = get_custom_registry();
-        
-    }
 }

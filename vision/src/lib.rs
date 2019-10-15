@@ -27,7 +27,6 @@ pub fn main_js() -> Result<(), JsValue> {
 
   body.append_child(&val)?;
 
-  // Register the MainNav component
   MainNav::register()?;
   let mut options = ElementCreationOptions::new();
   options.is("main-nav");
