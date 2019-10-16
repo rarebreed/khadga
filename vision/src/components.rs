@@ -11,7 +11,6 @@ use web_sys::{
     ShadowRootMode,
     console
 };
-use js_sys::{ Function };
 
 #[wasm_bindgen]
 pub fn get_window() -> Window {
@@ -77,20 +76,23 @@ impl MainNav {
 pub fn main_nav() -> Result<Element, JsValue> {
     console::log_1(&"In MainNav::new".into());
     let doc = get_document();
-    let element = doc.create_element("nav")?;
+    let element = doc.create_element("header")?;
+    element.set_attribute("class", "main-nav")?;
 
+    // Add the shadow DOM
+    let shadow_mode = ShadowRootInit::new(ShadowRootMode::Open);
+    let shadow_root = element.attach_shadow(&shadow_mode)?;
+
+    let nav = doc.create_element("nav")?;
+    shadow_root.append_child(&nav)?;
     // Add the other elements to the <nav>
-    element.insert_adjacent_html("afterbegin", r#"
+    nav.insert_adjacent_html("afterbegin", r#"
         <ul>
           <li>Video Chat</li>
           <li>Blog</li>
           <li>Collaborative Documents</li>
         </ul>
     "#)?;
-
-    // Add the shadow DOM
-    let shadow_mode = ShadowRootInit::new(ShadowRootMode::Open);
-    let _shadow_root = element.attach_shadow(&shadow_mode)?;
 
     Ok(element)
 }
