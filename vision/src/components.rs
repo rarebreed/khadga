@@ -37,6 +37,14 @@ pub fn get_body() -> HtmlElement {
     body
 }
 
+pub fn create_shadow_css_link(sheet: &str) -> Result<Element, JsValue> {
+    let doc = get_document();
+    let link_elem = doc.create_element("link")?;
+    link_elem.set_attribute("rel", "stylesheet")?;
+    link_elem.set_attribute("href", sheet)?;
+    Ok(link_elem)
+}
+
 /// This is the main navigation site
 /// 
 /// From this component are the choices the user may make: 
@@ -77,22 +85,26 @@ pub fn main_nav() -> Result<Element, JsValue> {
     console::log_1(&"In MainNav::new".into());
     let doc = get_document();
     let element = doc.create_element("header")?;
-    element.set_attribute("class", "main-nav")?;
 
     // Add the shadow DOM
     let shadow_mode = ShadowRootInit::new(ShadowRootMode::Open);
     let shadow_root = element.attach_shadow(&shadow_mode)?;
 
     let nav = doc.create_element("nav")?;
+    nav.set_attribute("class", "main-nav")?;
     shadow_root.append_child(&nav)?;
     // Add the other elements to the <nav>
     nav.insert_adjacent_html("afterbegin", r#"
-        <ul>
-          <li>Video Chat</li>
-          <li>Blog</li>
-          <li>Collaborative Documents</li>
+        <ul class="main-nav__items">
+          <li class="main-nav__item">Video Chat</li>
+          <li class="main-nav__item">Blog</li>
+          <li class="main-nav__item">Collaborative Documents</li>
         </ul>
     "#)?;
+
+    // Add shadow CSS
+    let link = create_shadow_css_link("shadow.css")?;
+    nav.append_child(&link)?;
 
     Ok(element)
 }
