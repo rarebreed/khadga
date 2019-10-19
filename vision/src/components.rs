@@ -61,7 +61,7 @@ impl MainNav {
     main_nav()
   }
 
-  /// Add this type to the custom element registry
+  /// Add this as a custom web component type to the custom element registry
   /// 
   /// FIXME: This just doesn't work.  Not sure how to pass a function constructor to registry.define() as the 2nd
   /// argument.  You would think you could do something like registry.define("main-nav", &MainNav::new).  Wrapping this
@@ -90,9 +90,18 @@ pub fn main_nav() -> Result<Element, JsValue> {
     let shadow_mode = ShadowRootInit::new(ShadowRootMode::Open);
     let shadow_root = element.attach_shadow(&shadow_mode)?;
 
+    let nav_container = doc.create_element("div")?;
+    nav_container.set_attribute("id", "main-header")?;
+    nav_container.insert_adjacent_html("afterbegin", r#"
+      <a href="index.html" class="logo">
+        khadga
+      </a>
+    "#)?;
+    shadow_root.append_child(&nav_container)?;
+
     let nav = doc.create_element("nav")?;
     nav.set_attribute("class", "main-nav")?;
-    shadow_root.append_child(&nav)?;
+
     // Add the other elements to the <nav>
     nav.insert_adjacent_html("afterbegin", r#"
         <ul class="main-nav__items">
@@ -101,6 +110,7 @@ pub fn main_nav() -> Result<Element, JsValue> {
           <li class="main-nav__item">Collaborative Documents</li>
         </ul>
     "#)?;
+    shadow_root.append_child(&nav)?;
 
     // Add shadow CSS
     let link = create_shadow_css_link("shadow.css")?;

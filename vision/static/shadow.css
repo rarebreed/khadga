@@ -3,3 +3,19 @@
     display: inline-block;
     border: 1px;
 }
+
+#main-header {
+    background-color: cadetblue;
+    padding: .5em;
+}
+
+#main-header > .logo {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  color: darkslateblue;
+  text-decoration: none;
+}
+
+.main-nav {
+    display: inline-block;
+    text-align: right;
+}

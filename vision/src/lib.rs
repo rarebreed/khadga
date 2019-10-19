@@ -20,12 +20,7 @@ pub fn main_js() -> Result<(), JsValue> {
   let document = window.document().expect("should have a document on window");
   let body = document.body().expect("document should have a body");
 
-  // Manufacture the element we're gonna append
-  let val = document.create_element("p")?;
-  val.set_inner_html("Hello from Rust!");
-
-  body.append_child(&val)?;
-
+  // Create our main navigation element
   let nav = MainNav::new()?;
   body.append_child(&nav)?;
 
