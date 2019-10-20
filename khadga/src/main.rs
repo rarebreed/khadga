@@ -6,7 +6,6 @@ fn main() {
 
     let hi = warp::path("hi").map(|| "Hello, World!");
 
-
     let readme = warp::get2()
         .and(warp::path::end())
         .and(warp::fs::file("../vision/static/index.html"));

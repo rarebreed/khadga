@@ -85,15 +85,18 @@ pub fn main_nav() -> Result<Element, JsValue> {
     console::log_1(&"In MainNav::new".into());
     let doc = get_document();
     let element = doc.create_element("header")?;
+    element.set_attribute("id", "main-header")?;
+
 
     // Add the shadow DOM
     let shadow_mode = ShadowRootInit::new(ShadowRootMode::Open);
     let shadow_root = element.attach_shadow(&shadow_mode)?;
 
     let nav_container = doc.create_element("div")?;
-    nav_container.set_attribute("id", "main-header")?;
+    nav_container.set_attribute("id", "logo-container")?;
+
     nav_container.insert_adjacent_html("afterbegin", r#"
-      <a href="index.html" class="logo">
+      <a href="index.html" id="logo">
         khadga
       </a>
     "#)?;

@@ -1,21 +1,30 @@
+.main-nav__items {
+    margin: 0%;
+}
 
 .main-nav__item {
     display: inline-block;
-    border: 1px;
+    border: 1px solid;
+    padding: .5em;
 }
 
 #main-header {
     background-color: cadetblue;
-    padding: .5em;
 }
 
-#main-header > .logo {
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  color: darkslateblue;
-  text-decoration: none;
+#logo-container {
+  display: inline-block;
+}
+
+#logo {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: darkslateblue;
+    text-decoration: none;
+    padding-left: .5em;
 }
 
 .main-nav {
     display: inline-block;
     text-align: right;
+    width: calc(100% - 5em);
 }
