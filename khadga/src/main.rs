@@ -1,21 +1,29 @@
 
 use warp::Filter;
 
+use std::sync::{
+    Arc, Mutex
+};
+use std::collections::HashMap;
+
 fn main() {
     env_logger::init();
 
-    let hi = warp::path("hi").map(|| "Hello, World!");
+    // State for the chat will be maintained in a HashMap  of users to websocket connections
+    // We store our connection state inside a Mutex inside an Arc.  The inner Mutex is needed,
+    // Since the task executor running in warp is multithreaded.  Each time a connection is made,
+    // it could be handled on a task running in a separate thread.  The Mutex ensures that only
+    // one threa at a time van update the HashMap.
+    //
+    // The Arc is to allow sharing of the Mutex between the threads
+    let conn_users = Arc::new(Mutex::new(HashMap::<String, String>::new()));
+    
+    // This is the main entry point to the application
+    let app = warp::path("start").and(warp::fs::dir("../vision/dist/"));
 
-    let readme = warp::get2()
-        .and(warp::path::end())
-        .and(warp::fs::file("../vision/static/index.html"));
+    // TODO: Need a login handler and a websocket endpoint
+    // When a user logs in, they will be given an auth token which can be used to hain access to
+    // chat and video for as long as the session maintains activity
 
-    // dir already requires GET...
-    let examples = warp::path("start").and(warp::fs::dir("../vision/dist/"));
-
-    // GET / => README.md
-    // GET /ex/... => ./examples/..
-    let routes = readme.or(examples).or(hi);
-
-    warp::serve(routes).run(([127, 0, 0, 1], 7001));
+    warp::serve(app).run(([127, 0, 0, 1], 7001));
 }
