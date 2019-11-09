@@ -6,7 +6,8 @@ use std::sync::{
 };
 use std::collections::HashMap;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::init();
 
     // State for the chat will be maintained in a HashMap  of users to websocket connections
@@ -25,5 +26,6 @@ fn main() {
     // When a user logs in, they will be given an auth token which can be used to hain access to
     // chat and video for as long as the session maintains activity
 
-    warp::serve(app).run(([127, 0, 0, 1], 7001));
+    warp::serve(app).run(([127, 0, 0, 1], 7001)).await;
+    println!("Ended service");
 }

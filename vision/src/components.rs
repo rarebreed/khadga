@@ -108,6 +108,7 @@ pub fn main_nav() -> Result<Element, JsValue> {
     // Add the other elements to the <nav>
     nav.insert_adjacent_html("afterbegin", r#"
         <ul class="main-nav__items">
+          <li class="main-nav__item">Login</li>
           <li class="main-nav__item">Video Chat</li>
           <li class="main-nav__item">Blog</li>
           <li class="main-nav__item">Collaborative Documents</li>

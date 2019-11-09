@@ -7,35 +7,37 @@ use std::fmt::{ Display, Formatter, self };
 pub struct User {
     name: String,
     key: String,
+    email: String,
     creation: String,
-    role: Roles
+    role: Role
 }
 
 impl User {
-    pub fn new(name: String, key: String) -> Self {
+    pub fn new(name: String, key: String, email: String) -> Self {
       let user_name = name.clone();
       User {
           name,
           key,
+          email,
           creation: String::from(""),
-          role: Roles::User(user_name)
+          role: Role::User(user_name)
       }
     }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub(crate) enum Roles {
+pub(crate) enum Role {
     User(String),
     Admin
 }
 
-impl Display for Roles {
+impl Display for Role {
     fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
         match self {
-            Roles::User(name) => {
+            Role::User(name) => {
                 write!(fmt, "User<{}>", name)
             },
-            Roles::Admin => {
+            Role::Admin => {
                 write!(fmt, "{}", "Admin")
             }
         }
