@@ -7,14 +7,14 @@ The application that is generated here is a small chat application that will set
 or more clients and the central web server.
 
 If you're wondering where the name khadga comes from, it's a Sanskrit word meaning sword.  It is often referred to in
-Hinduism, Jainism or Buddhism as the sword that cuts away illusion.
+spiritual or mystical concepts as the sword that cuts away illusion.
 
 ## What you will learn
 
 This guide will walk you through everything required to develop, test and deploy both the front and backend application.
 This includes:
 
-- How to write a (bleeding edge) asynchronous server using rust's hyper
+- How to write a (bleeding edge) asynchronous server using rust's warp framework
 - How to use wasm-bindgen, web-sys and js-sys crates to create a single page web app
 - How to serve your single page app from the async web server
 - How to deploy your app to Openshift Online using docker and source-2-image

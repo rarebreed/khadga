@@ -3,8 +3,8 @@
   "name": "vision",
   "version": "0.1.0",
   "scripts": {
-    "build": "rimraf dist pkg && tsc && webpack",
-    "start": "rimraf dist pkg && tsc && webpack-dev-server --open -d",
+    "build": "rimraf dist pkg && webpack",
+    "start": "rimraf dist pkg && webpack-dev-server --open -d",
     "test": "cargo test && wasm-pack test --headless"
   },
   "devDependencies": {

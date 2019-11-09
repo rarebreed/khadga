@@ -1,42 +1,31 @@
-use hyper::{
-  Body, Error, Response, Server,
-  service::{
-    make_service_fn,
-    service_fn
-  },
-  server::conn::AddrStream
-};
 
-// This is super confusing in rust.  If you have both a lib.rs and a main.rs, you need to use the ::crate_name::module syntax
-use ::khadga::routing;
+use warp::Filter;
+
+use std::sync::{
+    Arc, Mutex
+};
+use std::collections::HashMap;
 
 #[tokio::main]
 async fn main() {
-  // Construct our SocketAddr to listen on...
-  let addr = ([127, 0, 0, 1], 7001).into();
+    env_logger::init();
 
-  // And a MakeService to handle each connection...
-  let make_service = make_service_fn(|_sock: &AddrStream| async {
-    Ok::<_, Error>(service_fn(|_req| async move {
-      println!("{:#?}", _req);
-      let valid = routing::validate_route("/hello", _req);
-      match valid {
-        Ok(_r) => {
-          Ok::<_, Error>(Response::new(Body::from("Hello World")))
-        },
-        Err(resp) => {
-          Ok(resp)
-        }
-      }
-    }))
-  });
+    // State for the chat will be maintained in a HashMap  of users to websocket connections
+    // We store our connection state inside a Mutex inside an Arc.  The inner Mutex is needed,
+    // Since the task executor running in warp is multithreaded.  Each time a connection is made,
+    // it could be handled on a task running in a separate thread.  The Mutex ensures that only
+    // one threa at a time van update the HashMap.
+    //
+    // The Arc is to allow sharing of the Mutex between the threads
+    let conn_users = Arc::new(Mutex::new(HashMap::<String, String>::new()));
+    
+    // This is the main entry point to the application
+    let app = warp::path("start").and(warp::fs::dir("../vision/dist/"));
 
-  // Then bind and serve...
-  let server = Server::bind(&addr)
-    .serve(make_service);
+    // TODO: Need a login handler and a websocket endpoint
+    // When a user logs in, they will be given an auth token which can be used to hain access to
+    // chat and video for as long as the session maintains activity
 
-  // Finally, spawn `server` onto an Executor...
-  if let Err(e) = server.await {
-    eprintln!("server error: {}", e);
-  }
+    warp::serve(app).run(([127, 0, 0, 1], 7001)).await;
+    println!("Ended service");
 }
