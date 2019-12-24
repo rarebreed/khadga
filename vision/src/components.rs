@@ -87,7 +87,6 @@ pub fn main_nav() -> Result<Element, JsValue> {
     let element = doc.create_element("header")?;
     element.set_attribute("id", "main-header")?;
 
-
     // Add the shadow DOM
     let shadow_mode = ShadowRootInit::new(ShadowRootMode::Open);
     let shadow_root = element.attach_shadow(&shadow_mode)?;
@@ -121,6 +120,21 @@ pub fn main_nav() -> Result<Element, JsValue> {
     nav.append_child(&link)?;
 
     Ok(element)
+}
+
+#[wasm_bindgen]
+/// Login form for user to gain access to services
+pub struct Login { }
+
+#[wasm_bindgen]
+impl Login {
+  pub fn new() -> Result<Element, JsValue> {
+    let doc = get_document();
+    let element = doc.create_element("login")?;
+    element.set_attribute("id", "main-login")?;
+
+    Ok(element)
+  }
 }
 
 /// The main application

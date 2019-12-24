@@ -1,17 +1,18 @@
 # What is khadga?
 
-khadga is a collaboration and creativity tool.  As a MVP it will focus on the following:
+khadga is a collaboration and creativity tool.  As an MVP it will focus on the following:
 
 - WebRTC to do cam to cam video chats
 - Chatroom to allow connected peers to communicate
-- Collaborative document editor (think etherpad lite)
-- Blogging site
+- Text classification for chats
+- Video image recognition (facial recognition)
 
 To implement this, there are 3 main components:
 
 - A backend, comprised of a rust warp server that handles the connection for WebRTC and websockets
 - A frontend, which is a webassembly based SPA that will contain the UI for the session
-- A mongodb database to store chats, documents and documents
+- A mongodb database to store chats, documents and (public) keys
+- tensorflow for modeling and training
 
 ## Backend
 
@@ -28,7 +29,7 @@ rust toolchain.
 ## Building
 
 Eventually a build.rs script will be created to tie everything together, but  currently, the front end
-coe (ie vision) needs to be built separately.  In other words, just running `cargo build` is not
+core (ie vision) needs to be built separately.  In other words, just running `cargo build` is not
 sufficient.
 
 ### Building vision

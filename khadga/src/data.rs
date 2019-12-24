@@ -1,4 +1,8 @@
 //! Contains data and schema that will be stored in mongodb
+//! 
+//! User type contains the name of the user, a public key, the email, a creation date, and role
+//! Instead of using passwords for authentication, users will upload a public key from an RSA pair
+//! This is more secure than using a password, but not as invasive a MFA.
 
 use serde::{ Serialize, Deserialize };
 use std::fmt::{ Display, Formatter, self };
