@@ -20,6 +20,25 @@ This includes:
 - How to deploy your app to Openshift Online using docker and source-2-image
 - How to set up unit and integration tests for the front and back end
 - How to set up a CI pipeline between your deployment and your tests
+  
+### What the app does
+
+We will build the functionality of the app slowly in order to make it useful early on, but to build up functionality as
+we go.
+
+- Chat application
+- WebRTC for cam-to-Cam video conferencing
+- Video recognition
+
+First, we will start with a relatively simple chat application.  It will also cover things like setting up a database of
+users and saved chat history.  It will also showcase how to do user authentication and authorization.
+
+Second, we will enhance the app so that it will do video as well as text based chatting.  In this step, we will move from
+a central server, to a peer to peer based system.  Chats can either be saved locally or stored on the discovery server.
+This step will also show how to encrypt the streams for end to end encryption.
+
+Lastly, we will build on the video streams enabled by the WebRTC to do image recognition.  We will use this as a toy to 
+detect faces that are displayed and see if it is a known user.
 
 ## Prerequisites
 
@@ -86,3 +105,4 @@ Although nightly is great for individual learning and experimentation, it's not 
 brittleness of nightly means that what may compile one day for one person may not compile for another person (or the 
 same person!) on another day.  It can also be hard sometimes to find a nightly build that allows all dependency crates
 to be built successfully.
+

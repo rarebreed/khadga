@@ -20,7 +20,11 @@ async fn main() {
     let conn_users = Arc::new(Mutex::new(HashMap::<String, String>::new()));
     
     // This is the main entry point to the application
-    let app = warp::path("start").and(warp::fs::dir("../vision/dist/"));
+    // Notr the relative path.  The path is relative to where you are executing/launching khadga
+    // from.  In this case, if we run `cargo run`, this path will work.  However, if we run like
+    // `./target/debug/khadga`  it will not.  But, if we cd to target, then run `./debug/khadga`
+    // it will work.  This is confusing, and something to keep in mind.
+    let app = warp::path("start").and(warp::fs::dir("../vision/dist"));
 
     // TODO: Need a login handler and a websocket endpoint
     // When a user logs in, they will be given an auth token which can be used to hain access to

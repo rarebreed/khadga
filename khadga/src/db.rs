@@ -2,15 +2,14 @@
 //! 
 
 use mongodb::{ 
-    Client, ThreadedClient,
-    db::{ ThreadedDatabase }
+    Client
 };
 use super::{ data::User };
 use bson::to_bson;
 use log::{ error };
 
 pub fn make_client() -> Client {
-    let client = Client::with_uri("mongodb://127.0.0.1").expect("Could not create  mongodb client");
+    let client = Client::with_uri_str("mongodb://127.0.0.1").expect("Could not create  mongodb client");
     client
 }
 
@@ -18,7 +17,8 @@ pub fn make_user( client: &Client
                 , user: User
                 , db: &str) 
                 -> Result<(), Box<dyn std::error::Error>> {
-    let coll = client.db(db).collection("Users");
+    let db = client.database(db);
+    let coll = db.collection("Users");
     let doc = to_bson(&user)?;
 
     match doc {
@@ -40,11 +40,14 @@ mod tests {
     type TestResult = Result<(), Box<dyn std::error::Error>>;
 
     #[test]
-    fn connect() {
+    fn test_connect() {
         let client = make_client();
-        let db = client.db("chats");
-        let colls = db.list_collections(None).expect("No collections");
-        println!("{:#?}", colls);
+        let db = client.database("chats");
+        let colls = db.list_collection_names(None).expect("No collections");
+
+        for coll in colls {
+            println!("Collection name: {:#?}", coll);
+        }
     }
 
     #[test]
