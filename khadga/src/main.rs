@@ -1,10 +1,8 @@
-
 use warp::Filter;
 
-use std::sync::{
-    Arc, Mutex
-};
-use std::collections::HashMap;
+use std::{collections::HashMap,
+          sync::{Arc,
+                 Mutex}};
 
 #[tokio::main]
 async fn main() {
@@ -18,7 +16,7 @@ async fn main() {
     //
     // The Arc is to allow sharing of the Mutex between the threads
     let conn_users = Arc::new(Mutex::new(HashMap::<String, String>::new()));
-    
+
     // This is the main entry point to the application
     // Notr the relative path.  The path is relative to where you are executing/launching khadga
     // from.  In this case, if we run `cargo run`, this path will work.  However, if we run like

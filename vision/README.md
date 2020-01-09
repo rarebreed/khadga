@@ -7,7 +7,8 @@ This is the Single Page App that will run client side on the user's browser.  It
   - An area for chat, including who is in the room
 - Blogging section
 - Shared documents
-- WebGl for interactive map
+- Tensorflow.js layer application and modeling for facial recognition
+- Tensorflow.js layer application and modeling for chat classification
 
 This web app should use as much web assembly (via rust) as possible.
   

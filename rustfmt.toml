@@ -1,0 +1,8 @@
+unstable_features = true
+combine_control_expr = false
+comment_width = 120
+indent_style = "Visual"
+imports_indent = "Visual"
+imports_layout = "Vertical"
+max_width = 120
+merge_imports = true

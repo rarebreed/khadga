@@ -1,33 +1,26 @@
 //! Contains the mongodb connection, collections, and other helpers
-//! 
+//!
 
-use mongodb::{ 
-    Client
-};
-use super::{ data::User };
+use super::data::User;
 use bson::to_bson;
-use log::{ error };
+use log::error;
+use mongodb::Client;
 
 pub fn make_client() -> Client {
     let client = Client::with_uri_str("mongodb://127.0.0.1").expect("Could not create  mongodb client");
     client
 }
 
-pub fn make_user( client: &Client
-                , user: User
-                , db: &str) 
-                -> Result<(), Box<dyn std::error::Error>> {
+pub fn make_user(client: &Client, user: User, db: &str) -> Result<(), Box<dyn std::error::Error>> {
     let db = client.database(db);
     let coll = db.collection("Users");
     let doc = to_bson(&user)?;
 
     match doc {
-      bson::Bson::Document(bdoc) => {
-        coll.insert_one(bdoc, None)?;
-      },
-      _ => {
-         error!("Could not serialize user into BSON document")
-      }
+        bson::Bson::Document(bdoc) => {
+            coll.insert_one(bdoc, None)?;
+        }
+        _ => error!("Could not serialize user into BSON document"),
     }
 
     Ok(())
