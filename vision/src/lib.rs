@@ -1,5 +1,5 @@
 pub mod components;
-use components::MainNav;
+use components::{MainNav, Login};
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
@@ -22,6 +22,9 @@ pub fn main_js() -> Result<(), JsValue> {
     // Create our main navigation element
     let nav = MainNav::new()?;
     body.append_child(&nav)?;
+
+    let login_modal = Login::new()?;
+    body.append_child(&login_modal)?;
 
     Ok(())
 }

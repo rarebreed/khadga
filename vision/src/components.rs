@@ -67,9 +67,10 @@ impl MainNav {
     pub fn register() -> Result<(), JsValue> {
         let _registry = get_custom_registry();
 
-        // FIXME: Unfortunately, this does not work.  When the custom element is called from document.create_element, an
-        // error appears saying that the 2nd argument to define is not a constructor.  Looks like define requires a special
-        // constructor function type.  I have tried several other approaches but nothing has worked.
+        // FIXME: Unfortunately, this does not work.  When the custom element is called from
+        // document.create_element, an error appears saying that the 2nd argument to define is not
+        // a constructor.  Looks like define requires a special constructor function type.  I have
+        // tried several other approaches but nothing has worked.
         //  let fun = Closure::wrap(Box::new(move || {
         //    MainNav::new()
         //  }) as Box<dyn Fn() -> Result<Element, JsValue>>);
@@ -110,7 +111,11 @@ pub fn main_nav() -> Result<Element, JsValue> {
                              "afterbegin",
                              r#"
         <ul class="main-nav__items">
-          <li class="main-nav__item">Login</li>
+          <li class="main-nav__item">
+            <button onclick="document.getElementById('main-login').style.display='block'">
+              Login
+            </button>
+          </li>
           <li class="main-nav__item">Video Chat</li>
           <li class="main-nav__item">Blog</li>
           <li class="main-nav__item">Collaborative Documents</li>
@@ -134,8 +139,37 @@ pub struct Login {}
 impl Login {
     pub fn new() -> Result<Element, JsValue> {
         let doc = get_document();
-        let element = doc.create_element("login")?;
+        let element = doc.create_element("div")?;
         element.set_attribute("id", "main-login")?;
+        element.set_attribute("class", "modal")?;
+
+        let login = r#"
+<form class="modal-content" action="/login" method="post">
+  <div class="imgcontainer">
+    <span onclick="document.getElementById('main-login').style.display='none'" class="close" title="Close Modal">&times;</span>
+    <!--img src="img_avatar2.png" alt="Avatar" class="avatar"-->
+  </div>
+
+  <div class="container">
+    <label for="uname">Username</label>
+    <input type="text" placeholder="Enter Username" name="uname" required>
+
+    <label for="psw">Password</label>
+    <input type="password" placeholder="Enter Password" name="psw" required>
+    
+    <button type="submit">Login</button>
+    <label>
+    <input type="checkbox" checked="checked" name="remember"> Remember me
+    </label>
+  </div>
+
+  <div class="container" style="background-color:#f1f1f1">
+    <button type="button" onclick="document.getElementById('main-login').style.display='none'" class="cancelbtn">Cancel</button>
+    <span class="psw">Forgot <a href="{}">password?</a></span>
+ </div>
+</form>"#;
+
+    element.insert_adjacent_html("afterbegin", login)?;
 
         Ok(element)
     }
