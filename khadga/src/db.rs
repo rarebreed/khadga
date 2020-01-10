@@ -7,7 +7,8 @@ use log::error;
 use mongodb::Client;
 
 pub fn make_client() -> Client {
-    let client = Client::with_uri_str("mongodb://127.0.0.1").expect("Could not create  mongodb client");
+    let client =
+        Client::with_uri_str("mongodb://127.0.0.1").expect("Could not create  mongodb client");
     client
 }
 
