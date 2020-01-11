@@ -4,7 +4,7 @@ use super::{config::Settings,
             data::User};
 use bson::{doc,
            to_bson};
-use lazy_static::*;
+use lazy_static::{lazy_static};
 use log::error;
 use mongodb::{Client,
               Collection};

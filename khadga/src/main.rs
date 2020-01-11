@@ -22,6 +22,6 @@ fn app_config(config: &mut web::ServiceConfig) {
     config.service(
         web::scope("")
             .service(login)
-            .service(fs::Files::new("/", "../vision/dist").index_file("index.html")),
+            .service(fs::Files::new("/", "./dist").index_file("index.html")),
     );
 }
