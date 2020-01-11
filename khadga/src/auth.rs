@@ -39,8 +39,22 @@ pub struct LoginParams {
     psw: String,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct RegisterParams {
+    uname: String,
+    psw: String,
+    email: String,
+}
+
+pub async fn register(params: web::Form<RegisterParams>) -> actix_web::Result<HttpResponse> {
+    // TODO: Check that username is unique, and if so, store in database
+    Ok(HttpResponse::Ok().content_type("text/plain")
+                         .body(format!("Successfully registered {}", params.uname)))
+}
+
 #[post("/login")]
 pub async fn login(params: web::Form<LoginParams>) -> actix_web::Result<HttpResponse> {
+    // TODO: Check username and lookup in database.  Make sure password matches
     Ok(HttpResponse::Ok().content_type("text/plain")
                          .body(format!("Your name is {}", params.uname)))
 }

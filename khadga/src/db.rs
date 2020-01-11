@@ -1,20 +1,30 @@
 //! Contains the mongodb connection, collections, and other helpers
-//!
 
-use super::data::User;
-use bson::to_bson;
+use super::{config::Settings,
+            data::User};
+use bson::{doc,
+           to_bson};
+use lazy_static::*;
 use log::error;
-use mongodb::Client;
+use mongodb::{Client,
+              Collection};
+
+lazy_static! {
+    pub static ref CONFIG: Settings = { Settings::new().expect("Unable to get config settings") };
+}
 
 pub fn make_client() -> Client {
-    let client =
-        Client::with_uri_str("mongodb://127.0.0.1").expect("Could not create  mongodb client");
+    let mongo_host = format!("mongodb://{}", CONFIG.services.mongod.host);
+    let client = Client::with_uri_str(&mongo_host).expect("Could not create mongodb client");
     client
 }
 
-pub fn make_user(client: &Client, user: User, db: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn make_user(client: &Client,
+                 user: User,
+                 db: &str)
+                 -> Result<Collection, Box<dyn std::error::Error>> {
     let db = client.database(db);
-    let coll = db.collection("Users");
+    let coll = db.collection(&CONFIG.services.mongod.database);
     let doc = to_bson(&user)?;
 
     match doc {
@@ -24,12 +34,14 @@ pub fn make_user(client: &Client, user: User, db: &str) -> Result<(), Box<dyn st
         _ => error!("Could not serialize user into BSON document"),
     }
 
-    Ok(())
+    Ok(coll)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bson::{bson,
+               Bson};
 
     type TestResult = Result<(), Box<dyn std::error::Error>>;
 
@@ -44,13 +56,35 @@ mod tests {
         }
     }
 
+    /// FIXME: This function should be moved to an integration test
     #[test]
-    #[ignore]
     fn test_add_user() -> TestResult {
-        let user = User::new(String::from("Sean Toner"), "foo".into(), "blah".into());
+        let user = User::new("stoner".into(),
+                             "Sean".into(),
+                             "Toner".into(),
+                             "foo".into(),
+                             "blah@gmail.com".into());
         let client = make_client();
 
-        make_user(&client, user, "chats")?;
-        Ok(())
+        let coll = make_user(&client, user, "test")?;
+
+        // Find the user
+        let filter = doc! { "user_name": "stoner" };
+        let found = coll.find_one(filter, None);
+
+        match found {
+            Ok(Some(document)) => {
+                let fname = document.get("first_name")
+                                    .and_then(Bson::as_str)
+                                    .expect("Could not get first_name");
+                assert_eq!(fname, "Sean");
+                Ok(())
+            }
+            Ok(None) => {
+                assert!(false);
+                Ok(())
+            }
+            Err(e) => Err(Box::new(e)),
+        }
     }
 }

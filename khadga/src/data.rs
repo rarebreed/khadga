@@ -12,20 +12,24 @@ use std::fmt::{self,
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    name: String,
-    key: String,
+    user_name: String,
+    first_name: String,
+    last_name: String,
+    psw: String,
     email: String,
-    creation: String,
+    created: String,
     role: Role,
 }
 
 impl User {
-    pub fn new(name: String, key: String, email: String) -> Self {
-        let user_name = name.clone();
-        User { name,
-               key,
+    pub fn new(uname: String, fname: String, lname: String, psw: String, email: String) -> Self {
+        let user_name = uname.clone();
+        User { user_name: uname,
+               first_name: fname,
+               last_name: lname,
+               psw,
                email,
-               creation: String::from(""),
+               created: String::from(""),
                role: Role::User(user_name) }
     }
 }
