@@ -19,7 +19,8 @@ pub fn get_window() -> Window {
 #[wasm_bindgen]
 pub fn get_document() -> Document {
     let window = get_window();
-    window.document().expect("window should have a document object")
+    window.document()
+          .expect("window should have a document object")
 }
 
 #[wasm_bindgen]
@@ -135,16 +136,8 @@ pub fn main_nav() -> Result<Element, JsValue> {
 /// Login form for user to gain access to services
 pub struct Login {}
 
-#[wasm_bindgen]
-impl Login {
-    pub fn new() -> Result<Element, JsValue> {
-        let doc = get_document();
-        let element = doc.create_element("div")?;
-        element.set_attribute("id", "main-login")?;
-        element.set_attribute("class", "modal")?;
-
-        let login = r#"
-<form class="modal-content" action="/login" method="post">
+const LOGIN_CMPT: &str = r#"
+<form class="modal-content" action="/login" method="POST">
   <div class="imgcontainer">
     <span onclick="document.getElementById('main-login').style.display='none'" class="close" title="Close Modal">&times;</span>
     <!--img src="img_avatar2.png" alt="Avatar" class="avatar"-->
@@ -158,9 +151,9 @@ impl Login {
     <input type="password" placeholder="Enter Password" name="psw" required>
     
     <button type="submit">Login</button>
-    <label>
+    <!--label>
     <input type="checkbox" checked="checked" name="remember"> Remember me
-    </label>
+    </label-->
   </div>
 
   <div class="container" style="background-color:#f1f1f1">
@@ -169,7 +162,14 @@ impl Login {
  </div>
 </form>"#;
 
-    element.insert_adjacent_html("afterbegin", login)?;
+#[wasm_bindgen]
+impl Login {
+    pub fn new() -> Result<Element, JsValue> {
+        let doc = get_document();
+        let element = doc.create_element("div")?;
+        element.set_attribute("id", "main-login")?;
+        element.set_attribute("class", "modal")?;
+        element.insert_adjacent_html("afterbegin", LOGIN_CMPT)?;
 
         Ok(element)
     }

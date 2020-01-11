@@ -1,5 +1,6 @@
 pub mod components;
-use components::{MainNav, Login};
+use components::{Login,
+                 MainNav};
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global

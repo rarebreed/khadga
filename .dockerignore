@@ -1,0 +1,6 @@
+**/node_modules
+*/target
+!*/target/debug/khadga
+*/vision
+!*/vision/dist
+.git
