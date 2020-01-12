@@ -9,7 +9,7 @@ RUN apt update \
 
 # Copy the dist that was generated from wasm-pack and webpack to our working dir
 # then, copy the executable to the vision directory.  This is because the binary
-# is serving files from ../vision/dist
+# is serving files from ./dist
 WORKDIR /apps/vision
 COPY vision/dist ./dist
 COPY target/debug/khadga .

@@ -1,8 +1,12 @@
+# TODO: convert this to a build.rs "script"
+cargo +nightly fmt
+
 cd vision
 npm run build
 
 cd ../khadga
 cargo build
+cargo test
 
 cd ..
-docker build 
+sudo docker build -t stoner/khadga:latest .

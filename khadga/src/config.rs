@@ -27,8 +27,41 @@ pub struct Services {
 }
 
 #[derive(Deserialize, Serialize)]
+pub enum LogLevels {
+    Trace,
+    Debug,
+    Warn,
+    Info,
+    Error,
+}
+
+impl LogLevels {
+    pub fn repr(&self) -> &'static str {
+        match self {
+            LogLevels::Trace => "trace",
+            LogLevels::Debug => "debug",
+            LogLevels::Warn => "warn",
+            LogLevels::Info => "info",
+            LogLevels::Error => "error",
+        }
+    }
+}
+
+impl fmt::Display for LogLevels {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "level: {}", self.repr())
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct LogCfg {
+    pub level: LogLevels,
+}
+
+#[derive(Deserialize, Serialize)]
 pub struct Settings {
     pub services: Services,
+    pub logging: LogCfg,
 }
 
 impl fmt::Display for MongoCfg {
@@ -53,8 +86,8 @@ impl fmt::Display for KhadgaCfg {
 impl fmt::Display for Settings {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "mongo:---\n{}\nkhadga:---\n{}",
-               self.services.mongod, self.services.khadga)
+               "mongo:---\n{}\nkhadga:---\n{}\nlogging:---\n{}",
+               self.services.mongod, self.services.khadga, self.logging.level)
     }
 }
 
@@ -76,9 +109,11 @@ mod tests {
         let settings = Settings::new()?;
         println!("{}", settings);
 
-        assert_eq!("127.0.0.1", settings.services.khadga.host);
+        assert_eq!("0.0.0.0", settings.services.khadga.host);
         assert_eq!("7001", settings.services.khadga.port);
         assert_eq!("127.0.0.1", settings.services.mongod.host);
+        assert_eq!("debug", settings.logging.level.repr());
+
         Ok(())
     }
 }
