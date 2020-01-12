@@ -4,7 +4,9 @@ use super::{config::Settings,
             data::User};
 use bson::{bson,
            doc,
-           to_bson};
+           from_bson,
+           to_bson,
+           Bson};
 use lazy_static::lazy_static;
 use log::error;
 use mongodb::{Client,
@@ -36,7 +38,7 @@ pub fn make_user(client: &Client,
     let doc = to_bson(&user)?;
 
     match doc {
-        bson::Bson::Document(bdoc) => {
+        Bson::Document(bdoc) => {
             coll.insert_one(bdoc, None)?;
         }
         _ => error!("Could not serialize user into BSON document"),
@@ -63,22 +65,26 @@ pub fn delete_user(client: &Client,
     }
 }
 
-pub fn find_user(dbname: &str, user: &str) -> Result<Collection, mongodb::error::Error> {
+pub fn find_user(dbname: &str,
+                 user: &str)
+                 -> Result<(Collection, Vec<User>), mongodb::error::Error> {
     let coll = get_collection(dbname, &CONFIG.services.mongod.database);
-    let cursor = coll.find(doc! {
-        "user_name": user
-    }, None)?;
+    let cursor = coll.find(doc! {"user_name": user }, None)?;
 
+    let mut users: Vec<User> = vec![];
     for result in cursor {
         match result {
-            Ok(document) => println!("{}", document),
-            Err(e) => return Err(e)
+            Ok(document) => {
+                println!("{}", document);
+                let user_ = from_bson::<User>(Bson::Document(document))?;
+                users.push(user_);
+            }
+            Err(e) => return Err(e),
         }
     }
 
-    Ok(coll)
+    Ok((coll, users))
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -87,12 +93,17 @@ mod tests {
                Bson};
 
     const TEST_DB: &str = "test";
+    const TEST_USER: &str = "test_user";
 
     type TestResult = Result<(), Box<dyn std::error::Error>>;
 
     #[test]
-    fn test_find_user() {
-        let result = find_user(TEST_DB, "stoner");
+    fn test_find_user() -> TestResult {
+        let (_, users) = find_user(TEST_DB, TEST_USER)?;
+        assert_eq!(1, users.len());
+        println!("{:#?}", users);
+
+        Ok(())
     }
 
     #[test]

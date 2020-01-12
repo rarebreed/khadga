@@ -54,7 +54,7 @@ pub async fn register(params: web::Form<RegisterParams>) -> actix_web::Result<Ht
 
 #[post("/login")]
 pub async fn login(params: web::Form<LoginParams>) -> actix_web::Result<HttpResponse> {
+    println!("username is {}", params.uname);
     // TODO: Check username and lookup in database.  Make sure password matches
-    Ok(HttpResponse::Ok().content_type("text/plain")
-                         .body(format!("Your name is {}", params.uname)))
+    Ok(HttpResponse::Ok().finish())
 }

@@ -56,4 +56,23 @@ and start khadga (the backend part).
 Do the following:
 
 - cd khadga
-- 
+- cargo build
+
+## Testing
+
+Simply run `cargo test` as usual
+
+## Docker build
+
+Although rust builds binaries, the server uses some files for configuration, not to mention the static files
+for the html, js, and wasm code.  So, we will package everything up in a docker container.  While not strictly
+necessary, it wouldn't be difficult to create a tarball of the vision/dist folder and the khadga binary, doing
+it with a docker container does make a CI environment easier.
+
+Plus, through docker compose we can set up the mongodb database dependency.  To facilitate this, there is a 
+dockerfile that will generate the khadga backend server, and a docker-compose that will handle combining the
+khadga backend with mongodb.
+
+### Building through docker
+
+There is a build.sh script will set everything up

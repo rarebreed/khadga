@@ -10,7 +10,7 @@ use std::fmt::{self,
                Display,
                Formatter};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     user_name: String,
     first_name: String,
@@ -34,7 +34,7 @@ impl User {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) enum Role {
     User(String),
     Admin,

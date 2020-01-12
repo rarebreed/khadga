@@ -12,6 +12,7 @@ RUN apt update \
 # is serving files from ./dist
 WORKDIR /apps/vision
 COPY vision/dist ./dist
+COPY khadga/config ./config
 COPY target/debug/khadga .
 
 CMD [ "./khadga" ]
