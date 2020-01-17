@@ -1,7 +1,7 @@
 # Setup
 
-Now that you know what you will be building, let's get started setting up all the development dependencies.  You'll
-need to have rust and npm set up as well as a few cargo tools
+Now that you know what you will be building, let's get started setting up all the development
+dependencies.  You'll need to have rust and npm set up as well as a few cargo tools
 
 - rustup
 - npm (recommend using nvm)
@@ -12,22 +12,17 @@ You can also checkout the github repository of khadga itself
 
 ## Installing rustup
 
-If you haven't already, install [rustup][-install-rustup] by following the directions.  If you already have rustup
-installed, make sure it's at the latest and greatest (at the time of writing, this is 1.38).  To update your rustup, do
+If you haven't already, install [rustup][-install-rustup] by following the directions.  If you
+already have rustup installed, make sure it's at the latest and greatest (at the time of writing,
+this is 1.38).  To update your rustup, do
 
 ```bash
 rustup self update
 rustup update
 ```
 
-Once rustup is installed, we need to set the default toolchain to beta.  
-
-```bash
-rustup default beta
-```
-
-This will download the beta toolchain and set it as your default toolchain.  Next, you need to set up the wasm32 target
-so that rustc can compile to the wasm32-unknown-unknown target triple
+Next, you need to set up the wasm32 target so that rustc can compile to the wasm32-unknown-unknown
+target triple
 
 ```bash
 rustup target add wasm32-unknown-unknown
@@ -43,8 +38,9 @@ rustup component add llvm-tools-preview rustfmt clippy rls rust-analysis
 
 ### C(++) toolchain
 
-Some rust crates have native dependencies.  For example the openssl crate will use and link to a native ssl lib on your
-system.  Because of this, it's sometimes necessary to have a C(++) toolchain on your system as well.
+Some rust crates have native dependencies.  For example the openssl crate will use and link to a
+native ssl lib on your system.  Because of this, it's sometimes necessary to have a C(++) toolchain
+on your system as well.
 
 ## Adding cargo tools
 
@@ -54,16 +50,18 @@ Although cargo is automatically installed by rustup, we are going to install som
 cargo install cargo-generate cargo-edit
 ```
 
-cargo-generate is a tool that will auto generate a template for you (and is used by wasm-pack) and cargo-edit is a nice
-little cargo command that lets you add a dependency to your Cargo.toml (think npm install).
+cargo-generate is a tool that will auto generate a template for you (and is used by wasm-pack) and
+cargo-edit is a nice little cargo command that lets you add a dependency to your Cargo.toml (think
+npm install).
 
 ## Setting up vscode
 
-We'll be using the Microsoft VS Code editor, since it has good support for rust and is relatively lightweight.  Because
-we are using some bleeding edge crates, we'll also have to specify some additional configuration in the rust extension.
+We'll be using the Microsoft VS Code editor, since it has good support for rust and is relatively
+lightweight.  Because we are using some bleeding edge crates, we'll also have to specify some
+additional configuration in the rust extension.
 
-First, install [vs code][-vscode-install] itself.  Once you have code installed, we need to install the rust extension.
-You can either do this from the command line, or through VS Code itself.
+First, install [vs code][-vscode-install] itself.  Once you have code installed, we need to install
+the rust extension. You can either do this from the command line, or through VS Code itself.
 
 ```
 code --install-extension rust-lang.rust
@@ -83,18 +81,20 @@ code --install-extension serayuzgur.crates
 
 ### Editing the rust extension
 
-Once you have the above installed, you will want to configure a few things in the rust extension.  Since we will be
-using some alpha quality crates (but still compileable from the beta toolchain), to avoid having rls complaining about
-your project, we need to blacklist these crates.  We also want to tell the extension to use the beta channel.
+Once you have the above installed, you will want to configure a few things in the rust extension.
+Since we will be using some alpha quality crates (but still compileable from the beta toolchain), to
+avoid having rls complaining about your project, we need to blacklist these crates.  We also want to
+tell the extension to use the beta channel.
 
-To set the beta channel, first open the command pallette with `Ctrl+,`.  In the search field, you can type rust.  On the
-left side, click on the `rust` menu item.  The first item you will see says `Rust-client: Channel`.  Set the drop down
-there to `beta`.
+To set the beta channel, first open the command pallette with `Ctrl+,`.  In the search field, you
+can type rust.  On the left side, click on the `rust` menu item.  The first item you will see says
+`Rust-client: Channel`.  Set the drop down there to `beta`.
 
-To blacklist the crates, keep scrolling down until you see `Rust: Crate_blacklist`.  Click the "Edit in settings.json"
-link.  This will open up your settings.json file for your user.  In the json, you can add a new key called
-"rust.create_blacklist".  As you type, you should see the intellisense give you the option.  Select it, and it will
-automatically generate a couple of defaults for you.  You will need to add 2 crates to this list: hyper and tokio.
+To blacklist the crates, keep scrolling down until you see `Rust: Crate_blacklist`.  Click the "Edit
+in settings.json" link.  This will open up your settings.json file for your user.  In the json, you
+can add a new key called "rust.create_blacklist".  As you type, you should see the intellisense give
+you the option.  Select it, and it will automatically generate a couple of defaults for you.  You
+will need to add 2 crates to this list: hyper and tokio.
 
 ```json
 {
@@ -120,14 +120,14 @@ automatically generate a couple of defaults for you.  You will need to add 2 cra
 
 ## Install npm (and nvm)
 
-Since we are building a front end web app, we will be making use of some npm tools.  It's highly recommended that you 
-use the Node Version Manager (nvm) for this if you are on linux or MacOS.  For windows users, you'll probably need to 
-use chocolatey to install node (and npm).
+Since we are building a front end web app, we will be making use of some npm tools.  It's highly
+recommended that you use the Node Version Manager (nvm) for this if you are on linux or MacOS.  For
+windows users, you'll probably need to use chocolatey to install node (and npm).
 
 ### linux and macos
 
-For linux and macos users, you can follow the directions here to install nvm.  Once you install nvm, you'll need to
-actually install a node version.
+For linux and macos users, you can follow the directions here to install nvm.  Once you install nvm,
+you'll need to actually install a node version.
 
 ```bash
 nvm install 12
@@ -136,8 +136,8 @@ nvm use 12
 
 ### Windows
 
-For windows users, if you don't have chocolatey already, install that.  Then you can install node (and therefore npm)
-with:
+For windows users, if you don't have chocolatey already, install that.  Then you can install node
+(and therefore npm) with:
 
 ```bash
 choco install nodejs  # make sure you run from an elevated command shell
@@ -145,8 +145,8 @@ choco install nodejs  # make sure you run from an elevated command shell
 
 ## Installing wasm-pack
 
-For this project, we will be using wasm-pack which will generate a template for us, as well as set up a webpack config
-which will automatically compile our rust code to wasm.
+For this project, we will be using wasm-pack which will generate a template for us, as well as set
+up a webpack config which will automatically compile our rust code to wasm.
 
 You can install [wasm-pack][-wasm-pack] here.
 

@@ -136,6 +136,10 @@ pub fn main_nav() -> Result<Element, JsValue> {
 /// Login form for user to gain access to services
 pub struct Login {}
 
+/// TODO:  Make this generated from rust via wasm-bindgen.  Also, instead of using <form>
+/// we will just have a button that will call a function.  This function will take the 
+/// values stored in the fields and make a call to /action.
+/// This way we dont have to send back a new DOM from the khadga server
 const LOGIN_CMPT: &str = r#"
 <form class="modal-content" action="/login" method="POST">
   <div class="imgcontainer">
@@ -171,6 +175,9 @@ impl Login {
         element.set_attribute("class", "modal")?;
         element.insert_adjacent_html("afterbegin", LOGIN_CMPT)?;
 
+        let el = doc.create_element("div")?
+                    .set_attribute("class", "container")?;
+        
         Ok(element)
     }
 }
