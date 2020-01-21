@@ -5,13 +5,12 @@ authors = ["stoner"]
 edition = "2018"
 
 [dependencies]
-actix-web = "2.0.0"
-actix-files = "0.2.1"
-actix-rt = "1.0.0"
+warp = "0.2.0"
 log = "0.4.8"
 env_logger = "0.7.1"
 mongodb = "0.9.0"
 serde = { version = "1.0.104", features = ["derive"] }
+tokio = { version = "0.2", features = ["macros"] }
 bson = "0.14.0"
 config = "0.10.1"
 lazy_static = "1.4.0"

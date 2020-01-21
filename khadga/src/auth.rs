@@ -27,34 +27,26 @@
 //! Once authenticated, a JWT will be created.  This token will expire in 15 minutes.  All requests
 //! from the agent (the user is using) will pass this JWT token around.
 
-use actix_web::{post,
-                web,
-                HttpResponse};
 use serde::{Deserialize,
             Serialize};
+use warp::Filter;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct LoginParams {
     uname: String,
     psw: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct RegisterParams {
     uname: String,
     psw: String,
     email: String,
 }
 
-pub async fn register(params: web::Form<RegisterParams>) -> actix_web::Result<HttpResponse> {
-    // TODO: Check that username is unique, and if so, store in database
-    Ok(HttpResponse::Ok().content_type("text/plain")
-                         .body(format!("Successfully registered {}", params.uname)))
-}
-
-#[post("/login")]
-pub async fn login(params: web::Form<LoginParams>) -> actix_web::Result<HttpResponse> {
-    println!("username is {}", params.uname);
-    // TODO: Check username and lookup in database.  Make sure password matches
-    Ok(HttpResponse::Ok().finish())
+pub async fn register() -> impl Filter {
+    let route = warp::post().and(warp::path("register"))
+                            .and(warp::body::json())
+                            .map(|reg_params: RegisterParams| println!("{:#?}", reg_params));
+    route
 }

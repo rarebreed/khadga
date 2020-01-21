@@ -109,27 +109,27 @@ pub fn main_nav() -> Result<Element, JsValue> {
 
     // Add the other elements to the <nav>
     nav.insert_adjacent_html(
-                             "afterbegin",
-                             r#"
-        <ul class="main-nav__items">
-          <li class="main-nav__item">
-            <button onclick="document.getElementById('main-login').style.display='block'">
-              Login
-            </button>
-          </li>
-          <li class="main-nav__item">Video Chat</li>
-          <li class="main-nav__item">Blog</li>
-          <li class="main-nav__item">Collaborative Documents</li>
-        </ul>
-    "#,
-    )?;
-    shadow_root.append_child(&nav)?;
+      "afterbegin",
+      r#"
+<ul class="main-nav__items">
+<li class="main-nav__item">
+<button onclick="document.getElementById('main-login').style.display='block'">
+Login
+</button>
+</li>
+<li class="main-nav__item">Video Chat</li>
+<li class="main-nav__item">Blog</li>
+<li class="main-nav__item">Collaborative Documents</li>
+</ul>
+"#,
+)?;
+shadow_root.append_child(&nav)?;
 
-    // Add shadow CSS
-    let link = create_shadow_css_link("shadow.css")?;
-    nav.append_child(&link)?;
+// Add shadow CSS
+let link = create_shadow_css_link("shadow.css")?;
+nav.append_child(&link)?;
 
-    Ok(element)
+Ok(element)
 }
 
 #[wasm_bindgen]
@@ -159,7 +159,7 @@ const LOGIN_CMPT: &str = r#"
   <div class="container" style="background-color:#f1f1f1">
     <button type="button" onclick="document.getElementById('main-login').style.display='none'" class="cancelbtn">Cancel</button>
     <span class="psw">Forgot <a href="{}">password?</a></span>
- </div>
+  </div>
 </form>"#;
 
 #[wasm_bindgen]
