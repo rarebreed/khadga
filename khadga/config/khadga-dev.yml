@@ -1,0 +1,9 @@
+services:
+  mongod: 
+    host: 127.0.0.1
+    database: users
+  khadga:
+    host: 127.0.0.1
+    port: 7001
+logging:
+  level: Debug

@@ -96,6 +96,15 @@ impl Settings {
         let mut config = Config::default();
         config.merge(File::with_name("config/dev.yml"))?;
 
+        match std::env::var("KHADGA_DEV") {
+            Ok(val) => {
+                if val == "true" || val == "TRUE" || val == "True" {
+                    config.merge(File::with_name("config/khadga-dev.yml"))?;
+                }
+            },
+            _ => {}
+        }
+
         config.try_into()
     }
 }

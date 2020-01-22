@@ -33,9 +33,12 @@ async fn main() {
     // from.  In this case, if we run `cargo run`, this path will work.  However, if we run like
     // `./target/debug/khadga`  it will not.  But, if we cd to target, then run `./debug/khadga`
     // it will work.  This is confusing, and something to keep in mind.
-    let start = warp::path("start").and(warp::fs::dir("./dist"));
+    let start = warp::fs::dir("../vision/dist");
 
-    let app = login.or(start);
+    let log = warp::log("khadga");
+    let app = login
+        .or(start)
+        .with(log);
 
     let host: SocketAddr = khadga_addr.parse()
                                       .expect(&format!("Could not parse {}", khadga_addr));
