@@ -1,5 +1,5 @@
 [package]
-name = "vision"
+name = "noesis"
 description = "Web Collaboration tool written in Rust, WebAssembly, and Webpack!"
 version = "0.1.0"
 authors = ["Sean Toner <placeoftheway@gmail.com"]

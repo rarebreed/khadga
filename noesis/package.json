@@ -1,6 +1,6 @@
 {
   "author": "Sean Toner <placeoftheway@gmail.com>",
-  "name": "vision",
+  "name": "noesis",
   "version": "0.1.0",
   "scripts": {
     "build": "rimraf dist pkg && webpack",
