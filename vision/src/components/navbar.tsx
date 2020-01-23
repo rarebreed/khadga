@@ -1,5 +1,6 @@
 import * as React from "react";
 import * as ReactDom from "react-dom";
+import { Login } from "./containers";
 
 interface INavBarItemProps {
   item: string
@@ -31,6 +32,19 @@ class NavBarLink extends React.Component<INavBarLinkProps> {
 
 
 export class NavBar extends React.Component {
+  signUpHandler = (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    console.log(evt);
+
+    // TODO: Toggle the Modal is-active
+    let element = document.querySelector("#login");
+    if (!element) {
+      console.error("Could not find element");
+      return;
+    }
+
+    // TODO:  Need to use redux here and set the state of the Login modal's classname
+  }
+
   render() {
     return (
       <nav className="navbar" role="navigation" aria-label="main navigation">
@@ -66,7 +80,7 @@ export class NavBar extends React.Component {
           <div className="navbar-end">
             <div className="navbar-item">
               <div className="buttons">
-                <a className="button is-primary">
+                <a className="button is-primary" onClick={ this.signUpHandler }>
                   <strong>Sign up</strong>
                 </a>
                 <a className="button is-light">
@@ -75,6 +89,8 @@ export class NavBar extends React.Component {
               </div>
             </div>
           </div>
+
+          <Login id="login"/>
         </div>
       </nav>
     )

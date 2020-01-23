@@ -1,30 +1,51 @@
 # What is khadga?
 
-khadga is a collaboration and creativity tool.  As an MVP it will focus on the following:
+khadga is a tool to experiment with NLP and computer vision.  It offers a chat message based service
+(think slack, gitter, discord, etc) along with a video cam interface.  The purpose of this is to
+get data for both training and eventually for model prediction.
 
-- WebRTC to do cam to cam video chats
-- Chatroom to allow connected peers to communicate
-- Text classification for chats
-- Video image recognition (facial recognition)
+The second part of khadga is to do real-time analytics on the data that is coming in.  There are
+two primary
 
-To implement this, there are 3 main components:
+- NLP to do text classification or semantic analysis
+- Video image recognition and object tracking (facial recognition)
+
+## Components
+
+To implement this, there are 4 main components:
 
 - A backend, comprised of a rust warp server that handles the connection for WebRTC and websockets
-- A frontend, which is a webassembly based SPA that will contain the UI for the session
+- A frontend, which is a react based SPA that will contain the UI for the session
 - A mongodb database to store chats, documents and (public) keys
-- tensorflow for modeling and training
+- A webassembly library to assist tensorflow using wasm-bindgen
 
-## Backend
+### Backend
 
-The backend is a rust server written in warp.  Since async-await is still very new, this is all
-very beta.  Because async-await is so new,  the warp  framework just added  async-await in their master 
-branch.
+The backend is a rust server written in warp.  It will support websockets for several purposes:
 
-## Frontend
+- real time chat messages
+- WebRTC for video streams
+- mqtt (over websockets) so that IoT devices can pub-sub
 
-The front end is rust that compiles down to webassembly via the wasm-pack tool.  It does not make
-use of a virtual DOM, since the current projects that can do thit have aVDOM still require a nightly
-rust toolchain.
+The initial focus will be on websockets for chatting, and WebRTC.  In the future, khadga can act as
+another mqtt client that IoT devices can send data to.
+
+### Frontend
+
+The front is a react + typescript based project that will act as the primary means for a human agent
+to interact with.
+
+### mongodb
+
+Mongodb will be used to store data for scenarios where we need to persist data as not all data might
+be consumed and used in real time.
+
+It will also be used for things like user accounts and logins.
+
+### Webassembly library
+
+This library (called noesis) will help with some heavy lifting and data crunching.  The ultimate goal
+will be to port tensorflow to wasm, but this will take time.
 
 ## Building
 
@@ -39,16 +60,15 @@ Do the following:
 - cd vision
 - npm run build
 
-This will run the npm script which in turn calls webpack, which in turn calls the WasmPAck plugin. As you
-can see, we aren't calling `cargo` directly.  However it does get called indirectly.
+This will run the npm script which in turn calls parcel, which in turn generates the bundle for us. 
 
 To test the code, you can run:
 
 ```
-npm start
+npm run serve
 ```
 
-This will invoke a webpack dev server to host the generated front end code.  Alternatively, you can build
+This will invoke a dev server from parcel to host the generated front end code.  Alternatively, you can build
 and start khadga (the backend part).
 
 ### Building khadga (the backend)
@@ -58,7 +78,13 @@ Do the following:
 - cd khadga
 - cargo build
 
-## Testing
+### Building noesis
+
+This project uses wasm-pack, so we will use it to build the library.
+
+
+
+## Testing khadga
 
 Simply run `cargo test` as usual
 
