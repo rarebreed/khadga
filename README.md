@@ -1,5 +1,7 @@
 # What is khadga?
 
+Also, [read the book][-book] [In Progress!]
+
 khadga is a tool to experiment with NLP and computer vision.  It offers a chat message based service
 (think slack, gitter, discord, etc) along with a video cam interface.  The purpose of this is to
 get data for both training and eventually for model prediction.
@@ -102,3 +104,5 @@ khadga backend with mongodb.
 ### Building through docker
 
 There is a build.sh script will set everything up
+
+[-book]: https://rarebreed.github.io/khadga/
