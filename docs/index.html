@@ -1,0 +1,309 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Introduction - Learn how to create a web app with rust and webassembly</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="chapter_1.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="chapter2/chapter_2.html"><strong aria-hidden="true">2.</strong> Setup</a></li><li><ol class="section"><li class="expanded "><a href="chapter2/chapter_2_1.html"><strong aria-hidden="true">2.1.</strong> Setting up the Project</a></li></ol></li><li class="expanded "><a href="chapter_3.html"><strong aria-hidden="true">3.</strong> Frontend Navbar</a></li><li><ol class="section"><li class="expanded "><a href="chapter3/chapter_3_1.html"><strong aria-hidden="true">3.1.</strong> React and State management</a></li><li class="expanded "><a href="chapter3/chapter_3_2.html"><strong aria-hidden="true">3.2.</strong> Navbar component</a></li><li class="expanded "><a href="chapter3/chapter_3_3.html"><strong aria-hidden="true">3.3.</strong> Login component</a></li><li class="expanded "><a href="chapter3/chapter_3_4.html"><strong aria-hidden="true">3.4.</strong> Registration component</a></li></ol></li><li class="expanded "><a href="chapter4/chapter_4.html"><strong aria-hidden="true">4.</strong> Mongo Database</a></li><li><ol class="section"><li class="expanded "><a href="chapter4/chapter_4_1.html"><strong aria-hidden="true">4.1.</strong> Using docker</a></li><li class="expanded "><a href="chapter4/chapter_4_2_md.html"><strong aria-hidden="true">4.2.</strong> Docker copose</a></li><li class="expanded "><a href="chapter4/chapter_4_3.html"><strong aria-hidden="true">4.3.</strong> Schemas</a></li><li class="expanded "><a href="chapter4/chapter_4_4.html"><strong aria-hidden="true">4.4.</strong> Mongodb driver</a></li></ol></li><li class="expanded "><a href="chapter_5.html"><strong aria-hidden="true">5.</strong> Security</a></li><li><ol class="section"><li class="expanded "><a href="chapter5/chapter_5_1.html"><strong aria-hidden="true">5.1.</strong> Registering a user</a></li><li class="expanded "><a href="chapter5/chapter_5_2.html"><strong aria-hidden="true">5.2.</strong> TLS Certs</a></li><li class="expanded "><a href="chapter5/chapter_5_3.html"><strong aria-hidden="true">5.3.</strong> HTTPS in warp</a></li><li class="expanded "><a href="chapter5/chapter_5_4.html"><strong aria-hidden="true">5.4.</strong> Authentication</a></li><li class="expanded "><a href="chapter5/chapter_5_5.html"><strong aria-hidden="true">5.5.</strong> Authorization and JWTs</a></li></ol></li><li class="expanded "><a href="chapter_6.html"><strong aria-hidden="true">6.</strong> Backend Server</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Learn how to create a web app with rust and webassembly</h1>
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#introduction-to-khadga" id="introduction-to-khadga">Introduction to khadga</a></h1>
+<p>This book is a small guide on how to create a web application using react, typescript, and
+webassembly generated from rust.  It will take you from knowing nothing about how to create wasm to
+how to generate both the front and back end code for your app.</p>
+<p>The application that is generated here is a small chat application that will set up WebSocket
+connections between two or more clients and the central web server.</p>
+<p>If you're wondering where the name khadga comes from, it's a Sanskrit word meaning sword.  It is
+often referred to in spiritual or mystical concepts as the sword that cuts away illusion.</p>
+<h2><a class="header" href="#what-you-will-learn" id="what-you-will-learn">What you will learn</a></h2>
+<p>This guide will walk you through everything required to develop, test and deploy both the front and
+backend application. This includes:</p>
+<ul>
+<li>How to write an asynchronous web server using rust's warp framework</li>
+<li>How to use wasm-bindgen, web-sys and js-sys crates to create a wasm npm module</li>
+<li>How to serve your single page app from the async web server</li>
+<li>How to deploy your app to Openshift Online using docker and source-2-image</li>
+<li>How to set up unit and integration tests for the front and back end</li>
+<li>How to set up a CI pipeline between your deployment and your tests</li>
+</ul>
+<h3><a class="header" href="#what-the-app-does" id="what-the-app-does">What the app does</a></h3>
+<p>We will build the functionality of the app slowly in order to make it useful early on, but to build
+up functionality as we go.</p>
+<ul>
+<li>Chat application</li>
+<li>WebRTC for cam-to-cam video conferencing</li>
+<li>Video recognition</li>
+</ul>
+<p>First, we will start with a relatively simple chat application.  It will also cover things like
+setting up a database of users and saved chat history.  It will also showcase how to do user
+authentication and authorization.</p>
+<p>Second, we will enhance the app so that it will do video as well as text based chatting.  In this
+step, we will add a signaling service to the bacnd, so peers can find one another.  Chats can either
+be saved locally or stored on the discovery server. This step will also show how to encrypt the
+streams for end to end encryption.</p>
+<p>Lastly, we will build on the video streams enabled by the WebRTC to do image recognition.  We will
+use this as a project to detect faces that are displayed and see if it is a known user.</p>
+<h2><a class="header" href="#prerequisites" id="prerequisites">Prerequisites</a></h2>
+<p>This chapter will cover how to scaffold and generate the initial wasm-pack code as well as a basic
+asynchronous web server but it assumed that the reader is already familiar with:</p>
+<ul>
+<li>basic rust</li>
+<li>basic html</li>
+<li>basic css</li>
+<li>basics of docker</li>
+</ul>
+<p>The reader's rust skills should be at a basic level.  One of the goals of the book is to explain
+some of the more tricky rust concepts (or at least tricky to the author).  A basic understanding of
+rust ownership and lifetimes, and how closures work will be required.  Understanding how Traits
+work, especially AsRef and From/Into will also be useful. The async/await portions will be described
+in detail however.</p>
+<p>The reader should have a basic level of HTML5 understanding.  This includes knowing what the DOM is
+and the basics of common tags.  Most of the front end will be calling the web-sys bindings to the
+Web APIs, so it is useful but not required to know javascript.  Because we are creating a single
+page app, knowledge of CSS will be useful, as the book will not spend a lot of time explaining much
+of the CSS content.</p>
+<p>For deployment, we will be using Openshift Online.  There is a free tier available and you can use
+this to deploy the application.  In order to get the server to the cloud, we will need to create a
+container and therefore a docker image. This will not be advanced, but there will not be a lot of
+explanation of what the docker file does.</p>
+<h2><a class="header" href="#caveats" id="caveats">Caveats</a></h2>
+<p>The biggest caveat is the author is new to this himself.  The decision to write the book was to help
+others so they do not have to learn the hard way like the author did.  Also, the author is at a
+basic to intermediate level understanding of rust.  There could very well be a better way to write
+the code and if so, please make a PR and contribute!</p>
+<p>The second caveat was that this project made an opinionated stance on the technology used.  First
+and foremost was the desire to use the new async/await syntax.  This lead to several <em>problems</em>.
+For example, since async/await is still new, documentation is scarce.</p>
+<h3><a class="header" href="#why-not-yew" id="why-not-yew">Why not yew?</a></h3>
+<p>Seasoned developers might ask why <a href="https://github.com/yewstack/yew">yew</a> was not used for this project.  The simple answer here
+is that there was a desire to use wasm-bindgen, web-sys and js-sys crates to create the app.</p>
+<p>The author has no working knowledge of yew, and it was considered initially.  Afterall, it seems to
+tick off a lot of the right boxes:</p>
+<ul>
+<li>Built in virtual DOM</li>
+<li>Macros to generate JSX like code</li>
+<li>Concurrency</li>
+<li>Safe state management</li>
+</ul>
+<p>However, yew is built on a crate called stdweb instead of wasm-bindgen, web-sys and js-sys.  The
+main difference is that those libraries are created and maintained by the official Web Assembly
+Working Group.  It will therefore be more up to date and have &quot;official&quot; support.  It was also
+designed to be language agnostic and the bindings are auto-generated from the WebIDL schema.</p>
+<h3><a class="header" href="#why-not-percy" id="why-not-percy">Why not percy?</a></h3>
+<p>There is another framework that looked promising called <a href="https://github.com/chinedufn/percy">percy</a>.  It also has a virtual DOM
+and macro generator to create some JSX-like code. Unlike yew, it is using wasm-bindgen and web-sys
+and js-sys crates. The problem with percy is that because of some of the macros, it required a
+nightly toolchain.</p>
+<p>Although nightly is great for individual learning and experimentation, it's not the best for
+teaching others.  The brittleness of nightly means that what may compile one day for one person may
+not compile for another person (or the same person!) on another day.  It can also be hard sometimes
+to find a nightly build that allows all dependency crates to be built successfully.</p>
+<h3><a class="header" href="#why-not-seed" id="why-not-seed">Why not seed?</a></h3>
+<p>I discovered <a href="https://seed-rs.org/">seed</a> very recently, and while it seems to fit the bill for writing the entire
+application in rust, upon some consideration, I felt that it would be more beneficial to write the
+front end in react and typescript, and use wasm only for speed (or safety) sensitive areas of the
+code.</p>
+<p>This also has the advantage of being able to slowly convert existing applications to use wasm,
+rather than have an all-in-one greenfield project created from scratch.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+                            <a rel="next" href="chapter2/chapter_2.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+                    <a href="chapter2/chapter_2.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

@@ -43,6 +43,7 @@ export class NavBar extends React.Component {
     }
 
     // TODO:  Need to use redux here and set the state of the Login modal's classname
+    // or maybe use a Ref
   }
 
   render() {

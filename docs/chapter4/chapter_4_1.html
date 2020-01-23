@@ -1,0 +1,320 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Using docker - Learn how to create a web app with rust and webassembly</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="../chapter_1.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="../chapter2/chapter_2.html"><strong aria-hidden="true">2.</strong> Setup</a></li><li><ol class="section"><li class="expanded "><a href="../chapter2/chapter_2_1.html"><strong aria-hidden="true">2.1.</strong> Setting up the Project</a></li></ol></li><li class="expanded "><a href="../chapter_3.html"><strong aria-hidden="true">3.</strong> Frontend Navbar</a></li><li><ol class="section"><li class="expanded "><a href="../chapter3/chapter_3_1.html"><strong aria-hidden="true">3.1.</strong> React and State management</a></li><li class="expanded "><a href="../chapter3/chapter_3_2.html"><strong aria-hidden="true">3.2.</strong> Navbar component</a></li><li class="expanded "><a href="../chapter3/chapter_3_3.html"><strong aria-hidden="true">3.3.</strong> Login component</a></li><li class="expanded "><a href="../chapter3/chapter_3_4.html"><strong aria-hidden="true">3.4.</strong> Registration component</a></li></ol></li><li class="expanded "><a href="../chapter4/chapter_4.html"><strong aria-hidden="true">4.</strong> Mongo Database</a></li><li><ol class="section"><li class="expanded "><a href="../chapter4/chapter_4_1.html" class="active"><strong aria-hidden="true">4.1.</strong> Using docker</a></li><li class="expanded "><a href="../chapter4/chapter_4_2_md.html"><strong aria-hidden="true">4.2.</strong> Docker copose</a></li><li class="expanded "><a href="../chapter4/chapter_4_3.html"><strong aria-hidden="true">4.3.</strong> Schemas</a></li><li class="expanded "><a href="../chapter4/chapter_4_4.html"><strong aria-hidden="true">4.4.</strong> Mongodb driver</a></li></ol></li><li class="expanded "><a href="../chapter_5.html"><strong aria-hidden="true">5.</strong> Security</a></li><li><ol class="section"><li class="expanded "><a href="../chapter5/chapter_5_1.html"><strong aria-hidden="true">5.1.</strong> Registering a user</a></li><li class="expanded "><a href="../chapter5/chapter_5_2.html"><strong aria-hidden="true">5.2.</strong> TLS Certs</a></li><li class="expanded "><a href="../chapter5/chapter_5_3.html"><strong aria-hidden="true">5.3.</strong> HTTPS in warp</a></li><li class="expanded "><a href="../chapter5/chapter_5_4.html"><strong aria-hidden="true">5.4.</strong> Authentication</a></li><li class="expanded "><a href="../chapter5/chapter_5_5.html"><strong aria-hidden="true">5.5.</strong> Authorization and JWTs</a></li></ol></li><li class="expanded "><a href="../chapter_6.html"><strong aria-hidden="true">6.</strong> Backend Server</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Learn how to create a web app with rust and webassembly</h1>
+
+                        <div class="right-buttons">
+                            <a href="../print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#using-docker" id="using-docker">Using Docker</a></h1>
+<p>In order to test our new code changes as well as deploy our final app, we need a way to deliver
+a usable artifact that we can either run tests against, or actually use in production.</p>
+<p>Although rust is very nice in that it produces standalone binaries, our product here is actually a
+set of services.  For example, khadga needs a database and we can't stuff a database inside our
+binary (well, we <em>could</em>, but where would you persist the data?).  Other parts that probably aren't
+good to stuff inside the binary are configuration files.  Many times you want to dynamically
+configure how an application runs based on a file that it can read.  If we statically link in the
+file to the binary, it's stuck with that configuration.  If you allow your app to read the config
+file at runtime, where and how do you bring along the configuration file(s)?</p>
+<p>To solve these kinds of problems, we will use docker and docker-compose.  If you are not that
+familiar with docker, that's fine.  Here, I will explain what is going on, and why we are doing what
+we are doing.</p>
+<h2><a class="header" href="#installing-docker" id="installing-docker">Installing docker</a></h2>
+<p>Depending on your operating system, this can be a tricky affair, so I will direct you to the docs
+on the <a href="https://docs.docker.com/install/">docker site</a>.</p>
+<h2><a class="header" href="#creating-a-dockerfile" id="creating-a-dockerfile">Creating a Dockerfile</a></h2>
+<p>The Dockerfile will be our recipe to create a container that contains our backend server and the
+configuration files that it needs.</p>
+<p>First, we create a file named Dockerfile in the root of our project.  It will look like this:</p>
+<pre><code class="language-dockerfile">FROM ubuntu:bionic
+
+RUN apt update \
+    &amp;&amp; apt upgrade -y \
+    &amp;&amp; apt install -y curl \
+    &amp;&amp; mkdir -p /apps/vision/dist
+
+# TODO: create a khadga user and run as that user.  We don't need to run as root
+
+# Copy the dist that was generated from wasm-pack and webpack to our working dir
+# then, copy the executable to the vision directory.  This is because the binary
+# is serving files from ./dist
+WORKDIR /apps/vision
+COPY vision/dist ./dist
+COPY khadga/config ./config
+COPY target/debug/khadga .
+
+CMD [ &quot;./khadga&quot; ]
+</code></pre>
+<h2><a class="header" href="#explanation" id="explanation">Explanation</a></h2>
+<p>So what's this Dockerfile file doing?  For those not familiar with docker, the Dockerfile is the
+default name for the file that the docker CLI will look for when running certain subcommands like
+build.  It is a file that contains instructions for how to build a docker image step-by-step.</p>
+<p>As a quick aside, do not confuse docker images, from docker containers.  A container is really a
+kind of fancy process with special restrictions.  An image is like an executable binary.  From one
+binary, you can launch many processes.  The docker image is the <em>executable</em> that a container is
+spawned from.  The command <code>docker ps</code> will list running containers, while <code>docker images</code> will list
+docker images on your system.</p>
+<p>Each line of code is actually creatig a new layer in a docker image (which is why you frequently see
+certains commands like RUN using &amp;&amp; to concatenate commands to a single layer).  This layering is
+also important to understand when you make changes to your Dockerfile.  As each command in the
+Dockerfile is encountered, docker will create a layer which it caches so that it doesn't need to be
+done again.  If you only ever add new steps at the bottom of the Dockerfile, that's fine.  However,
+if you change a step at the beginning (for example), all steps after your new change must be
+executed again, since the layer system is immutable.  This can increase your build times
+significantly.</p>
+<h3><a class="header" href="#our-base-image" id="our-base-image">Our base image</a></h3>
+<p>So our first step is a <code>FROM</code> command, which basically specifies what base image to use.  Here, we
+are saying that the base image we will use is an ubuntu bionic release.  Notice the use of the colon
+here.  To the left of the colon is the base image name (ubuntu in this case), and to the right of
+the colon is a tag.  The colon and tag name are optional, but if you do not use them, there is
+typically a default tag (usually <code>:latest</code>).</p>
+<p>What this does is download from the docker hub repository an image named ubuntu, with the tag of
+bionic. This is our base image.  From this base image, we will add more to it.</p>
+<h3><a class="header" href="#adding-new-components-to-our-base-image" id="adding-new-components-to-our-base-image">Adding new components to our base image</a></h3>
+<p>Next, we encounter the <code>RUN</code> command.  <code>RUN</code> takes a shell command and executes it within a docker
+daemon (which is actually executing our base image).  If you look at the shell commands it is
+running, you can see it is updating the operating system, adding curl and creating some directories.</p>
+<h3><a class="header" href="#copying-files-from-dev-machine-to-docker-image" id="copying-files-from-dev-machine-to-docker-image">Copying files from dev machine to docker image</a></h3>
+<p>A critical thing to understand in docker is the difference between our development machine and the
+docker image itself.  We need to get the files from our dev machine onto the docker image.  Another
+important thing to understand is the idea of a context which is like a build directory.</p>
+<p>When you actually build your docker image, you specify a build context argument.  For example:</p>
+<pre><code class="language-sh">sudo docker build -t &lt;username&gt;&lt;/tag&gt; .
+</code></pre>
+<p>The . at the end tells docker &quot;use the current directory as the build context&quot;.  The build context
+is the point of view from your development machine.  If you use your current directory as your build
+context, any <code>COPY</code> operations in the Dockerfile will assume that the source is from that build
+context.</p>
+<p>For the sake of the example, let's assume that you are currently in <code>/path/to/my-project</code>.  And that
+you then run </p>
+<p>The <code>WORKDIR</code> command tells the docker daemon &quot;use this directory as our working directory from the
+docker image point of view&quot;.  In the Dockerfile, we are using <code>WORKDIR /app/vision</code>.  Any command
+that copies files for example, will use this directory as the destination directory by default.</p>
+<p>So the next command <code>COPY vision/dist ./dist</code> is basically saying &quot;Copy the files from
+${BuildContext}/vision/dist to ${WORKDIR}/dist&quot;.  So, if you set your build context to &quot;.&quot; during
+the <code>docker build</code> command, and that you are currently in the <code>/path/to/my-project</code> directory, that
+this will copy our project's <code>vision/dist</code> directory to the docker image's <code>/app/vision/dist</code>
+directory.</p>
+<p>Hopefully the next <code>COPY</code> commands are clear now.  We also copy our local khadga/config on our dev
+machine to the image's  /app/vision/config directory.  The last <code>COPY</code> is interesting.  Here, we
+will copy the binary generated from cargo (in this case the debug version) to our docker image in
+/app/vision.  Eventually, we'll want to somehow dynamically set that based on whether we want to use
+the docker container for testing or release it to production.</p>
+<h3><a class="header" href="#executing-our-process" id="executing-our-process">Executing our process</a></h3>
+<p>A docker container executes what's in the <code>CMD</code> operation.  The first arg is our command or
+executable, and subsequent elements in the array are any arguments the executable needs.</p>
+<h2><a class="header" href="#setting-up-mongodb-with-docker-compose" id="setting-up-mongodb-with-docker-compose">Setting up mongodb with docker-compose</a></h2>
+<p>This chapter is about mongodb, but so far we haven't touched mongodb at all.  Creating the
+Dockerfile was necessary however for our next piece, the docker-compose file, which will be
+explained in the next section</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../chapter4/chapter_4.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../chapter4/chapter_4_2_md.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../chapter4/chapter_4.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="../chapter4/chapter_4_2_md.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
