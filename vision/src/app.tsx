@@ -1,6 +1,13 @@
 import * as React from "react";
 import * as ReactDom from "react-dom";
-import { NavBar } from "./components/navbar";
+import { Provider } from "react-redux";
+import { createStore } from "redux";
+
+import { reducers } from "./state/store";
+import NavBar from "./components/navbar";
+import { setActive } from "./state/action-creators"
+
+const store = createStore(reducers);
 
 class App extends React.Component {
   render() {
@@ -12,4 +19,9 @@ class App extends React.Component {
   }
 }
 
-ReactDom.render(<App />, document.querySelector("#app"));
+ReactDom.render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+  , document.querySelector("#app")
+);

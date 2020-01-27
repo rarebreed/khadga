@@ -1,6 +1,9 @@
 import * as React from "react";
-import * as ReactDom from "react-dom";
-import { Login } from "./containers";
+import { connect, ConnectedProps } from "react-redux";
+
+import { Login } from "./login";
+import store from "../state/store";
+import { setActive } from "../state/action-creators";
 
 interface INavBarItemProps {
   item: string
@@ -30,20 +33,30 @@ class NavBarLink extends React.Component<INavBarLinkProps> {
   }
 }
 
+// This will take the state from our redux store, and toggle the value in signupModal.
+// It just returns the value needed by our component.  This is a common convention with redux
+const mapState = (state: typeof store.state) => {
+  console.log(`in navbar mapState before: ${JSON.stringify(state, null, 2)}`)
+  let newstate = Object.assign({}, state);
+  console.log(`in navbar mapState after: ${JSON.stringify(newstate, null, 2)}`)
+  
+  newstate.modal.isActive = !newstate.modal.isActive;
+  return newstate.modal;
+}
 
-export class NavBar extends React.Component {
+const mapDispatch = {
+  signUp: setActive
+}
+const connector = connect(mapState, mapDispatch);
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+class NavBar extends React.Component<PropsFromRedux> {
   signUpHandler = (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     console.log(evt);
 
-    // TODO: Toggle the Modal is-active
-    let element = document.querySelector("#login");
-    if (!element) {
-      console.error("Could not find element");
-      return;
-    }
-
     // TODO:  Need to use redux here and set the state of the Login modal's classname
     // or maybe use a Ref
+    this.props.signUp(true);
   }
 
   render() {
@@ -91,9 +104,11 @@ export class NavBar extends React.Component {
             </div>
           </div>
 
-          <Login id="login"/>
+          <Login />
         </div>
       </nav>
     )
   }
 }
+
+export default connector(NavBar)

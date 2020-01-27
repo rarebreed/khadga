@@ -5,10 +5,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "copy": "cp ./static/index.html ./dist",
-    "build": "parcel build ./src/index.html",
-    "serve": "parcel ./src/index.html",
-    "clean": "rimraf dist .cache",
+    "copy": "cp ./static/index.html ./static/bulma.css ./dist",
+    "build": "npm run copy && parcel build ./src/index.html",
+    "serve": "npm run copy && parcel ./src/index.html",
+    "clean": "rimraf dist/* .cache",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -28,6 +28,7 @@
   "dependencies": {
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
+    "react-redux": "^7.1.3",
     "react-router": "^5.1.2",
     "redux": "^4.0.5",
     "rxjs": "^6.5.4"
