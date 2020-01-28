@@ -1,7 +1,7 @@
 /**
  * This module will store the various Actions
  */
-export const SET_ACTIVE = 'SET_ACTIVE'
+export const SET_ACTIVE = 'SET_ACTIVE';
 
 
 export interface ModalState {

@@ -11,6 +11,6 @@ export class Login extends React.Component {
         <NamedField name="Password"></NamedField>
         <NamedField name="Email"></NamedField>
       </Modal>
-    )
+    );
   }
 }

@@ -1,10 +1,10 @@
-import * as React from "react"
-import { connect, ConnectedProps } from "react-redux"
+import * as React from "react";
+import { connect, ConnectedProps } from "react-redux";
 
-import { Login } from "./login"
-import store from "../state/store"
-import { setActive } from "../state/action-creators"
-import { logger } from "../logger"
+import { Login } from "./login";
+import store from "../state/store";
+import { setActive } from "../state/action-creators";
+import { logger } from "../logger";
 
 interface INavBarItemProps {
   item: string
@@ -16,7 +16,7 @@ class NavBarItem extends React.Component<INavBarItemProps> {
       <a className="navbar-item">
         { this.props.item }
       </a>
-    )
+    );
   }
 }
 
@@ -30,7 +30,7 @@ class NavBarLink extends React.Component<INavBarLinkProps> {
       <a className="navbar-link">
         { this.props.link }
       </a>
-    )
+    );
   }
 }
 
@@ -42,27 +42,27 @@ class NavBarLink extends React.Component<INavBarLinkProps> {
  * @param state
  */
 const mapState = (state: typeof store.state) => {
-  logger.log(`in navbar mapState before: ${JSON.stringify(state, null, 2)}`)
-  const newstate = Object.assign({}, state)
-  logger.log(`in navbar mapState after: ${JSON.stringify(newstate, null, 2)}`)
+  logger.log(`in navbar mapState before: ${JSON.stringify(state, null, 2)}`);
+  const newstate = Object.assign({}, state);
+  logger.log(`in navbar mapState after: ${JSON.stringify(newstate, null, 2)}`);
 
-  return newstate.modal
-}
+  return newstate.modal;
+};
 
 const mapDispatch = {
   signUp: setActive
-}
+};
 
-const connector = connect(mapState, mapDispatch)
-type PropsFromRedux = ConnectedProps<typeof connector>
+const connector = connect(mapState, mapDispatch);
+type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class NavBar extends React.Component<PropsFromRedux> {
   signUpHandler = (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    logger.log(evt)
+    logger.log(evt);
 
     // TODO:  Need to use redux here and set the state of the Login modal's classname
     // or maybe use a Ref
-    this.props.signUp(true)
+    this.props.signUp(true);
   }
 
   render() {
@@ -113,8 +113,8 @@ class NavBar extends React.Component<PropsFromRedux> {
           <Login />
         </div>
       </nav>
-    )
+    );
   }
 }
 
-export default connector(NavBar)
+export default connector(NavBar);

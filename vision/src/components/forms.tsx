@@ -1,24 +1,25 @@
-import * as React from "react"
-import { logger } from "../logger"
+import * as React from "react";
+import { logger } from "../logger";
 
 interface NameProp {
 	name: string
 }
 
+// TODO: Hook this up with redux.  Need to figure out what our entire state type will be
 export class NamedField extends React.Component<NameProp, NameProp> {
-	name: string
+	name: string;
 
   constructor(props: NameProp) {
-		super(props)
-		this.name = props.name
+		super(props);
+		this.name = props.name;
 
 		this.state = {
 			name: ""
-		}
+		};
 	}
 
 	nameHandler = (evt: React.ChangeEvent<HTMLInputElement>) => {
-		logger.log(evt)
+		logger.log(evt);
 	}
 
 	render() {
@@ -35,7 +36,7 @@ export class NamedField extends React.Component<NameProp, NameProp> {
 					       />
 				</div>
 			</div>
-		)
+		);
 	}
 }
 
@@ -55,6 +56,6 @@ class ButtonGroup extends React.Component {
 					</a>
 				</p>
 			</div>
-		)
+		);
 	}
 }
