@@ -1,9 +1,10 @@
-import * as React from "react";
-import { connect, ConnectedProps } from "react-redux";
+import * as React from "react"
+import { connect, ConnectedProps } from "react-redux"
 
-import { Login } from "./login";
-import store from "../state/store";
-import { setActive } from "../state/action-creators";
+import { Login } from "./login"
+import store from "../state/store"
+import { setActive } from "../state/action-creators"
+import { logger } from "../logger"
 
 interface INavBarItemProps {
   item: string
@@ -33,30 +34,35 @@ class NavBarLink extends React.Component<INavBarLinkProps> {
   }
 }
 
-// This will take the state from our redux store, and toggle the value in signupModal.
-// It just returns the value needed by our component.  This is a common convention with redux
+/**
+ * Used for ConnectedComponent to map the state to properties
+ *
+ * This is a common convention with redux
+ *
+ * @param state
+ */
 const mapState = (state: typeof store.state) => {
-  console.log(`in navbar mapState before: ${JSON.stringify(state, null, 2)}`)
-  let newstate = Object.assign({}, state);
-  console.log(`in navbar mapState after: ${JSON.stringify(newstate, null, 2)}`)
-  
-  newstate.modal.isActive = !newstate.modal.isActive;
-  return newstate.modal;
+  logger.log(`in navbar mapState before: ${JSON.stringify(state, null, 2)}`)
+  const newstate = Object.assign({}, state)
+  logger.log(`in navbar mapState after: ${JSON.stringify(newstate, null, 2)}`)
+
+  return newstate.modal
 }
 
 const mapDispatch = {
   signUp: setActive
 }
-const connector = connect(mapState, mapDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector>;
+
+const connector = connect(mapState, mapDispatch)
+type PropsFromRedux = ConnectedProps<typeof connector>
 
 class NavBar extends React.Component<PropsFromRedux> {
   signUpHandler = (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    console.log(evt);
+    logger.log(evt)
 
     // TODO:  Need to use redux here and set the state of the Login modal's classname
     // or maybe use a Ref
-    this.props.signUp(true);
+    this.props.signUp(true)
   }
 
   render() {
