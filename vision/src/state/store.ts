@@ -1,15 +1,14 @@
 import { combineReducers } from "redux";
-import { modalReducer, initialModalState } from "./reducers";
-
-export const state = {
-	modal: initialModalState
-};
+import { modalReducer
+	     , signupReducer
+	     , state } from "./reducers";
 
 /**
  * As we add new reducers, add them as key:val pairs
  */
 export const reducers = combineReducers({
-	modal: modalReducer
+	modal: modalReducer,
+	signup: signupReducer
 });
 
 export default {

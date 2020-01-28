@@ -1,7 +1,7 @@
 import * as React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
-import { Login } from "./login";
+import { SignUp } from "./signup";
 import store from "../state/store";
 import { setActive } from "../state/action-creators";
 import { logger } from "../logger";
@@ -58,10 +58,6 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class NavBar extends React.Component<PropsFromRedux> {
   signUpHandler = (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    logger.log(evt);
-
-    // TODO:  Need to use redux here and set the state of the Login modal's classname
-    // or maybe use a Ref
     this.props.signUp(true);
   }
 
@@ -110,7 +106,7 @@ class NavBar extends React.Component<PropsFromRedux> {
             </div>
           </div>
 
-          <Login />
+          <SignUp />
         </div>
       </nav>
     );

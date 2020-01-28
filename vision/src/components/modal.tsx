@@ -8,10 +8,16 @@ const logger = console;
 
 // mapState returns only what is needed from the store to this component
 const mapState = (state: typeof store.state) => {
-  const newstate = Object.assign({}, state);
-  logger.log(`in modal mapState`, newstate);
+  const newstate = Object.assign({}, state.modal);
+  const signupState = Object.assign({}, state.signup);
 
-  return newstate.modal;
+  const combined = {
+    isActive: newstate.isActive,
+    signup: signupState
+  };
+  logger.log(`in modal mapState`, combined);
+
+  return combined;
 };
 
 // This is basically an object that maps an actionCreator function to a name.  This will make
@@ -36,15 +42,22 @@ export interface ModalId {
 class Modal extends React.Component<ModalProps> {
   constructor(props: ModalProps) {
     super(props);
-
-    // this.props.setActive(false);
-    logger.log(`In Modal Constructor: props`, props);
+    logger.debug(`In Modal Constructor: props`, props);
   }
 
   private setActive = (_: MouseEvent<HTMLButtonElement>) => {
     const current = this.props.isActive;
-    logger.log(`Clicked button: current = ${current}`);
+    logger.debug(`Clicked button: current = ${current}`);
     this.props.setActive(!current);
+  }
+
+  private cancel = (_: MouseEvent<HTMLAnchorElement>) => {
+    this.props.setActive(false);
+  }
+
+  private submit = (_: MouseEvent<HTMLAnchorElement>) => {
+    // TODO: Make request to khadga backend to add a user
+    logger.debug("TODO: Add user to mongodb");
   }
 
   render() {
@@ -63,7 +76,8 @@ class Modal extends React.Component<ModalProps> {
             </a>
           </p>
           <p className="control">
-            <a className="button is-light">
+            <a className="button is-light"
+               onClick={ this.cancel }>
               Cancel
             </a>
           </p>
