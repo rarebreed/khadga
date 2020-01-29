@@ -3,14 +3,13 @@
  */
 import { ModalState
 			 , ModalAction
-			 , NamePropState
 			 , SignUp
 			 , UserLogin
 			 , SignUpAction
 			 , SET_SIGNUP_EMAIL
 			 , SET_SIGNUP_PASSWORD
 			 , SET_SIGNUP_USERNAME
-			 , SET_ACTIVE, 
+			 , SET_ACTIVE,
 			 StateStore} from "./types";
 import { logger } from "../logger";
 

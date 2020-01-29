@@ -19,8 +19,9 @@ pub fn get_window() -> Window {
 #[wasm_bindgen]
 pub fn get_document() -> Document {
     let window = get_window();
-    window.document()
-          .expect("window should have a document object")
+    window
+        .document()
+        .expect("window should have a document object")
 }
 
 #[wasm_bindgen]
@@ -95,8 +96,8 @@ pub fn main_nav() -> Result<Element, JsValue> {
     nav_container.set_attribute("id", "logo-container")?;
 
     nav_container.insert_adjacent_html(
-                                       "afterbegin",
-                                       r#"
+        "afterbegin",
+        r#"
       <a href="index.html" id="logo">
         khadga
       </a>
@@ -109,8 +110,8 @@ pub fn main_nav() -> Result<Element, JsValue> {
 
     // Add the other elements to the <nav>
     nav.insert_adjacent_html(
-      "afterbegin",
-      r#"
+        "afterbegin",
+        r#"
 <ul class="main-nav__items">
 <li class="main-nav__item">
 <button onclick="document.getElementById('main-login').style.display='block'">
@@ -122,14 +123,14 @@ Login
 <li class="main-nav__item">Collaborative Documents</li>
 </ul>
 "#,
-)?;
-shadow_root.append_child(&nav)?;
+    )?;
+    shadow_root.append_child(&nav)?;
 
-// Add shadow CSS
-let link = create_shadow_css_link("shadow.css")?;
-nav.append_child(&link)?;
+    // Add shadow CSS
+    let link = create_shadow_css_link("shadow.css")?;
+    nav.append_child(&link)?;
 
-Ok(element)
+    Ok(element)
 }
 
 #[wasm_bindgen]

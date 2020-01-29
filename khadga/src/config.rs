@@ -71,9 +71,11 @@ impl fmt::Display for MongoCfg {
             None => "",
         };
 
-        write!(f,
-               "host: {}\nport: {}\ndatabase: {}",
-               self.host, port, self.database)
+        write!(
+            f,
+            "host: {}\nport: {}\ndatabase: {}",
+            self.host, port, self.database
+        )
     }
 }
 
@@ -85,9 +87,11 @@ impl fmt::Display for KhadgaCfg {
 
 impl fmt::Display for Settings {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "mongo:---\n{}\nkhadga:---\n{}\nlogging:---\n{}",
-               self.services.mongod, self.services.khadga, self.logging.level)
+        write!(
+            f,
+            "mongo:---\n{}\nkhadga:---\n{}\nlogging:---\n{}",
+            self.services.mongod, self.services.khadga, self.logging.level
+        )
     }
 }
 
@@ -101,7 +105,7 @@ impl Settings {
                 if val == "true" || val == "TRUE" || val == "True" {
                     config.merge(File::with_name("config/khadga-dev.yml"))?;
                 }
-            },
+            }
             _ => {}
         }
 

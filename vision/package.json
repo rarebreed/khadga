@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "copy": "cp ./static/index.html ./static/bulma.css ./dist",
+    "copy": "cp ./static/* ./dist",
     "build": "npm run copy && parcel build ./src/index.html",
     "serve": "npm run copy && parcel ./src/index.html",
     "clean": "rimraf dist/* .cache",
@@ -14,6 +14,10 @@
   "keywords": [],
   "author": "Sean Toner",
   "license": "Apache-2.0",
+  "browserslist": [
+    "defaults",
+    "last 1 Chrome version"
+  ],
   "devDependencies": {
     "@types/jest": "^25.1.0",
     "@types/node": "^13.5.0",

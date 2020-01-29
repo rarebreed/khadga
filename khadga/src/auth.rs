@@ -29,7 +29,9 @@
 
 use serde::{Deserialize,
             Serialize};
-use warp::Filter;
+use warp::{filters::BoxedFilter,
+           Filter,
+           Reply};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LoginParams {
@@ -44,9 +46,28 @@ pub struct RegisterParams {
     email: String,
 }
 
-pub async fn register() -> impl Filter {
-    let route = warp::post().and(warp::path("register"))
-                            .and(warp::body::json())
-                            .map(|reg_params: RegisterParams| println!("{:#?}", reg_params));
-    route
+pub fn register() -> BoxedFilter<(impl Reply,)> {
+    let route = warp::post()
+        .and(warp::path("register"))
+        .and(warp::body::json())
+        .map(|reg_params: RegisterParams| {
+            println!("{:#?}", reg_params);
+            // TODO: When a user registers, the data will be stored in mongodb
+            warp::reply()
+        });
+    route.boxed()
+}
+
+pub fn login() -> BoxedFilter<(impl Reply,)> {
+    let login = warp::post()
+        .and(warp::path("login"))
+        .and(warp::body::json())
+        .map(|login_params: LoginParams| {
+            println!("{:#?}", login_params);
+            // TODO: Need a login handler and a websocket endpoint
+            // When a user logs in, they will be given an auth token which can be used to hain access to
+            // chat and video for as long as the session maintains activity
+            warp::reply()
+        });
+    login.boxed()
 }

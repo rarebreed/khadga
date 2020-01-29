@@ -55,9 +55,32 @@ class Modal extends React.Component<ModalProps> {
     this.props.setActive(false);
   }
 
-  private submit = (_: MouseEvent<HTMLAnchorElement>) => {
+  private submit = async (_: MouseEvent<HTMLAnchorElement>) => {
     // TODO: Make request to khadga backend to add a user
     logger.debug("TODO: Add user to mongodb");
+    const request: RequestInit = {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      mode: 'cors', // no-cors, *cors, same-origin
+      cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+      credentials: 'same-origin', // include, *same-origin, omit
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      redirect: 'follow', // manual, *follow, error
+      referrerPolicy: 'no-referrer', // no-referrer, *client
+      body: JSON.stringify({
+        uname: this.props.signup.username,
+        email: this.props.signup.email,
+        psw: this.props.signup.password
+      })// body data type must match "Content-Type" header
+    };
+
+    const response = await fetch("http://localhost:7001/register", request);
+    if (response.status !== 200) {
+      throw new Error(`status was ${response.status} ${response.statusText}`);
+    } else {
+      this.props.setActive(false);
+    }
   }
 
   render() {
@@ -71,7 +94,8 @@ class Modal extends React.Component<ModalProps> {
 
         <div className="field is-grouped">
           <p className="control">
-            <a className="button is-primary">
+            <a className="button is-primary"
+               onClick={ this.submit }>
               Submit
             </a>
           </p>

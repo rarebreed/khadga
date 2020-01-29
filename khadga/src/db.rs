@@ -29,10 +29,11 @@ pub fn get_collection(dbname: &str, coll_name: &str) -> Collection {
     coll
 }
 
-pub fn make_user(client: &Client,
-                 user: User,
-                 db: &str)
-                 -> Result<Collection, Box<dyn std::error::Error>> {
+pub fn make_user(
+    client: &Client,
+    user: User,
+    db: &str,
+) -> Result<Collection, Box<dyn std::error::Error>> {
     let db = client.database(db);
     let coll = db.collection(&CONFIG.services.mongod.database);
     let doc = to_bson(&user)?;
@@ -47,10 +48,11 @@ pub fn make_user(client: &Client,
     Ok(coll)
 }
 
-pub fn delete_user(client: &Client,
-                   user: &str,
-                   db: &str)
-                   -> Result<Collection, mongodb::error::Error> {
+pub fn delete_user(
+    client: &Client,
+    user: &str,
+    db: &str,
+) -> Result<Collection, mongodb::error::Error> {
     let db = client.database(db);
     let coll = db.collection(&CONFIG.services.mongod.database);
 
@@ -65,9 +67,10 @@ pub fn delete_user(client: &Client,
     }
 }
 
-pub fn find_user(dbname: &str,
-                 user: &str)
-                 -> Result<(Collection, Vec<User>), mongodb::error::Error> {
+pub fn find_user(
+    dbname: &str,
+    user: &str,
+) -> Result<(Collection, Vec<User>), mongodb::error::Error> {
     let coll = get_collection(dbname, &CONFIG.services.mongod.database);
     let cursor = coll.find(doc! {"user_name": user }, None)?;
 
@@ -120,11 +123,7 @@ mod tests {
     /// FIXME: This function should be moved to an integration test
     #[test]
     fn test_add_user() -> TestResult {
-        let user = User::new("stoner".into(),
-                             "Sean".into(),
-                             "Toner".into(),
-                             "foo".into(),
-                             "blah@gmail.com".into());
+        let user = User::new("stoner".into(), "foo".into(), "blah@gmail.com".into());
         let client = make_client();
 
         let coll = make_user(&client, user, TEST_DB)?;
@@ -135,10 +134,11 @@ mod tests {
 
         match found {
             Ok(Some(document)) => {
-                let fname = document.get("first_name")
-                                    .and_then(Bson::as_str)
-                                    .expect("Could not get first_name");
-                assert_eq!(fname, "Sean");
+                let fname = document
+                    .get("user_name")
+                    .and_then(Bson::as_str)
+                    .expect("Could not get user_name");
+                assert_eq!(fname, "stoner");
                 //Ok(())
             }
             Ok(None) => {

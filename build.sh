@@ -2,6 +2,7 @@
 cargo +nightly fmt
 
 cd vision
+npm run clean
 npm run build
 
 cd ../khadga
