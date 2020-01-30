@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div id="sidebar-scrollbox" class="sidebar-scrollbox">
-                <ol class="chapter"><li class="expanded "><a href="chapter_1.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="chapter2/chapter_2.html"><strong aria-hidden="true">2.</strong> Setup</a></li><li><ol class="section"><li class="expanded "><a href="chapter2/chapter_2_1.html"><strong aria-hidden="true">2.1.</strong> Setting up the Project</a></li></ol></li><li class="expanded "><a href="chapter_3.html"><strong aria-hidden="true">3.</strong> Frontend Navbar</a></li><li><ol class="section"><li class="expanded "><a href="chapter3/chapter_3_1.html"><strong aria-hidden="true">3.1.</strong> React and State management</a></li><li class="expanded "><a href="chapter3/chapter_3_2.html"><strong aria-hidden="true">3.2.</strong> Navbar component</a></li><li class="expanded "><a href="chapter3/chapter_3_3.html"><strong aria-hidden="true">3.3.</strong> Login component</a></li><li class="expanded "><a href="chapter3/chapter_3_4.html"><strong aria-hidden="true">3.4.</strong> Registration component</a></li></ol></li><li class="expanded "><a href="chapter4/chapter_4.html"><strong aria-hidden="true">4.</strong> Mongo Database</a></li><li><ol class="section"><li class="expanded "><a href="chapter4/chapter_4_1.html"><strong aria-hidden="true">4.1.</strong> Using docker</a></li><li class="expanded "><a href="chapter4/chapter_4_2_md.html"><strong aria-hidden="true">4.2.</strong> Docker copose</a></li><li class="expanded "><a href="chapter4/chapter_4_3.html"><strong aria-hidden="true">4.3.</strong> Schemas</a></li><li class="expanded "><a href="chapter4/chapter_4_4.html"><strong aria-hidden="true">4.4.</strong> Mongodb driver</a></li></ol></li><li class="expanded "><a href="chapter_5.html"><strong aria-hidden="true">5.</strong> Security</a></li><li><ol class="section"><li class="expanded "><a href="chapter5/chapter_5_1.html"><strong aria-hidden="true">5.1.</strong> Registering a user</a></li><li class="expanded "><a href="chapter5/chapter_5_2.html"><strong aria-hidden="true">5.2.</strong> TLS Certs</a></li><li class="expanded "><a href="chapter5/chapter_5_3.html"><strong aria-hidden="true">5.3.</strong> HTTPS in warp</a></li><li class="expanded "><a href="chapter5/chapter_5_4.html"><strong aria-hidden="true">5.4.</strong> Authentication</a></li><li class="expanded "><a href="chapter5/chapter_5_5.html"><strong aria-hidden="true">5.5.</strong> Authorization and JWTs</a></li></ol></li><li class="expanded "><a href="chapter_6.html"><strong aria-hidden="true">6.</strong> Backend Server</a></li></ol>
+                <ol class="chapter"><li class="expanded "><a href="chapter_1.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="chapter2/chapter_2.html"><strong aria-hidden="true">2.</strong> Setup</a></li><li><ol class="section"><li class="expanded "><a href="chapter2/chapter_2_1.html"><strong aria-hidden="true">2.1.</strong> Setting up the Project</a></li></ol></li><li class="expanded "><a href="chapter3/chapter_3.html"><strong aria-hidden="true">3.</strong> Frontend Navbar</a></li><li><ol class="section"><li class="expanded "><a href="chapter3/chapter_3_1.html"><strong aria-hidden="true">3.1.</strong> React and State management</a></li><li class="expanded "><a href="chapter3/chapter_3_2.html"><strong aria-hidden="true">3.2.</strong> Navbar component</a></li><li class="expanded "><a href="chapter3/chapter_3_3.html"><strong aria-hidden="true">3.3.</strong> Login component</a></li><li class="expanded "><a href="chapter3/chapter_3_4.html"><strong aria-hidden="true">3.4.</strong> Registration component</a></li></ol></li><li class="expanded "><a href="chapter4/chapter_4.html"><strong aria-hidden="true">4.</strong> Mongo Database</a></li><li><ol class="section"><li class="expanded "><a href="chapter4/chapter_4_1.html"><strong aria-hidden="true">4.1.</strong> Using docker</a></li><li class="expanded "><a href="chapter4/chapter_4_2_md.html"><strong aria-hidden="true">4.2.</strong> Docker copose</a></li><li class="expanded "><a href="chapter4/chapter_4_3.html"><strong aria-hidden="true">4.3.</strong> Schemas</a></li><li class="expanded "><a href="chapter4/chapter_4_4.html"><strong aria-hidden="true">4.4.</strong> Mongodb driver</a></li></ol></li><li class="expanded "><a href="chapter_5.html"><strong aria-hidden="true">5.</strong> Security</a></li><li><ol class="section"><li class="expanded "><a href="chapter5/chapter_5_1.html"><strong aria-hidden="true">5.1.</strong> Registering a user</a></li><li class="expanded "><a href="chapter5/chapter_5_2.html"><strong aria-hidden="true">5.2.</strong> TLS Certs</a></li><li class="expanded "><a href="chapter5/chapter_5_3.html"><strong aria-hidden="true">5.3.</strong> HTTPS in warp</a></li><li class="expanded "><a href="chapter5/chapter_5_4.html"><strong aria-hidden="true">5.4.</strong> Authentication</a></li><li class="expanded "><a href="chapter5/chapter_5_5.html"><strong aria-hidden="true">5.5.</strong> Authorization and JWTs</a></li></ol></li><li class="expanded "><a href="chapter6/chapter_6.html"><strong aria-hidden="true">6.</strong> Backend Server</a></li><li class="expanded "><a href="chapter7/chapter_7.html"><strong aria-hidden="true">7.</strong> Webassembly</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -156,16 +156,43 @@ how to generate both the front and back end code for your app.</p>
 connections between two or more clients and the central web server.</p>
 <p>If you're wondering where the name khadga comes from, it's a Sanskrit word meaning sword.  It is
 often referred to in spiritual or mystical concepts as the sword that cuts away illusion.</p>
+<h2><a class="header" href="#why" id="why">Why?</a></h2>
+<p>One might ask why go through this?  If the main point of this app is to do a chat application with
+video, there's a dime-a-dozen ready made apps for that.</p>
+<p>Basically, I wanted to write a non-trivial application from top to bottom.  A truly <em>full-stack</em>
+application where the front end, the back end, the database, the CI deployments, integration with
+IoT sensor data, and the data analysis is all done by one developer (that'd be me, and hopefully you
+the reader as well).</p>
+<p>Yes, it's a tall order.  Although the primary purpose is to use this project as a vehicle for
+learning how to do deep learning, my intention is to use khadga as a learning tool.  Not just for
+myself but for others as well.  What I have learned is that most books don't walk you through a
+non-trivial project from beginning to end.  Or, they might show you how to use some framework, but
+not always why.</p>
+<p>My hope is that by me forging ahead and suffering the learning pains, others can follow along and
+avoid the mistakes I made.  Because of the pedantic nature of this project, I will endeavor to do
+the following:</p>
+<ul>
+<li>Write documentation for all my code</li>
+<li>Keep this book up to date</li>
+<li>Show you every step of building a project (as much as possible)
+<ul>
+<li>Writing unit and integration tests</li>
+<li>Using CI/CD to build, test, and deploy an application (on openshift)</li>
+</ul>
+</li>
+<li>Try not to cut corners (ie, I will try to use <code>.unwrap()</code> or <code>.expect()</code> as little as I can)</li>
+</ul>
 <h2><a class="header" href="#what-you-will-learn" id="what-you-will-learn">What you will learn</a></h2>
 <p>This guide will walk you through everything required to develop, test and deploy both the front and
 backend application. This includes:</p>
 <ul>
 <li>How to write an asynchronous web server using rust's warp framework</li>
-<li>How to use wasm-bindgen, web-sys and js-sys crates to create a wasm npm module</li>
+<li>How to use wasm-bindgen, web-sys and js-sys crates to create a wasm npm module and publish it</li>
 <li>How to serve your single page app from the async web server</li>
-<li>How to deploy your app to Openshift Online using docker and source-2-image</li>
+<li>How to create a react+redux front end, using WebRTC and WebSockets modules written in webassembly</li>
+<li>How to deploy your app to Openshift Online using docker</li>
 <li>How to set up unit and integration tests for the front and back end</li>
-<li>How to set up a CI pipeline between your deployment and your tests</li>
+<li>How to set up a CI pipeline between your deployment and your tests using travis-ci</li>
 </ul>
 <h3><a class="header" href="#what-the-app-does" id="what-the-app-does">What the app does</a></h3>
 <p>We will build the functionality of the app slowly in order to make it useful early on, but to build
@@ -178,7 +205,10 @@ up functionality as we go.</p>
 <p>First, we will start with a relatively simple chat application.  It will also cover things like
 setting up a database of users and saved chat history.  It will also showcase how to do user
 authentication and authorization.</p>
-<p>Second, we will enhance the app so that it will do video as well as text based chatting.  In this
+<p>Next, we will write a webassembly module that interacts with WebRTC and WebSocket APIs.  We will use
+this so that the webassembly can quickly and efficiently store data into tensor format that we can
+hand back to tensorflowjs.</p>
+<p>Then, we will enhance the app so that it will do video as well as text based chatting.  In this
 step, we will add a signaling service to the bacnd, so peers can find one another.  Chats can either
 be saved locally or stored on the discovery server. This step will also show how to encrypt the
 streams for end to end encryption.</p>
