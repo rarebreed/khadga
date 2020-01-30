@@ -16,12 +16,19 @@ lazy_static! {
     pub static ref CONFIG: Settings = { Settings::new().expect("Unable to get config settings") };
 }
 
+/// Creates a mongodb client
+/// 
+/// Mostly used so we can get a database and collection from the client
 pub fn make_client() -> Client {
     let mongo_host = format!("mongodb://{}", CONFIG.services.mongod.host);
     let client = Client::with_uri_str(&mongo_host).expect("Could not create mongodb client");
     client
 }
 
+/// Retrieves a collection
+/// 
+/// If the collection name exists, it will be retrieved, otherwise a new collection will be created
+/// in the database
 pub fn get_collection(dbname: &str, coll_name: &str) -> Collection {
     let client = make_client();
     let db = client.database(dbname);
@@ -29,6 +36,9 @@ pub fn get_collection(dbname: &str, coll_name: &str) -> Collection {
     coll
 }
 
+/// Inserts a User into the `user` collection of the given database
+/// 
+/// The actual name of the collection is given from the config file
 pub fn make_user(
     client: &Client,
     user: User,

@@ -41,7 +41,9 @@ features = [
 	"MediaDevices",
 	"HtmlElement",
 	"Window",
-	"MediaStream"
+	"MediaStream",
+	"MediaDeviceInfo",
+	"console"
 ]
 
 [dev-dependencies]

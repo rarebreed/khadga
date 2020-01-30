@@ -1,11 +1,13 @@
-
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Document,
               HtmlElement,
               Window,
               Navigator,
-              MediaStream};
+              MediaStream,
+              MediaDeviceInfo,
+              console};
+use wasm_bindgen::JsCast;
 
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -39,7 +41,7 @@ pub fn get_body() -> HtmlElement {
     body
 }
 
-/// Returns 
+/// Returns a Navigator object
 #[wasm_bindgen]
 pub fn get_navigator() -> Navigator {
   let window = get_window();
@@ -47,6 +49,11 @@ pub fn get_navigator() -> Navigator {
   nav
 }
 
+/// Retrieves MediaStream from the navigator
+/// 
+/// Since get_user_media() returns a Result<Promise, JsValue>, we extract it from the Result and
+/// then use JsFuture::from() to turn it into a rust Future.  To pull out the data from the Future
+/// we use the await to wait until it has resolved.
 #[wasm_bindgen]
 pub async fn get_media_stream() -> Result<MediaStream, JsValue> {
   let navigator = get_navigator();
@@ -61,3 +68,36 @@ pub async fn get_media_stream() -> Result<MediaStream, JsValue> {
   }
 }
 
+#[wasm_bindgen]
+pub async fn list_media_devices() -> Result<js_sys::Array, JsValue> {
+  let navigator = get_navigator();
+  let media_devs = navigator.media_devices()?;
+
+  let devices = js_sys::Array::new();
+  match media_devs.enumerate_devices() {
+    Ok(devs) => {
+      let media_device_info_arr = JsFuture::from(devs).await?;
+      
+      let iterator = js_sys::try_iter(&media_device_info_arr)?.ok_or_else(|| {
+        console::log_1(&"Could not convert to iterator".into());
+      }).expect("Unable to convert to array");
+
+      for device in iterator {
+        let device = device?;
+        let device_info = device.dyn_into::<MediaDeviceInfo>()?;
+
+        let stringified = js_sys::JSON::stringify(&device_info.to_json())
+          .unwrap_or("".into());
+        console::log_1(&stringified);
+        devices.push(&device_info);
+      }
+
+      Ok(devices)
+    },
+    Err(e) => Err(e)
+  }
+}
+
+pub struct Foo {
+  pub age: u32
+}
