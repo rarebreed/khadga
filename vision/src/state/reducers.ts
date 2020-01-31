@@ -9,8 +9,16 @@ import { ModalState
 			 , SET_SIGNUP_EMAIL
 			 , SET_SIGNUP_PASSWORD
 			 , SET_SIGNUP_USERNAME
-			 , SET_ACTIVE,
-			 StateStore} from "./types";
+			 , SET_ACTIVE
+			 , StateStore
+			 , LoginAction
+			 , USER_LOGIN
+			 , USER_DISCONNECT
+			 , Message
+			 , MessageAction
+			 , MESSAGE_ADD
+			 , MESSAGE_DELETE
+			 } from "./types";
 import { logger } from "../logger";
 
 const initialModalState = {
@@ -39,9 +47,16 @@ export const state: StateStore = {
 	signup: initialSignupState,
 	login: initialUserLogin,
 	loggedIn: false,     // If user has logged in (don't show Login or Signup button)
-	connectedUsers: []
+	connectedUsers: [],
+	messages: []
 };
 
+/**
+ * This is called when the modal for the Login or SignUp is called
+ *
+ * @param previous
+ * @param action
+ */
 export const modalReducer = ( previous: ModalState = initialModalState
 														, action: ModalAction)
 														: ModalState => {
@@ -59,7 +74,7 @@ export const modalReducer = ( previous: ModalState = initialModalState
 };
 
 /**
- * Handles state for signupform
+ * Handles state for signup form
  *
  * @param previous
  * @param action
@@ -89,3 +104,53 @@ export const signupReducer = ( previous: SignUp = initialSignupState
 
 	return result;
 };
+
+/**
+ * Sets state for connected users
+ *
+ * When login is successful, this will be called with type of USER_LOGIN.  When a user disconnects
+ * or logs out, type of USER_DISCONNECTED will be sent.
+ *
+ * @param previous
+ * @param action
+ */
+export const loginReducer = ( previous: string[] = []
+	                          , action: LoginAction) => {
+	switch (action.type) {
+		case USER_LOGIN:
+			previous.push(action.username);
+			break;
+		case USER_DISCONNECT:
+			previous = previous.filter(name => name !== action.username);
+			break;
+		default:
+			logger.log("Using previous");
+	}
+	return previous;
+};
+
+/**
+ * Sets new Message components in the chat container (the middle part)
+ */
+export const messageReducer = ( previous: Message[] = []
+	                            , action: MessageAction) => {
+	let newstate = Array.from(previous);
+
+	switch (action.type) {
+		case MESSAGE_ADD:
+			newstate.push(action.message);
+			break;
+		case MESSAGE_DELETE:
+			newstate = newstate.filter(msg => {
+				if (action.message.recipient !== msg.recipient &&
+						action.message.sender !== msg.sender &&
+						action.message.timestamp !== msg.timestamp) {
+				  return msg;
+				}
+			});
+			break;
+		default:
+			return previous;
+	}
+	return newstate;
+}

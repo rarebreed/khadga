@@ -1,6 +1,6 @@
 services:
   mongod: 
-    host: 127.0.0.1
+    host: mongodb   # Name of the service in docker-compose
     database: users
   khadga:
     host: 0.0.0.0

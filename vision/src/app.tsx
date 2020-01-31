@@ -5,7 +5,8 @@ import { createStore } from "redux";
 
 import { reducers } from "./state/store";
 import NavBar from "./components/navbar";
-import { setActive } from "./state/action-creators"
+import { setActive } from "./state/action-creators";
+import { ChatContainer } from "./components/chat/chat-container";
 
 const store = createStore(reducers);
 
@@ -14,8 +15,9 @@ class App extends React.Component {
     return (
       <div>
         <NavBar />
+        <ChatContainer />
       </div>
-    )
+    );
   }
 }
 

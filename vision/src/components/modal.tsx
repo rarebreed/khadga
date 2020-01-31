@@ -64,10 +64,9 @@ class Modal extends React.Component<ModalProps> {
       cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
       credentials: 'same-origin', // include, *same-origin, omit
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json"
       },
       redirect: 'follow', // manual, *follow, error
-      referrerPolicy: 'no-referrer', // no-referrer, *client
       body: JSON.stringify({
         uname: this.props.signup.username,
         email: this.props.signup.email,

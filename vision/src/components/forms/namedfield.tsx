@@ -4,12 +4,16 @@ import store from "../../state/store";
 
 const logger = console;
 
+export type InputTypeProps = NamePropState<string> & {
+	inputType?: "text" | "password"
+};
+
 /**
  * This abstract class can be used for a named field in forms.
  *
  * A subclass of this class can be used to store input data into a redux store
  */
-export abstract class NamedField<T extends NamePropState<string>> extends Component<T> {
+export abstract class NamedField<T extends InputTypeProps> extends Component<T> {
 
 	abstract nameHandler = (evt: React.ChangeEvent<HTMLInputElement>) => {
 		logger.log(evt);
@@ -23,7 +27,7 @@ export abstract class NamedField<T extends NamePropState<string>> extends Compon
 				</label>
 				<div className="control">
 					<input className="input"
-								 type="text"
+								 type={ this.props.inputType || "text" }
 								 placeholder={ this.props.value }
 								 onChange={ this.nameHandler }
 					       />

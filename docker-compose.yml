@@ -1,7 +1,12 @@
-version: 3
+version: "3.7"
 services:
   mongodb:
     image: "mongo:4.2-bionic"
+    ports:
+      - 27017:27017
   khadga:
     build: .
-  
+    ports:
+      - 7001:7001
+    links:
+      - mongodb

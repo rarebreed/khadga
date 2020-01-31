@@ -1,6 +1,7 @@
 import { combineReducers } from "redux";
 import { modalReducer
-	     , signupReducer
+			 , signupReducer
+			 , loginReducer
 	     , state } from "./reducers";
 
 /**
@@ -8,7 +9,8 @@ import { modalReducer
  */
 export const reducers = combineReducers({
 	modal: modalReducer,
-	signup: signupReducer
+	signup: signupReducer,
+	connectedUsers: loginReducer
 });
 
 export default {

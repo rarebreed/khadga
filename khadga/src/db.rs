@@ -9,15 +9,17 @@ use bson::{bson,
            Bson};
 use lazy_static::lazy_static;
 use log::error;
-use mongodb::{Client,
+use mongodb::{results::InsertOneResult,
+              Client,
               Collection};
+use std::fmt;
 
 lazy_static! {
     pub static ref CONFIG: Settings = { Settings::new().expect("Unable to get config settings") };
 }
 
 /// Creates a mongodb client
-/// 
+///
 /// Mostly used so we can get a database and collection from the client
 pub fn make_client() -> Client {
     let mongo_host = format!("mongodb://{}", CONFIG.services.mongod.host);
@@ -26,7 +28,7 @@ pub fn make_client() -> Client {
 }
 
 /// Retrieves a collection
-/// 
+///
 /// If the collection name exists, it will be retrieved, otherwise a new collection will be created
 /// in the database
 pub fn get_collection(dbname: &str, coll_name: &str) -> Collection {
@@ -37,7 +39,7 @@ pub fn get_collection(dbname: &str, coll_name: &str) -> Collection {
 }
 
 /// Inserts a User into the `user` collection of the given database
-/// 
+///
 /// The actual name of the collection is given from the config file
 pub fn make_user(
     client: &Client,
@@ -56,6 +58,37 @@ pub fn make_user(
     }
 
     Ok(coll)
+}
+
+#[derive(Debug)]
+pub struct DeserializeError<'a> {
+    error: &'a str,
+}
+
+impl<'a> fmt::Display for DeserializeError<'a> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{:?}", self)
+    }
+}
+
+impl<'a> std::error::Error for DeserializeError<'a> {}
+
+impl<'a> DeserializeError<'a> {
+    fn new(msg: &'a str) -> Self {
+        DeserializeError { error: msg }
+    }
+}
+
+pub fn add_user(
+    coll: &Collection,
+    user: User,
+) -> Result<InsertOneResult, Box<dyn std::error::Error>> {
+    let doc = to_bson(&user)?;
+
+    match doc {
+        Bson::Document(bdoc) => Ok(coll.insert_one(bdoc, None)?),
+        _ => Err(Box::new(DeserializeError::new("Not valid format for data"))),
+    }
 }
 
 pub fn delete_user(
@@ -97,6 +130,13 @@ pub fn find_user(
     }
 
     Ok((coll, users))
+}
+
+pub fn get_user(dbname: &str, user: &str) -> Option<(Collection, Vec<User>)> {
+    match find_user(dbname, user) {
+        Ok((coll, users)) => Some((coll, users)),
+        Err(_) => None,
+    }
 }
 
 #[cfg(test)]

@@ -3,9 +3,13 @@ import { ModalAction
 			 , SignUpAction
 			 , SET_SIGNUP_USERNAME
 			 , SET_SIGNUP_PASSWORD
-			 , SET_SIGNUP_EMAIL,
-			 NamePropState,
-			 SET_SIGNUP
+			 , SET_SIGNUP_EMAIL
+			 , USER_LOGIN
+			 , USER_DISCONNECT
+			 , LOGIN_ACTIONS
+			 , LoginAction
+			 , NamePropState
+			 , SET_SIGNUP
 			 } from "./types";
 
 export const setActive = (isActive: boolean): ModalAction => {
@@ -28,4 +32,11 @@ export const setSignUp = (state: NamePropState<string>): SignUpAction => {
 	};
 
 	return action;
+};
+
+export const createLoginAction = (uname: string, action: LOGIN_ACTIONS): LoginAction => {
+	return {
+		type: action,
+		username: uname
+	};
 };

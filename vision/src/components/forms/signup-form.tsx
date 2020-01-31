@@ -7,6 +7,7 @@ import store from "../../state/store";
 import { SignUp } from "../../state/types";
 import { NamedField } from "./namedfield";
 import { setSignUp } from "../../state/action-creators";
+import { InputTypeProps } from "./namedfield";
 
 // We only need the
 const mapStateToPropsSignUp = (state: typeof store.state): SignUp => {
@@ -19,7 +20,7 @@ const mapDispatchSignUp = {
 
 const signupConnector = connect(mapStateToPropsSignUp, mapDispatchSignUp);
 type PropsFromReduxSignUp = ConnectedProps<typeof signupConnector>;
-type SignupProps = PropsFromReduxSignUp & NamePropState<string>;
+type SignupProps = PropsFromReduxSignUp & InputTypeProps;
 
 // tslint:disable-next-line:class-name
 class SignUpNamedField extends NamedField<SignupProps> {

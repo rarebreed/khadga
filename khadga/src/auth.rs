@@ -27,9 +27,15 @@
 //! Once authenticated, a JWT will be created.  This token will expire in 15 minutes.  All requests
 //! from the agent (the user is using) will pass this JWT token around.
 
+use crate::{data::User,
+            db::{add_user,
+                 get_user}};
+use log::error;
 use serde::{Deserialize,
             Serialize};
 use warp::{filters::BoxedFilter,
+           http::{Response,
+                  StatusCode},
            Filter,
            Reply};
 
@@ -52,8 +58,32 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
         .and(warp::body::json())
         .map(|reg_params: RegisterParams| {
             println!("{:#?}", reg_params);
-            // TODO: When a user registers, the data will be stored in mongodb
-            warp::reply()
+
+            let builder = Response::builder();
+            let reply = match get_user("khadga", &reg_params.uname) {
+                Some((_, users)) if users.len() >= 1 => {
+                    error!("More than one user with name of {}", reg_params.uname);
+                    builder
+                        .status(StatusCode::from_u16(403).unwrap())
+                        .body("User already exists")
+                }
+                Some((coll, users)) if users.is_empty() => {
+                    // Add user to db
+                    let user = User::new(reg_params.uname, reg_params.psw, reg_params.email);
+
+                    match add_user(&coll, user) {
+                        Err(_) => builder.status(StatusCode::from_u16(500).unwrap()).body(""),
+                        _ => builder.status(StatusCode::OK).body("Added user"),
+                    }
+                }
+                _ => {
+                    builder
+                        .status(StatusCode::from_u16(500).unwrap())
+                        .body("Unable to retrieve data from database")
+                }
+            };
+
+            reply
         });
     route.boxed()
 }

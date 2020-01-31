@@ -8,7 +8,7 @@ export class SignUp extends React.Component {
     return (
       <Modal bulma="modal">
         <SignUpNamedField name="Username" value="eg. johndoe"></SignUpNamedField>
-        <SignUpNamedField name="Password" value=""></SignUpNamedField>
+        <SignUpNamedField name="Password" value="*********" inputType="password"></SignUpNamedField>
         <SignUpNamedField name="Email" value="eg. johndoe@gmail.com"></SignUpNamedField>
       </Modal>
     );

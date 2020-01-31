@@ -15,7 +15,8 @@
   "author": "Sean Toner",
   "license": "Apache-2.0",
   "browserslist": [
-    "defaults"
+    "last 2 Chrome versions",
+    "last 2 Firefox versions"
   ],
   "devDependencies": {
     "@types/jest": "^25.1.0",

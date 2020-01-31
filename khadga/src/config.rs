@@ -122,9 +122,16 @@ mod tests {
         let settings = Settings::new()?;
         println!("{}", settings);
 
-        assert_eq!("0.0.0.0", settings.services.khadga.host);
+        let mut khadga_host: String = "0.0.0.0".into();
+        let mut mongod_host: String = "0.0.0.0".into();
+        if let Ok(_) = std::env::var("KHADGA_DEV") {
+            khadga_host = "127.0.0.1".into();
+            mongod_host = "127.0.0.1".into();
+        }
+
+        assert_eq!(khadga_host, settings.services.khadga.host);
         assert_eq!("7001", settings.services.khadga.port);
-        assert_eq!("127.0.0.1", settings.services.mongod.host);
+        assert_eq!(mongod_host, settings.services.mongod.host);
         assert_eq!("debug", settings.logging.level.repr());
 
         Ok(())
