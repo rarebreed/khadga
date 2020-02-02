@@ -2,9 +2,10 @@ import * as React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
 import { SignUp } from "./signup";
-import store from "../state/store";
-import { setActive } from "../state/action-creators";
+import { State } from "../state/store";
+import { setActive, createLoginAction } from "../state/action-creators";
 import { logger } from "../logger";
+import { USER_TEST } from "../state/types";
 
 interface INavBarItemProps {
   item: string
@@ -41,24 +42,45 @@ class NavBarLink extends React.Component<INavBarLinkProps> {
  *
  * @param state
  */
-const mapState = (state: typeof store.state) => {
+const mapState = (state: State) => {
   logger.log(`in navbar mapState before: ${JSON.stringify(state, null, 2)}`);
-  const newstate = Object.assign({}, state);
-  logger.log(`in navbar mapState after: ${JSON.stringify(newstate, null, 2)}`);
-
-  return newstate.modal;
+  return {
+    isActive: state.modal,
+    loggedIn: state.connectState.loggedIn
+  };
 };
 
 const mapDispatch = {
-  signUp: setActive
+  signUp: setActive,
+  login: createLoginAction
 };
 
 const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class NavBar extends React.Component<PropsFromRedux> {
-  signUpHandler = (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  signUpHandler = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     this.props.signUp(true);
+  }
+
+  setLogin = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    // TODO: Make call to khadga to login.  If successful call 
+    this.props.login("testing", USER_TEST);
+  }
+
+  isLoggedIn = () => {
+    const buttons = (
+      <div className="buttons">
+        <a className="button is-primary" onClick={ this.signUpHandler }>
+          <strong>Sign up</strong>
+        </a>
+        <a className="button is-light" onClick={ this.setLogin }>
+          Log in
+        </a>
+      </div>
+    );
+
+    return this.props.loggedIn ? null : buttons;
   }
 
   render() {
@@ -92,17 +114,9 @@ class NavBar extends React.Component<PropsFromRedux> {
               </div>
             </div>
           </div>
-
           <div className="navbar-end">
             <div className="navbar-item">
-              <div className="buttons">
-                <a className="button is-primary" onClick={ this.signUpHandler }>
-                  <strong>Sign up</strong>
-                </a>
-                <a className="button is-light">
-                  Log in
-                </a>
-              </div>
+              { this.isLoggedIn() }
             </div>
           </div>
 

@@ -14,10 +14,12 @@ import { ModalState
 			 , LoginAction
 			 , USER_LOGIN
 			 , USER_DISCONNECT
+			 , USER_TEST
 			 , Message
 			 , MessageAction
 			 , MESSAGE_ADD
 			 , MESSAGE_DELETE
+			 , LoginReducerState
 			 } from "./types";
 import { logger } from "../logger";
 
@@ -60,7 +62,6 @@ export const state: StateStore = {
 export const modalReducer = ( previous: ModalState = initialModalState
 														, action: ModalAction)
 														: ModalState => {
-	logger.debug(`Current state for modalReducer:`, previous);
 	switch (action.type) {
 		case SET_ACTIVE:
 			logger.log(`action.status = ${action.status}`);
@@ -105,6 +106,11 @@ export const signupReducer = ( previous: SignUp = initialSignupState
 	return result;
 };
 
+const defaultLoginState: LoginReducerState = {
+	connected: [],
+	loggedIn: false
+};
+
 /**
  * Sets state for connected users
  *
@@ -114,19 +120,26 @@ export const signupReducer = ( previous: SignUp = initialSignupState
  * @param previous
  * @param action
  */
-export const loginReducer = ( previous: string[] = []
+export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 	                          , action: LoginAction) => {
+	const newstate = Object.assign({}, previous);
+
 	switch (action.type) {
 		case USER_LOGIN:
-			previous.push(action.username);
+			newstate.connected.push(action.username);
+			newstate.loggedIn = true;
 			break;
 		case USER_DISCONNECT:
-			previous = previous.filter(name => name !== action.username);
+			newstate.connected = previous.connected.filter(name => name !== action.username);
+			newstate.loggedIn = false;
+			break;
+		case USER_TEST:
+			newstate.loggedIn = true;
 			break;
 		default:
 			logger.log("Using previous");
 	}
-	return previous;
+	return newstate;
 };
 
 /**
@@ -153,4 +166,4 @@ export const messageReducer = ( previous: Message[] = []
 			return previous;
 	}
 	return newstate;
-}
+};

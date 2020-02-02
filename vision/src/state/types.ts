@@ -10,7 +10,8 @@ export type SET_SIGNUP = "SET_SIGNUP_USERNAME" | "SET_SIGNUP_PASSWORD" | "SET_SI
 
 export const USER_LOGIN = "USER_LOGIN";
 export const USER_DISCONNECT = "USER_DISCONNECT";
-export type LOGIN_ACTIONS = "USER_LOGIN" | "USER_DISCONNECT";
+export const USER_TEST = "USER_TEST";
+export type LOGIN_ACTIONS = "USER_LOGIN" | "USER_DISCONNECT" | "USER_TEST";
 
 export const MESSAGE_ADD = "MESSAGE_ADD";
 export const MESSAGE_EDIT = "MESSAGE_EDIT";
@@ -61,6 +62,10 @@ export interface LoginAction {
 	username: string
 }
 
+export interface LoginReducerState {
+	connected: string[],
+	loggedIn: boolean
+}
 export interface Message {
 	sender: string,
 	recipient?: string,

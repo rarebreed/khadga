@@ -1,11 +1,12 @@
-FROM ubuntu:bionic
+FROM fedora:31
 
-RUN apt update \
-    && apt upgrade -y \
-    && apt install -y curl \
-    && mkdir -p /apps/vision/dist
+RUN dnf update -y \
+    && dnf upgrade -y \
+    && dnf clean all -y
 
-# TODO: create a khadga user and run as that user.  We don't need to run as root
+RUN mkdir -p /apps/vision/dist \ 
+    && chgrp -R 0 /apps \
+    && chmod -R g=u /apps
 
 # Copy the dist that was generated from wasm-pack and webpack to our working dir
 # then, copy the executable to the vision directory.  This is because the binary

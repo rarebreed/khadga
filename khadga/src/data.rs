@@ -12,10 +12,10 @@ use std::fmt::{self,
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
-    user_name: String,
-    psw: String,
-    email: String,
-    created: String,
+    pub user_name: String,
+    pub psw: String,
+    pub email: String,
+    pub created: String,
     role: Role,
 }
 

@@ -2,15 +2,14 @@ import * as React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
 import { logger } from "../../logger";
-import { NamePropState } from "../../state/types";
-import store from "../../state/store";
+import { State } from "../../state/store";
 import { SignUp } from "../../state/types";
 import { NamedField } from "./namedfield";
 import { setSignUp } from "../../state/action-creators";
 import { InputTypeProps } from "./namedfield";
 
 // We only need the
-const mapStateToPropsSignUp = (state: typeof store.state): SignUp => {
+const mapStateToPropsSignUp = (state: State): SignUp => {
 	return Object.assign({}, state.signup);
 };
 

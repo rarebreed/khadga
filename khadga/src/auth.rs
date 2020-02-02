@@ -29,7 +29,8 @@
 
 use crate::{data::User,
             db::{add_user,
-                 get_user}};
+                 get_user,
+                 validate_user_pw}};
 use log::error;
 use serde::{Deserialize,
             Serialize};
@@ -64,7 +65,7 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
                 Some((_, users)) if users.len() >= 1 => {
                     error!("More than one user with name of {}", reg_params.uname);
                     builder
-                        .status(StatusCode::from_u16(403).unwrap())
+                        .status(StatusCode::from_u16(409).unwrap())
                         .body("User already exists")
                 }
                 Some((coll, users)) if users.is_empty() => {
@@ -95,9 +96,18 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
         .map(|login_params: LoginParams| {
             println!("{:#?}", login_params);
             // TODO: Need a login handler and a websocket endpoint
-            // When a user logs in, they will be given an auth token which can be used to hain access to
-            // chat and video for as long as the session maintains activity
-            warp::reply()
+            // When a user logs in, they will be given an auth token which can be used
+            // to hain access to chat and video for as long as the session maintains activity
+            let builder = Response::builder();
+            let user = User::new(login_params.uname, login_params.psw, "".into());
+            match validate_user_pw("khadga", &user) {
+                Ok((_, true)) => builder.status(StatusCode::OK).body("User authenticated"),
+                _ => {
+                    builder
+                        .status(StatusCode::from_u16(403).unwrap())
+                        .body("Unable to retrieve data from database")
+                }
+            }
         });
     login.boxed()
 }

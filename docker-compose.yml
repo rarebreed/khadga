@@ -10,3 +10,5 @@ services:
       - 7001:7001
     links:
       - mongodb
+    volumes:
+      - ./vision/dist:/app/dist

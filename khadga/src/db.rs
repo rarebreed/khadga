@@ -139,6 +139,31 @@ pub fn get_user(dbname: &str, user: &str) -> Option<(Collection, Vec<User>)> {
     }
 }
 
+pub fn validate_user_pw(
+    dbname: &str,
+    user: &User,
+) -> Result<(Collection, bool), mongodb::error::Error> {
+    let coll = get_collection(dbname, &CONFIG.services.mongod.database);
+    let cursor = coll.find(doc! {"user_name": &user.user_name}, None)?;
+
+    let mut matched: bool = false;
+    for result in cursor {
+        match result {
+            Ok(document) => {
+                println!("{}", document);
+                let user_ = from_bson::<User>(Bson::Document(document))?;
+                if user_.psw == user.psw {
+                    matched = true;
+                    break;
+                }
+            }
+            Err(e) => return Err(e),
+        }
+    }
+
+    Ok((coll, matched))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

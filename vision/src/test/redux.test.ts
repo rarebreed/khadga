@@ -9,6 +9,7 @@ import { SET_ACTIVE
 			 , USER_LOGIN,
 			 USER_DISCONNECT
 			 } from "../state/types";
+import { state } from "../state/reducers";
 
 test("Tests the store", () => {
 	const stateStore = createStore(store.reducers);
@@ -80,9 +81,11 @@ test("Tests adding user to connectedUsers", () => {
 	});
 
 	let stateNow = stateStore.getState();
+
 	logger.log(stateNow);
-	expect(stateNow.connectedUsers.includes("sean")).toBeTruthy();
-	expect(stateNow.connectedUsers.includes("toner")).toBeTruthy();
+	expect(stateNow.connectState.connected.includes("sean")).toBeTruthy();
+	expect(stateNow.connectState.connected.includes("toner")).toBeTruthy();
+	expect(stateNow.connectState.loggedIn).toBeTruthy();
 
 	stateStore.dispatch({
 		type: USER_DISCONNECT,
@@ -90,6 +93,7 @@ test("Tests adding user to connectedUsers", () => {
 	});
 	stateNow = stateStore.getState();
 	logger.log(stateNow);
-	expect(stateNow.connectedUsers.includes("sean")).toBeFalsy();
+	expect(stateNow.connectState.connected.includes("sean")).toBeFalsy();
+	expect(stateNow.connectState.loggedIn).toBeFalsy();
 });
 

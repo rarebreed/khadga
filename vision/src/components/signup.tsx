@@ -1,7 +1,7 @@
 import React from "react";
 
 import SignUpNamedField from "./forms/signup-form";
-import Modal from "./modal";
+import Modal from "./signup-modal";
 
 export class SignUp extends React.Component {
   render() {
