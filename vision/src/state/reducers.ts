@@ -9,7 +9,7 @@ import { ModalState
 			 , SET_SIGNUP_EMAIL
 			 , SET_SIGNUP_PASSWORD
 			 , SET_SIGNUP_USERNAME
-			 , SET_ACTIVE
+			 , SET_SIGNUP_ACTIVE
 			 , StateStore
 			 , LoginAction
 			 , USER_LOGIN
@@ -23,8 +23,13 @@ import { ModalState
 			 } from "./types";
 import { logger } from "../logger";
 
-const initialModalState = {
-	isActive: false
+const initialModalState: ModalState = {
+	signup: {
+		isActive: false
+	},
+	login: {
+		isActive: false
+	}
 };
 
 const initialShowLoginState = {
@@ -45,7 +50,6 @@ const initialUserLogin: UserLogin ={
 // This is the total data store of our app
 export const state: StateStore = {
 	modal: initialModalState,
-	showLogin: initialShowLoginState, // Whether to show the Login modal or not
 	signup: initialSignupState,
 	login: initialUserLogin,
 	loggedIn: false,     // If user has logged in (don't show Login or Signup button)
@@ -60,13 +64,16 @@ export const state: StateStore = {
  * @param action
  */
 export const modalReducer = ( previous: ModalState = initialModalState
-														, action: ModalAction)
-														: ModalState => {
+						    , action: ModalAction)
+							: ModalState => {
 	switch (action.type) {
-		case SET_ACTIVE:
+		case SET_SIGNUP_ACTIVE:
 			logger.log(`action.status = ${action.status}`);
 			return {
-				isActive: action.status
+				signup: {
+					isActive: action.status
+				},
+				login: previous.login
 			};
 			break;
 		default:

@@ -23,7 +23,7 @@ type SignupProps = PropsFromReduxSignUp & InputTypeProps;
 
 // tslint:disable-next-line:class-name
 class SignUpNamedField extends NamedField<SignupProps> {
-	nameHandler = (evt: React.ChangeEvent<HTMLInputElement>) => {
+  nameHandler = (evt: React.ChangeEvent<HTMLInputElement>) => {
 		logger.log(evt.target.value);
 
 		this.props.setSignUp({

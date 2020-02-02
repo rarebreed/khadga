@@ -12,13 +12,17 @@ class SignupModal extends AbstractModal<ModalProps> {
   }
 
   setActive = (_: React.MouseEvent<HTMLButtonElement>) => {
-    const current = this.props.isActive;
+    const current = this.props.modal.signup;
     logger.debug(`Clicked button: current = ${current}`);
     this.props.setActive(!current);
   }
 
   cancel = (_: React.MouseEvent<HTMLAnchorElement>) => {
     this.props.setActive(false);
+  }
+
+  getActive = () => {
+    return this.props.modal.signup.isActive;
   }
 
   submit = async (_: React.MouseEvent<HTMLAnchorElement>) => {

@@ -2,33 +2,34 @@ import { createStore} from "redux";
 
 import store from "../state/store";
 import { logger } from "../logger";
-import { SET_ACTIVE
-			 , SET_SIGNUP_EMAIL
-			 , SET_SIGNUP_PASSWORD
-			 , SET_SIGNUP_USERNAME
-			 , USER_LOGIN,
-			 USER_DISCONNECT
+import { SET_SIGNUP_ACTIVE
+	   , SET_SIGNUP_EMAIL
+       , SET_SIGNUP_PASSWORD
+	   , SET_SIGNUP_USERNAME
+	   , USER_LOGIN
+	   , USER_DISCONNECT
 			 } from "../state/types";
 import { state } from "../state/reducers";
 
 test("Tests the store", () => {
 	const stateStore = createStore(store.reducers);
 	stateStore.dispatch({
-		type: SET_ACTIVE,
+		type: SET_SIGNUP_ACTIVE,
 		status: true
 	});
 
 	let stateNow = stateStore.getState();
 	// logger.log(stateNow);
-	expect(stateNow).toBeTruthy();
+	expect(stateNow.modal.signup.isActive).toBeTruthy();
+	expect(stateNow.modal.login.isActive).toBeFalsy();
 
 	stateStore.dispatch({
-		type: "SET_ACTIVE",
-		status: false
+		type: "SET_LOGIN_ACTIVE",
+		status: true
 	});
 
 	stateNow = stateStore.getState();
-	expect(stateNow.modal.isActive).toBeFalsy();
+	expect(stateNow.modal.signup.isActive).toBeTruthy();
 });
 
 test("Tests the signupReducer", () => {

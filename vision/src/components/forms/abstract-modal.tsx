@@ -1,11 +1,12 @@
 import React from "react";
+import { ModalState } from "../../state/types";
 
 const logger = console;
 
 export interface ModalBaseProps {
   children?: React.ReactNode,
 	bulma: string,
-	isActive: boolean
+	modal: ModalState
 }
 
 export abstract class AbstractModal<T extends ModalBaseProps> extends React.Component<T> {
@@ -20,10 +21,14 @@ export abstract class AbstractModal<T extends ModalBaseProps> extends React.Comp
 
 	abstract submit = async (_: React.MouseEvent<HTMLAnchorElement>): Promise<void> => {
 		return;
-	}
+  }
+  
+  abstract getActive = (): boolean => {
+    return false;
+  }
 
   render() {
-    const className = "modal" + (this.props.isActive ? ` is-active` : "");
+    const className = "modal" + (this.getActive() ? ` is-active` : "");
     logger.log(`Modal className will be ${className}`);
     return (
       <div className={className}>

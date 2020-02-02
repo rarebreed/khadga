@@ -14,13 +14,17 @@ class LoginModal extends AbstractModal<ModalProps> {
   }
 
   setActive = (_: React.MouseEvent<HTMLButtonElement>) => {
-    const current = this.props.isActive;
+    const current = this.props.modal.login.isActive;
     logger.debug(`Clicked button: current = ${current}`);
     this.props.setActive(!current);
   }
 
   cancel = (_: React.MouseEvent<HTMLAnchorElement>) => {
     this.props.setActive(false);
+  }
+
+  getActive = () => {
+    return this.props.modal.login.isActive;
   }
 
   submit = async (_: React.MouseEvent<HTMLAnchorElement>) => {

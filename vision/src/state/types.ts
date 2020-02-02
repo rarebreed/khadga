@@ -1,7 +1,8 @@
 /**
  * This module will store the various Actions and data types used in the Action
  */
-export const SET_ACTIVE = 'SET_ACTIVE';
+export const SET_SIGNUP_ACTIVE = 'SET_SIGNUP_ACTIVE';
+export const SET_LOGIN_ACTIVE = "SET_LOGIN_ACTIVE";
 
 export const SET_SIGNUP_USERNAME = "SET_SIGNUP_USERNAME";
 export const SET_SIGNUP_EMAIL = "SET_SIGNUP_EMAIL";
@@ -18,12 +19,17 @@ export const MESSAGE_EDIT = "MESSAGE_EDIT";
 export const MESSAGE_DELETE = "MESSAGE_DELETE";
 export type MESSAGE_ACTIONS = "MESSAGE_ADD" | "MESSAGE_EDIT" | "MESSAGE_DELETE";
 
-export interface ModalState {
+export interface ActiveState {
 	isActive: boolean
 }
 
+export interface ModalState {
+	signup: ActiveState,
+	login: ActiveState
+}
+
 export interface ModalAction {
-	type: typeof SET_ACTIVE,
+	type: "SET_SIGNUP_ACTIVE" | "SET_LOGIN_ACTIVE"
 	status: boolean
 }
 
@@ -84,7 +90,6 @@ export interface MessageAction {
  */
 export interface StateStore {
 	modal: ModalState,  // Whether we show the signup modal or not
-	showLogin: ModalState, // Whether to show the Login modal or not
 	signup: SignUp,
 	login: UserLogin,
 	loggedIn: boolean,     // If user has logged in (don't show Login or Signup button)

@@ -12,7 +12,7 @@ const mapState = (state: State) => {
   const signupState = Object.assign({}, state.signup);
 
   const combined = {
-    isActive: newstate.isActive,
+    modal: newstate,
     signup: signupState
   };
   logger.log(`in modal mapState`, combined);
