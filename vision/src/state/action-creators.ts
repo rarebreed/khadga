@@ -1,33 +1,35 @@
 import { ModalAction
-			 , SET_SIGNUP_ACTIVE
+			 , SET_MODAL_ACTIVE
 			 , SignUpAction
-			 , SET_SIGNUP_USERNAME
-			 , SET_SIGNUP_PASSWORD
-			 , SET_SIGNUP_EMAIL
-			 , USER_LOGIN
-			 , USER_DISCONNECT
+			 , LoginFormAction
 			 , LOGIN_ACTIONS
 			 , LoginAction
 			 , NamePropState
-			 , SET_SIGNUP
+			 , SET_SIGNUP,
+			 SET_LOGIN_FORM
 			 } from "./types";
 
-export const setActive = (isActive: boolean): ModalAction => {
+export const setActive = (isActive: boolean, action: SET_MODAL_ACTIVE): ModalAction => {
 	return {
-		type: SET_SIGNUP_ACTIVE,
+		type: action,
 		status: isActive
 	};
 };
 
-export const setSignUp = (state: NamePropState<string>): SignUpAction => {
-	const name = state.name.toLocaleLowerCase();
-
-	const actionType: SET_SIGNUP = name === "username" ? SET_SIGNUP_USERNAME :
-								   name === "password" ? SET_SIGNUP_PASSWORD :
-															 SET_SIGNUP_EMAIL;
-
+export const setSignUp = (state: NamePropState<string>, type: SET_SIGNUP): SignUpAction => {
 	const action: SignUpAction = {
-		type: actionType,
+		type,
+		form: state
+	};
+
+	return action;
+};
+
+export const setLoginForm = ( state: NamePropState<string>
+														, type: SET_LOGIN_FORM)
+														: LoginFormAction => {
+	const action: LoginFormAction = {
+		type,
 		form: state
 	};
 

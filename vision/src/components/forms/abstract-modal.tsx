@@ -22,14 +22,13 @@ export abstract class AbstractModal<T extends ModalBaseProps> extends React.Comp
 	abstract submit = async (_: React.MouseEvent<HTMLAnchorElement>): Promise<void> => {
 		return;
   }
-  
+
   abstract getActive = (): boolean => {
     return false;
   }
 
   render() {
     const className = "modal" + (this.getActive() ? ` is-active` : "");
-    logger.log(`Modal className will be ${className}`);
     return (
       <div className={className}>
         <div className="modal-background"></div>

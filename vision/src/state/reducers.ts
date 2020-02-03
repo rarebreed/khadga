@@ -10,8 +10,11 @@ import { ModalState
 			 , SET_SIGNUP_PASSWORD
 			 , SET_SIGNUP_USERNAME
 			 , SET_SIGNUP_ACTIVE
+			 , SET_LOGIN_ACTIVE
+			 , SET_LOGIN_PASSWORD
 			 , StateStore
 			 , LoginAction
+			 , LoginFormAction
 			 , USER_LOGIN
 			 , USER_DISCONNECT
 			 , USER_TEST
@@ -20,6 +23,9 @@ import { ModalState
 			 , MESSAGE_ADD
 			 , MESSAGE_DELETE
 			 , LoginReducerState
+			 , SET_LOGIN_USERNAME
+			 , SET_LOGIN_CLEAR,
+			 SET_SIGNUP_CLEAR
 			 } from "./types";
 import { logger } from "../logger";
 
@@ -64,16 +70,23 @@ export const state: StateStore = {
  * @param action
  */
 export const modalReducer = ( previous: ModalState = initialModalState
-						    , action: ModalAction)
-							: ModalState => {
+						                , action: ModalAction)
+							              : ModalState => {
 	switch (action.type) {
 		case SET_SIGNUP_ACTIVE:
-			logger.log(`action.status = ${action.status}`);
 			return {
 				signup: {
 					isActive: action.status
 				},
 				login: previous.login
+			};
+			break;
+		case SET_LOGIN_ACTIVE:
+			return {
+				login: {
+					isActive: action.status
+				},
+				signup: previous.signup
 			};
 			break;
 		default:
@@ -105,6 +118,11 @@ export const signupReducer = ( previous: SignUp = initialSignupState
 			break;
 		case SET_SIGNUP_PASSWORD:
 			newstate.password = action.form.value;
+			break;
+		case SET_SIGNUP_CLEAR:
+			newstate.username = "";
+			newstate.password = "";
+			newstate.email = "";
 			break;
 		default:
 			result = previous;
@@ -144,8 +162,38 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 			newstate.loggedIn = true;
 			break;
 		default:
-			logger.log("Using previous");
+			return previous;
 	}
+	return newstate;
+};
+
+/**
+ * Handles state for signup form
+ *
+ * @param previous
+ * @param action
+ */
+export const loginFormReducer = ( previous: UserLogin = initialUserLogin
+														    , action: LoginFormAction )
+														    : UserLogin => {
+	const newstate = Object.assign({}, previous);
+
+	switch (action.type) {
+		case SET_LOGIN_USERNAME:
+			newstate.username = action.form.value;
+			break;
+		case SET_LOGIN_PASSWORD:
+			newstate.password = action.form.value;
+			break;
+		case SET_LOGIN_CLEAR:
+			newstate.username = "";
+			newstate.password	= "";
+			break;
+		default:
+			return previous;
+	}
+
+	logger.debug(`Called with ${JSON.stringify(action, null, 2)}. loginFormReducer state:`, newstate);
 	return newstate;
 };
 

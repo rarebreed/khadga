@@ -7,7 +7,9 @@ import { SET_SIGNUP_ACTIVE
        , SET_SIGNUP_PASSWORD
 	   , SET_SIGNUP_USERNAME
 	   , USER_LOGIN
-	   , USER_DISCONNECT
+	   , USER_DISCONNECT,
+		 SET_LOGIN_PASSWORD,
+		 SET_LOGIN_USERNAME
 			 } from "../state/types";
 import { state } from "../state/reducers";
 
@@ -98,3 +100,39 @@ test("Tests adding user to connectedUsers", () => {
 	expect(stateNow.connectState.loggedIn).toBeFalsy();
 });
 
+test("Test loginFormReducer", () => {
+	const stateStore = createStore(store.reducers);
+
+	stateStore.dispatch({
+		type: SET_LOGIN_PASSWORD,
+		form: {
+			name: "Password",
+			value: "foobar"
+		}
+	});
+
+	let stateNow = stateStore.getState();
+	expect(stateNow.login.password).toBe("foobar");
+
+	stateStore.dispatch({
+		type: SET_LOGIN_PASSWORD,
+		form: {
+			name: "Password",
+			value: "xxyy"
+		}
+	});
+
+	stateNow = stateStore.getState();
+	expect(stateNow.login.password).toBe("xxyy");
+
+  stateStore.dispatch({
+		type: SET_LOGIN_USERNAME,
+		form: {
+			name: "Username",
+			value: "johndoe"
+		}
+	});
+
+	stateNow = stateStore.getState();
+	expect(stateNow.login.username).toBe("johndoe");
+});

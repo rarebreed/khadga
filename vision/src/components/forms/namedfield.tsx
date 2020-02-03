@@ -20,6 +20,7 @@ export abstract class NamedField<T extends InputTypeProps> extends Component<T> 
 	}
 
 	render() {
+		logger.log(`In NamedField: ${JSON.stringify(this.props, null, 2)}`);
 		return (
 			<div className="field">
 				<label className="label has-text-light">

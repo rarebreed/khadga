@@ -29,7 +29,7 @@ export class ChatContainer extends React.Component {
 				</div>
 				<div className="column">
 					<ul>
-					{ this.messages }
+					  { this.messages }
 					</ul>
 				</div>
 		  </div>

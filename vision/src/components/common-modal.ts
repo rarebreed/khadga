@@ -3,11 +3,10 @@ import { connect, ConnectedProps } from "react-redux";
 
 import { State } from "../state/store";
 import { setActive } from "../state/action-creators";
-import { Module } from "module";
 const logger = console;
 
 // mapState returns only what is needed from the store to this component
-const mapState = (state: State) => {
+export const mapState = (state: State) => {
   const newstate = Object.assign({}, state.modal);
   const signupState = Object.assign({}, state.signup);
 
@@ -15,14 +14,13 @@ const mapState = (state: State) => {
     modal: newstate,
     signup: signupState
   };
-  logger.log(`in modal mapState`, combined);
 
   return combined;
 };
 
 // This is basically an object that maps an actionCreator function to a name.  This will make
 // react-redux add the name to the this.props of the Component.
-const mapDispatch = {
+export const mapDispatch = {
   setActive
 };
 

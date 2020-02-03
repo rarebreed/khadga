@@ -20,10 +20,8 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class UserList extends React.Component<PropsFromRedux> {
 	render() {
-		let index = 0;
 		const listItems = this.props.connected.map(user => {
-			const item = <li key={index}>{user}</li>;
-			index++;
+			const item = <li key={user}>{user}</li>;
 			return item;
 		});
 

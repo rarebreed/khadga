@@ -3,18 +3,21 @@ import { connect, ConnectedProps } from "react-redux";
 
 import { SignUp } from "./signup";
 import { State } from "../state/store";
-import { setActive, createLoginAction } from "../state/action-creators";
+import { setActive, createLoginAction, setLoginForm } from "../state/action-creators";
 import { logger } from "../logger";
-import { USER_TEST } from "../state/types";
+import { SET_SIGNUP_ACTIVE
+       , SET_LOGIN_ACTIVE, USER_DISCONNECT, SET_LOGIN_CLEAR, SET_LOGIN_USERNAME } from "../state/types";
+import  Login from "./login";
 
 interface INavBarItemProps {
-  item: string
+  item: string,
+  href?: string
 }
 
 class NavBarItem extends React.Component<INavBarItemProps> {
   render() {
     return (
-      <a className="navbar-item">
+      <a className="navbar-item" href={this.props.href}>
         { this.props.item }
       </a>
     );
@@ -43,16 +46,17 @@ class NavBarLink extends React.Component<INavBarLinkProps> {
  * @param state
  */
 const mapState = (state: State) => {
-  logger.log(`in navbar mapState before: ${JSON.stringify(state, null, 2)}`);
   return {
-    isActive: state.modal,
+    user: state.login.username,
+    modal: state.modal,
     loggedIn: state.connectState.loggedIn
   };
 };
 
 const mapDispatch = {
   signUp: setActive,
-  login: createLoginAction
+  login: createLoginAction,
+  setLoginForm
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -60,12 +64,18 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class NavBar extends React.Component<PropsFromRedux> {
   signUpHandler = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    this.props.signUp(true);
+    this.props.signUp(true, SET_SIGNUP_ACTIVE);
   }
 
   setLogin = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    // TODO: Make call to khadga to login.  If successful call 
-    this.props.login("testing", USER_TEST);
+    logger.log("In setLogin");
+    this.props.signUp(true, SET_LOGIN_ACTIVE);
+    // this.props.login("testing", USER_TEST);
+    this.props.setLoginForm({ name: "Username", value: ""}, SET_LOGIN_USERNAME);
+  }
+
+  logout = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    this.props.login(this.props.user, USER_DISCONNECT);
   }
 
   isLoggedIn = () => {
@@ -80,7 +90,15 @@ class NavBar extends React.Component<PropsFromRedux> {
       </div>
     );
 
-    return this.props.loggedIn ? null : buttons;
+    const logout = (
+      <div className="buttons">
+        <a className="button is-primary" onClick={ this.logout }>
+          <strong>Log Out</strong>
+        </a>
+      </div>
+    );
+
+    return this.props.loggedIn ? logout : buttons;
   }
 
   render() {
@@ -101,14 +119,14 @@ class NavBar extends React.Component<PropsFromRedux> {
         <div id="navbarBasicExample" className="navbar-menu">
           <div className="navbar-start">
             <NavBarItem item="Home" />
-            <NavBarItem item="Documentation" />
+            { this.props.loggedIn ? <NavBarItem item="Chat" /> : null }
 
             <div className="navbar-item has-dropdown is-hoverable">
               <NavBarLink link="More" />
 
               <div className="navbar-dropdown">
                 <NavBarItem item="About" />
-                <NavBarItem item="Jobs" />
+                <NavBarItem item="Blog" href="https://rarebreed.github.io"/>
                 <hr className="navbar-divider" />
                 <NavBarItem item="Report an issue" />
               </div>
@@ -121,6 +139,7 @@ class NavBar extends React.Component<PropsFromRedux> {
           </div>
 
           <SignUp />
+          <Login />
         </div>
       </nav>
     );

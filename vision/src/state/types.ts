@@ -1,18 +1,28 @@
 /**
  * This module will store the various Actions and data types used in the Action
  */
-export const SET_SIGNUP_ACTIVE = 'SET_SIGNUP_ACTIVE';
+export const SET_SIGNUP_ACTIVE = "SET_SIGNUP_ACTIVE";
 export const SET_LOGIN_ACTIVE = "SET_LOGIN_ACTIVE";
+export type SET_MODAL_ACTIVE = "SET_SIGNUP_ACTIVE" | "SET_LOGIN_ACTIVE";
 
 export const SET_SIGNUP_USERNAME = "SET_SIGNUP_USERNAME";
 export const SET_SIGNUP_EMAIL = "SET_SIGNUP_EMAIL";
 export const SET_SIGNUP_PASSWORD = "SET_SIGNUP_PASSWORD";
-export type SET_SIGNUP = "SET_SIGNUP_USERNAME" | "SET_SIGNUP_PASSWORD" | "SET_SIGNUP_EMAIL";
+export const SET_SIGNUP_CLEAR = "SET_SIGNUP_CLEAR";
+export type SET_SIGNUP = "SET_SIGNUP_USERNAME"
+											 | "SET_SIGNUP_PASSWORD"
+											 | "SET_SIGNUP_EMAIL"
+											 | "SET_SIGNUP_CLEAR";
 
 export const USER_LOGIN = "USER_LOGIN";
 export const USER_DISCONNECT = "USER_DISCONNECT";
 export const USER_TEST = "USER_TEST";
 export type LOGIN_ACTIONS = "USER_LOGIN" | "USER_DISCONNECT" | "USER_TEST";
+
+export const SET_LOGIN_USERNAME = "SET_LOGIN_USERNAME";
+export const SET_LOGIN_PASSWORD = "SET_LOGIN_PASSWORD";
+export const SET_LOGIN_CLEAR = "SET_LOGIN_CLEAR";
+export type SET_LOGIN_FORM = "SET_LOGIN_USERNAME" | "SET_LOGIN_PASSWORD" | "SET_LOGIN_CLEAR";
 
 export const MESSAGE_ADD = "MESSAGE_ADD";
 export const MESSAGE_EDIT = "MESSAGE_EDIT";
@@ -66,6 +76,11 @@ export type SignUp = UserLogin & {
 export interface LoginAction {
 	type: LOGIN_ACTIONS,
 	username: string
+}
+
+export interface LoginFormAction {
+	type: SET_LOGIN_FORM,
+	form: NamePropState<string>
 }
 
 export interface LoginReducerState {

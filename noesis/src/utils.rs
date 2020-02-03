@@ -100,7 +100,3 @@ pub async fn list_media_devices() -> Result<js_sys::Array, JsValue> {
         Err(e) => Err(e),
     }
 }
-
-pub struct Foo {
-    pub age: u32,
-}

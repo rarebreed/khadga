@@ -1,6 +1,7 @@
 import React from "react";
 import { AbstractModal } from "./forms/abstract-modal";
 import { ModalProps, connector } from "./common-modal";
+import { SET_SIGNUP_ACTIVE } from "../state/types";
 
 const logger = console;
 
@@ -14,11 +15,11 @@ class SignupModal extends AbstractModal<ModalProps> {
   setActive = (_: React.MouseEvent<HTMLButtonElement>) => {
     const current = this.props.modal.signup;
     logger.debug(`Clicked button: current = ${current}`);
-    this.props.setActive(!current);
+    this.props.setActive(!current, SET_SIGNUP_ACTIVE);
   }
 
   cancel = (_: React.MouseEvent<HTMLAnchorElement>) => {
-    this.props.setActive(false);
+    this.props.setActive(false, SET_SIGNUP_ACTIVE);
   }
 
   getActive = () => {
@@ -37,16 +38,20 @@ class SignupModal extends AbstractModal<ModalProps> {
       redirect: 'follow',
       body: JSON.stringify({
         uname: this.props.signup.username,
-        psw: this.props.signup.password
+        psw: this.props.signup.password,
+        email: this.props.signup.email
       })
     };
 
     const origin = window.location.origin;
-    const response = await fetch(`http://${origin}:7001/login`, request);
+    const response = await fetch(`${origin}/register`, request);
+    
     if (response.status !== 200) {
-      throw new Error(`status was ${response.status} ${response.statusText}`);
+      const err = `status was ${response.status} ${response.statusText}`;
+      logger.error(err);
+      throw new Error(err);
     } else {
-      this.props.setActive(false);
+      this.props.setActive(false, SET_SIGNUP_ACTIVE);
     }
   }
 }
