@@ -9,10 +9,19 @@ import { ChatContainer } from "./components/chat/chat-container";
 
 const store = createStore(reducers);
 
+interface ContainerStyle {
+  [key: string]: string
+}
+
 class App extends React.Component {
+  style: ContainerStyle = {
+    "flex-direction": "column",
+    height: "100vh"
+  };
+
   render() {
     return (
-      <div>
+      <div className="is-flex" id="main-container" style={ this.style }>
         <NavBar />
         <ChatContainer />
       </div>

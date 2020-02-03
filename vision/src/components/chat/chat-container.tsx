@@ -17,14 +17,25 @@ const mapPropsToState = () => {
   // TODO: Figure out what state we need here
 };
 
+interface ColumnBorder {
+	[key: string]: string
+}
+
 export class ChatContainer extends React.Component {
 	messages: ChatMessage[] = [];
+
+	style: ColumnBorder = {
+		border: "black solid",
+		height: "100%",
+		display: "flex",
+		"flex-direction": "column"
+	};
 
   render() {
 		return(
 			// The last column needs to be dynamically allocated when a threaded view is needed
-			<div className="columns">
-				<div className="column is-one-fifth">
+			<div className="columns is-fullheight" style={ { flex: 1 } }>
+				<div className="column is-one-fifth has-background-black has-text-light">
 					<UserList />
 				</div>
 				<div className="column">
