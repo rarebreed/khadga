@@ -43,6 +43,7 @@ features = [
 	"Window",
 	"MediaStream",
 	"MediaDeviceInfo",
+	"MediaStreamConstraints",
 	"console"
 ]
 

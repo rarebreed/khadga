@@ -155,7 +155,7 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 			newstate.loggedIn = true;
 			break;
 		case USER_DISCONNECT:
-			newstate.connected = previous.connected.filter(name => name !== action.username);
+			newstate.connected = [];
 			newstate.loggedIn = false;
 			break;
 		case USER_TEST:
@@ -164,6 +164,9 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 		default:
 			return previous;
 	}
+
+	const disp = (arg: any) => JSON.stringify(arg, null, 2);
+  logger.debug(`previous=${disp(previous)},\ncurrent=${disp(newstate)}`);
 	return newstate;
 };
 
@@ -186,14 +189,16 @@ export const loginFormReducer = ( previous: UserLogin = initialUserLogin
 			newstate.password = action.form.value;
 			break;
 		case SET_LOGIN_CLEAR:
-			newstate.username = "";
-			newstate.password	= "";
+			newstate.username = "eg. johndoe";
+			newstate.password	= "***********";
 			break;
 		default:
 			return previous;
 	}
 
-	logger.debug(`Called with ${JSON.stringify(action, null, 2)}. loginFormReducer state:`, newstate);
+	const disp = (arg: any) => JSON.stringify(arg, null, 2);
+	logger.debug(`Called with ${disp(action)}`);
+	logger.debug(`Previous=${disp(previous)}\ncurrent=${disp(newstate)}`);
 	return newstate;
 };
 

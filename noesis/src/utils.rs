@@ -6,6 +6,7 @@ use web_sys::{console,
               HtmlElement,
               MediaDeviceInfo,
               MediaStream,
+              MediaStreamConstraints,
               Navigator,
               Window};
 
@@ -59,7 +60,10 @@ pub async fn get_media_stream() -> Result<MediaStream, JsValue> {
     let navigator = get_navigator();
     let media_devs = navigator.media_devices()?;
 
-    match media_devs.get_user_media() {
+    let mut constraints = MediaStreamConstraints::new();
+    constraints.video(&js_sys::Boolean::from(true));
+
+    match media_devs.get_user_media_with_constraints(&constraints) {
         Ok(dev) => {
             let fut = JsFuture::from(dev).await?;
             let media_stream = MediaStream::from(fut);

@@ -8,10 +8,12 @@ import { logger } from "../logger";
 import { SET_SIGNUP_ACTIVE
        , SET_LOGIN_ACTIVE, USER_DISCONNECT, SET_LOGIN_CLEAR, SET_LOGIN_USERNAME } from "../state/types";
 import  Login from "./login";
+import * as noesis from "@khadga/noesis";
 
 interface INavBarItemProps {
   item: string,
   href?: string
+  callback?: (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void
 }
 
 class NavBarItem extends React.Component<INavBarItemProps> {
@@ -71,7 +73,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     logger.log("In setLogin");
     this.props.signUp(true, SET_LOGIN_ACTIVE);
     // this.props.login("testing", USER_TEST);
-    this.props.setLoginForm({ name: "Username", value: ""}, SET_LOGIN_USERNAME);
+    this.props.setLoginForm({ name: "Username", value: "this is fucked up"}, SET_LOGIN_USERNAME);
   }
 
   logout = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
@@ -101,6 +103,12 @@ class NavBar extends React.Component<PropsFromRedux> {
     return this.props.loggedIn ? logout : buttons;
   }
 
+  setupWebcam =(_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    const mediaDevs = noesis.list_media_devices();
+    logger.log(JSON.stringify(mediaDevs));
+    return;
+  }
+
   render() {
     return (
       <nav className="navbar" role="navigation" aria-label="main navigation">
@@ -127,6 +135,7 @@ class NavBar extends React.Component<PropsFromRedux> {
               <div className="navbar-dropdown">
                 <NavBarItem item="About" />
                 <NavBarItem item="Blog" href="https://rarebreed.github.io"/>
+                <NavBarItem item="Webcam" callback={ this.setupWebcam }/>
                 <hr className="navbar-divider" />
                 <NavBarItem item="Report an issue" />
               </div>

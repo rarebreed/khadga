@@ -44,6 +44,7 @@ class LoginNamedField extends React.Component<SignupProps> {
 
 	render() {
 		logger.log(`In LoginNamedField: ${JSON.stringify(this.props, null, 2)}`);
+		logger.log(`placeholder should equal ${this.props.value}`);
 		return (
 			<div className="field">
 				<label className="label has-text-light">

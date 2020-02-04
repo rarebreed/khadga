@@ -8,7 +8,9 @@ const logger = console;
 
 const mapPropsToState = (state: State) => {
 	logger.log("in user-list mapPropsToState", state);
-	return Object.assign({}, state.connectState);
+	return {
+		connectState: state.connectState
+	};
 };
 
 const mapPropsToDispatch = {
@@ -20,7 +22,7 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class UserList extends React.Component<PropsFromRedux> {
 	render() {
-		const listItems = this.props.connected.map(user => {
+		const listItems = this.props.connectState.connected.map(user => {
 			const item = <li key={user}>{user}</li>;
 			return item;
 		});

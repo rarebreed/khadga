@@ -43,7 +43,7 @@ class LoginModal extends AbstractModal<ModalProps> {
     const current = this.props.modal.login.isActive;
     logger.debug(`Clicked button: current = ${current}`);
     this.props.setActive(!current, SET_LOGIN_ACTIVE);
-    this.props.setLoginForm({ name: "", value: ""}, SET_LOGIN_CLEAR);
+    // this.props.setLoginForm({ name: "", value: ""}, SET_LOGIN_CLEAR);
   }
 
   cancel = (_: React.MouseEvent<HTMLAnchorElement>) => {
