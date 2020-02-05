@@ -3,18 +3,21 @@ import { modalReducer
 			 , signupReducer
 			 , loginReducer
 			 , loginFormReducer
+			 , webcamReducer
 			 } from "./reducers";
 import { ModalState
 			 , SignUp
 			 , LoginReducerState
 			 , UserLogin
+			 , WebcamState
 			 } from "./types";
 
 export interface State {
 	modal: ModalState,
 	signup: SignUp,
 	login: UserLogin,
-	connectState: LoginReducerState
+	connectState: LoginReducerState,
+	webcam: WebcamState
 }
 
 /**
@@ -24,7 +27,8 @@ export const reducers = combineReducers({
 	modal: modalReducer,
 	signup: signupReducer,
 	login: loginFormReducer,
-	connectState: loginReducer
+	connectState: loginReducer,
+	webcam: webcamReducer
 });
 
 export default {

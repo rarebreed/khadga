@@ -13,3 +13,12 @@
   background-color: rgb(119, 14, 139);
   color: #fff;
 }
+
+.vision-container {
+	flex-direction: column;
+  height: 100vh;
+}
+
+.vision-navbar {
+	background-color: rgb(61, 123, 194);
+}

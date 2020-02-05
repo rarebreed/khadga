@@ -29,6 +29,11 @@ export const MESSAGE_EDIT = "MESSAGE_EDIT";
 export const MESSAGE_DELETE = "MESSAGE_DELETE";
 export type MESSAGE_ACTIONS = "MESSAGE_ADD" | "MESSAGE_EDIT" | "MESSAGE_DELETE";
 
+export const WEBCAM_ENABLE = "WEBCAM_ENABLE";
+export const WEBCAM_DISABLE = "WEBCAM_DISABLE";
+export const WEBCAM_RESIZE = "WEBCAM_RESIZE";
+export type WEBCAM_ACTIONS = "WEBCAM_ENABLE" | "WEBCAM_DISABLE" | "WEBCAM_RESIZE";
+
 export interface ActiveState {
 	isActive: boolean
 }
@@ -98,6 +103,19 @@ export interface Message {
 export interface MessageAction {
 	type: MESSAGE_ACTIONS,
 	message: Message
+}
+
+export interface WebcamState {
+	active: boolean,
+	size?: {
+		height: number,
+		width: number
+	}
+}
+
+export interface WebcamAction {
+	type: WEBCAM_ACTIONS,
+	webcam: WebcamState
 }
 
 /**

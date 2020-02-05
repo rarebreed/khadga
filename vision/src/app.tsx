@@ -5,7 +5,7 @@ import { createStore } from "redux";
 
 import { reducers } from "./state/store";
 import NavBar from "./components/navbar";
-import { ChatContainer } from "./components/chat/chat-container";
+import ChatContainer from "./components/chat/chat-container";
 
 const logger = console;
 import * as noesis from "@khadga/noesis";
@@ -23,7 +23,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <div className="is-flex" id="main-container" style={ this.style }>
+      <div className="is-flex vision-container" id="main-container">
         <NavBar />
         <ChatContainer />
       </div>

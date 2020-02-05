@@ -10,28 +10,38 @@
  */
 
 import React from "react";
+import { connect, ConnectedProps } from "react-redux";
+
 import { ChatMessage } from "./message";
 import UserList from "./user-list";
 import { VideoStream } from "../inputs/webcam";
+import { State } from "../../state/store";
 
-const mapPropsToState = () => {
-  // TODO: Figure out what state we need here
+const mapStateToProps = (state: State) => {
+  return {
+		webcam: state.webcam,
+		connected: state.connectState.loggedIn
+	};
 };
 
-export class ChatContainer extends React.Component {
-	messages: ChatMessage[] = [];
+const connector = connect(mapStateToProps);
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+class ChatContainer extends React.Component<PropsFromRedux> {
+  messages: ChatMessage[] = [];
 
   render() {
+		const showCam = this.props.webcam.active && this.props.connected;
 		const cntr = (
 			<div className="columns is-fullheight" style={ { flex: 1 } }>
 				<div className="column is-one-fifth has-background-black has-text-light">
 					<UserList />
 				</div>
-				<div className="column">
+				<div className="column has-text-right">
 					<ul>
 						{ this.messages }
 					</ul>
-					<VideoStream />
+					{ showCam ? <VideoStream /> : null }
 				</div>
 			</div>
 		);
@@ -42,3 +52,5 @@ export class ChatContainer extends React.Component {
 		);
 	}
 }
+
+export default connector(ChatContainer);

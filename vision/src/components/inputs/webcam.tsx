@@ -38,12 +38,19 @@ export class VideoStream extends React.Component {
 		}
 	}
 
+	disableCam = () => {
+		alert("TODO: Send action to set webcam state to disabled");
+	}
+
 	render() {
 		return (
 			<div>
 				<div ref={ this.myRef } id="localVideo">
-					<div id="localVideoHeader">Click here to move</div>
-					<p>Where local webcam will be</p>
+					<div id="localVideoHeader">Click here to move
+					  <button onClick={ this.disableCam }>
+							Turn Off
+						</button>
+					</div>
 					<video id="webcam" ref={ this.videoRef }>No video stream available</video>
 			  </div>
 			</div>

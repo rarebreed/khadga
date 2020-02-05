@@ -24,8 +24,13 @@ import { ModalState
 			 , MESSAGE_DELETE
 			 , LoginReducerState
 			 , SET_LOGIN_USERNAME
-			 , SET_LOGIN_CLEAR,
-			 SET_SIGNUP_CLEAR
+			 , SET_LOGIN_CLEAR
+			 , SET_SIGNUP_CLEAR
+			 , WebcamState
+			 , WebcamAction
+			 , WEBCAM_DISABLE
+			 , WEBCAM_ENABLE
+			 , WEBCAM_RESIZE
 			 } from "./types";
 import { logger } from "../logger";
 
@@ -52,6 +57,14 @@ const initialUserLogin: UserLogin ={
 	username: "",
 	password: ""
 };
+
+const initialWebcamState: WebcamState = {
+	active: false,
+	size: {
+		height: 480,
+		width: 640
+	}
+}
 
 // This is the total data store of our app
 export const state: StateStore = {
@@ -227,3 +240,24 @@ export const messageReducer = ( previous: Message[] = []
 	}
 	return newstate;
 };
+
+export const webcamReducer = ( previous: WebcamState = initialWebcamState
+	                           , action: WebcamAction) => {
+	const newstate = Object.assign({}, previous);
+
+	switch (action.type) {
+		case WEBCAM_ENABLE:
+			newstate.active = true;
+			break;
+		case WEBCAM_DISABLE:
+			newstate.active = false;
+			break;
+		case WEBCAM_RESIZE:
+			newstate.size = action.webcam.size;
+			break;
+		default:
+			return previous;
+	}
+
+	return newstate;
+}

@@ -5,8 +5,11 @@ import { ModalAction
 			 , LOGIN_ACTIONS
 			 , LoginAction
 			 , NamePropState
-			 , SET_SIGNUP,
-			 SET_LOGIN_FORM
+			 , SET_SIGNUP
+			 , SET_LOGIN_FORM
+			 , WebcamAction
+			 , WebcamState
+			 , WEBCAM_ACTIONS
 			 } from "./types";
 
 export const setActive = (isActive: boolean, action: SET_MODAL_ACTIVE): ModalAction => {
@@ -40,5 +43,12 @@ export const createLoginAction = (uname: string, action: LOGIN_ACTIONS): LoginAc
 	return {
 		type: action,
 		username: uname
+	};
+};
+
+export const webcamCamAction = (state: WebcamState, action: WEBCAM_ACTIONS): WebcamAction => {
+	return {
+		type: action,
+		webcam: state
 	};
 };
