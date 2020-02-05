@@ -1,0 +1,1 @@
+import("./app.tsx").catch(console.error)

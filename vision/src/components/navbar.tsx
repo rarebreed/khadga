@@ -3,12 +3,19 @@ import { connect, ConnectedProps } from "react-redux";
 
 import { SignUp } from "./signup";
 import { State } from "../state/store";
-import { setActive, createLoginAction, setLoginForm } from "../state/action-creators";
+import { setActive
+       , createLoginAction
+       , setLoginForm 
+       } from "../state/action-creators";
 import { logger } from "../logger";
 import { SET_SIGNUP_ACTIVE
-       , SET_LOGIN_ACTIVE, USER_DISCONNECT, SET_LOGIN_CLEAR, SET_LOGIN_USERNAME } from "../state/types";
+       , SET_LOGIN_ACTIVE
+       , USER_DISCONNECT
+       , SET_LOGIN_USERNAME 
+       } from "../state/types";
 import  Login from "./login";
 import * as noesis from "@khadga/noesis";
+import { VideoStream } from "./inputs/webcam";
 
 interface INavBarItemProps {
   item: string,
@@ -19,7 +26,7 @@ interface INavBarItemProps {
 class NavBarItem extends React.Component<INavBarItemProps> {
   render() {
     return (
-      <a className="navbar-item" href={this.props.href}>
+      <a className="navbar-item" href={this.props.href} onClick={ this.props.callback }>
         { this.props.item }
       </a>
     );

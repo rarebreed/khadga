@@ -7,6 +7,8 @@ import { reducers } from "./state/store";
 import NavBar from "./components/navbar";
 import { ChatContainer } from "./components/chat/chat-container";
 
+const logger = console;
+import * as noesis from "@khadga/noesis";
 const store = createStore(reducers);
 
 interface ContainerStyle {

@@ -12,38 +12,33 @@
 import React from "react";
 import { ChatMessage } from "./message";
 import UserList from "./user-list";
+import { VideoStream } from "../inputs/webcam";
 
 const mapPropsToState = () => {
   // TODO: Figure out what state we need here
 };
 
-interface ColumnBorder {
-	[key: string]: string
-}
-
 export class ChatContainer extends React.Component {
 	messages: ChatMessage[] = [];
 
-	style: ColumnBorder = {
-		border: "black solid",
-		height: "100%",
-		display: "flex",
-		"flex-direction": "column"
-	};
-
   render() {
-		return(
-			// The last column needs to be dynamically allocated when a threaded view is needed
+		const cntr = (
 			<div className="columns is-fullheight" style={ { flex: 1 } }>
 				<div className="column is-one-fifth has-background-black has-text-light">
 					<UserList />
 				</div>
 				<div className="column">
 					<ul>
-					  { this.messages }
+						{ this.messages }
 					</ul>
+					<VideoStream />
 				</div>
-		  </div>
+			</div>
+		);
+
+		return(
+			// The last column needs to be dynamically allocated when a threaded view is needed
+			cntr
 		);
 	}
 }
