@@ -8,7 +8,7 @@ npx test
 
 cd ../khadga
 cargo build
-cargo test
+KHADGA_DEV=true cargo test
 
 cd ..
 sudo docker build -t stoner/khadga:latest .
