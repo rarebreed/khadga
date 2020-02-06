@@ -33,22 +33,22 @@ export abstract class AbstractModal<T extends ModalBaseProps> extends React.Comp
       <div className={className}>
         <div className="modal-background"></div>
         <div className="modal-content">
-          {this.props.children}
+            {this.props.children}
 
-          <div className="field is-grouped">
-            <p className="control">
-              <a className="button is-primary"
-                onClick={this.submit}>
-                Submit
-            </a>
-            </p>
-            <p className="control">
-              <a className="button is-light"
-                onClick={this.cancel}>
-                Cancel
-            </a>
-            </p>
-          </div>
+            <div className="field is-grouped">
+              <p className="control">
+                <a className="button is-primary"
+                  onClick={this.submit}>
+                  Submit
+                </a>
+              </p>
+              <p className="control">
+                <a className="button is-light"
+                  onClick={this.cancel}>
+                  Cancel
+                </a>
+              </p>
+            </div>
         </div>
 
         <button

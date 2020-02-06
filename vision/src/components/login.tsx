@@ -23,8 +23,11 @@ class Login extends React.Component<PropsFromRedux> {
     logger.log("In Login.render()", this.props);
     return (
       <Modal bulma="modal">
-          <LoginNamedField name="Username" value={this.props.username}></LoginNamedField>
-          <LoginNamedField name="Password" value={this.props.password} inputType="password"></LoginNamedField>
+        <LoginNamedField name="Username" value={this.props.username} />
+        <LoginNamedField
+          name="Password"
+          value={this.props.password}
+          inputType="password" />
       </Modal>
     );
   }

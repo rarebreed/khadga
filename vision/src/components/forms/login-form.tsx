@@ -53,7 +53,7 @@ class LoginNamedField extends React.Component<SignupProps> {
 				<div className="control">
 					<input className="input"
 								 type={ this.props.inputType || "text" }
-								 placeholder={ this.props.value }
+								 value={ this.props.value }
 								 onChange={ this.nameHandler }
 					       />
 				</div>

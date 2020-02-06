@@ -81,7 +81,7 @@ class NavBar extends React.Component<PropsFromRedux> {
   setLogin = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     logger.log("In setLogin");
     this.props.signUp(true, SET_LOGIN_ACTIVE);
-    this.props.setLoginForm({ name: "Username", value: "this is messed up"}, SET_LOGIN_USERNAME);
+    // this.props.setLoginForm({ name: "Username", value: ""}, SET_LOGIN_USERNAME);
   }
 
   logout = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {

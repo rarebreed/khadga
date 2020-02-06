@@ -202,8 +202,8 @@ export const loginFormReducer = ( previous: UserLogin = initialUserLogin
 			newstate.password = action.form.value;
 			break;
 		case SET_LOGIN_CLEAR:
-			newstate.username = "eg. johndoe";
-			newstate.password	= "***********";
+			newstate.username = "";
+			newstate.password	= "";
 			break;
 		default:
 			return previous;
