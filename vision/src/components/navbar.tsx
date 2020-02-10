@@ -12,8 +12,7 @@ import { logger } from "../logger";
 import { SET_SIGNUP_ACTIVE
        , SET_LOGIN_ACTIVE
        , USER_DISCONNECT
-       , SET_LOGIN_USERNAME, 
-       WEBCAM_ENABLE
+       , WEBCAM_ENABLE
        } from "../state/types";
 import  Login from "./login";
 import * as noesis from "@khadga/noesis";
@@ -81,7 +80,6 @@ class NavBar extends React.Component<PropsFromRedux> {
   setLogin = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     logger.log("In setLogin");
     this.props.signUp(true, SET_LOGIN_ACTIVE);
-    // this.props.setLoginForm({ name: "Username", value: ""}, SET_LOGIN_USERNAME);
   }
 
   logout = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {

@@ -20,7 +20,6 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class Login extends React.Component<PropsFromRedux> {
   render() {
-    logger.log("In Login.render()", this.props);
     return (
       <Modal bulma="modal">
         <LoginNamedField name="Username" value={this.props.username} />

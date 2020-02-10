@@ -3,11 +3,11 @@
 Also, [read the book][-book] [In Progress!]
 
 khadga is a tool to experiment with NLP and computer vision.  It offers a chat message based service
-(think slack, gitter, discord, etc) along with a video cam interface.  The purpose of this is to
+(think slack, gitter, discord, etc) along with a webcam interface.  The purpose of this is to
 get data for both training and eventually for model prediction.
 
 The second part of khadga is to do real-time analytics on the data that is coming in.  There are
-two primary
+two primary learning tasks:
 
 - NLP to do text classification or semantic analysis
 - Video image recognition and object tracking (facial recognition)
@@ -21,7 +21,7 @@ To implement this, there are 4 main components:
 - A mongodb database to store chats, documents and (public) keys
 - A webassembly library to assist tensorflow using wasm-bindgen
 
-### Backend
+### Backend: khadga
 
 The backend is a rust server written in warp.  It will support websockets for several purposes:
 
@@ -32,7 +32,7 @@ The backend is a rust server written in warp.  It will support websockets for se
 The initial focus will be on websockets for chatting, and WebRTC.  In the future, khadga can act as
 another mqtt client that IoT devices can send data to.
 
-### Frontend
+### Frontend: vision
 
 The front is a react + typescript based project that will act as the primary means for a human agent
 to interact with.
@@ -44,7 +44,7 @@ be consumed and used in real time.
 
 It will also be used for things like user accounts and logins.
 
-### Webassembly library
+### Webassembly library: noesis
 
 This library (called noesis) will help with some heavy lifting and data crunching.  The ultimate goal
 will be to port tensorflow to wasm, but this will take time.
