@@ -1,8 +1,22 @@
 use khadga::{auth::{login,
                     register},
              config::Settings};
-use std::net::SocketAddr;
-use warp::Filter;
+use std::{net::SocketAddr,
+          sync::{Arc, Mutex},
+          collections::HashMap};
+use warp::{Filter,
+           ws};
+use tokio::sync::{mpsc};
+
+/// This is a map of users to a tokio mpsc channel
+/// 
+/// It is wrapped in an Arc so that we can share it across different runtime executors which might 
+/// happen since we are using tokio.  The Mutex makes that only one Executor thread can access the
+/// HashMap storing the data at a time.
+/// 
+/// The mpsc  
+type Users = Arc<Mutex<HashMap<String, 
+                               mpsc::UnboundedSender<Result<ws::Message, warp::Error>>>>>;
 
 #[tokio::main]
 async fn main() {
@@ -19,7 +33,8 @@ async fn main() {
     std::env::set_var("RUST_LOG", &log_level);
     env_logger::init();
 
-    //let conn_users = Arc::new(Mutex::new(HashMap::<String, String>::new()));
+    let connected_users: Users = Arc::new(Mutex::new(HashMap::new()));
+
 
     // This is the main entry point to the application
     // Note the relative path.  The path is relative to where you are executing/launching khadga
@@ -29,7 +44,10 @@ async fn main() {
     let start = warp::fs::dir("../vision/dist");
 
     let log = warp::log("khadga");
-    let app = login().or(register()).or(start).with(log);
+    let app = login()
+      .or(register())
+      .or(start)
+      .with(log);
 
     let host: SocketAddr = khadga_addr
         .parse()

@@ -38,7 +38,17 @@ use warp::{filters::BoxedFilter,
            http::{Response,
                   StatusCode},
            Filter,
-           Reply};
+           Reply,
+           ws};
+use tokio::sync::{mpsc};
+use futures::{Future, FutureExt, StreamExt, future,
+              SinkExt};
+use std::{sync::{Arc, Mutex},
+          collections::{HashMap}};
+use super::message::{Message};
+
+type Users = Arc<Mutex<HashMap<String, 
+                               mpsc::UnboundedSender<Result<ws::Message, warp::Error>>>>>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LoginParams {
@@ -89,6 +99,34 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
     route.boxed()
 }
 
+/// FIXME: This automatically accepts all users.
+/// 
+/// Route for /chat/:username
+/// 
+/// This should be converted to a 'chat' endpoint, and login will do the actual authentication
+pub fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
+    let users2 = warp::any().map(move || users.clone());
+
+    let chat = warp::post()
+        .and(warp::path("chat"))
+        .and(ws())
+        .and(warp::path::param().map(|username: String| username))
+        .and(users2)
+        .map(|ws: ws::Ws, username: String, users: Users| {
+            println!("{}", username);
+            // TODO: Need a login handler and a websocket endpoint
+            // When a user logs in, they will be given an auth token which can be used
+            // to hain access to chat and video for as long as the session maintains activity
+            // let builder = Response::builder();
+            // let user = User::new(login_params.uname, login_params.psw, "".into());
+            ws.on_upgrade(move |socket| {
+                connect_user(socket, users, username)
+                  .map(|result| result.unwrap())
+            })
+        });
+    chat.boxed()
+}
+
 pub fn login() -> BoxedFilter<(impl Reply,)> {
     let login = warp::post()
         .and(warp::path("login"))
@@ -101,7 +139,10 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
             let builder = Response::builder();
             let user = User::new(login_params.uname, login_params.psw, "".into());
             match validate_user_pw("khadga", &user) {
-                Ok((_, true)) => builder.status(StatusCode::OK).body("User authenticated"),
+                Ok((_, true)) => {
+                    // TODO: Provide a JWT token we can use for other endpoints like `chat`
+                    builder.status(StatusCode::OK).body("User authenticated")
+                },
                 _ => {
                     builder
                         .status(StatusCode::from_u16(403).unwrap())
@@ -110,4 +151,101 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
             }
         });
     login.boxed()
+}
+
+pub async fn disconnect_user(
+    ws: ws::WebSocket
+) -> impl Future<Output = Result<(), ()>> {
+    // Split the socket into a sender and receive of messages.
+    let (mut user_tx, _) = ws.split();
+
+    // Create an async task that handles the messages streaming from rx by forwarding them
+    // to user_tx
+    tokio::task::spawn(async move {
+        user_tx.send(ws::Message::text("Unable to login"));
+    });
+
+    future::ready(Ok(()))
+}
+
+pub fn connect_user(
+    ws: ws::WebSocket,
+    users: Users,
+    username: String,
+) -> impl Future<Output = Result<(), ()>> {
+    // Split the socket into a sender and receive of messages.
+    let (user_tx, user_rx) = ws.split();
+
+    // Use an unbounded channel to handle buffering and flushing of messages
+    // to the websocket
+    let (tx, rx) = mpsc::unbounded_channel();
+
+    // Create an async task that handles the messages streaming from rx by forwarding them
+    // to user_tx
+    tokio::task::spawn(rx.forward(user_tx).map(|result| {
+        if let Err(e) = result {
+            eprintln!("websocket send error: {}", e);
+        }
+    }));
+
+    // Save the sender in our list of connected users state
+    let user_copy = username.clone();
+    users.lock().unwrap().insert(user_copy, tx);
+
+    let users2 = users.clone();
+
+    // Every time the logged in user sends a message, send it to
+    // all other users specified in the msg
+    let copied_user = username.clone();
+    let res = user_rx
+        .for_each(move |msg| {
+            let user_copy = copied_user.clone();
+            user_message(user_copy, msg.unwrap(), &users);
+            future::ready(())
+        })
+        // for_each will keep processing as long as the user stays
+        // connected. Once they disconnect, then...
+        .then(move |result| {
+            let user_copy = username.clone();
+            user_disconnected(user_copy, &users2);
+            future::ok(result)
+        });
+    res
+}
+
+fn user_disconnected(my_id: String, users: &Users) {
+    eprintln!("good bye user: {}", my_id);
+
+    // Stream closed up, so remove from the user list
+    users.lock().unwrap().remove(&my_id);
+}
+
+fn user_message(my_id: String, msg: ws::Message, users: &Users)  {
+    // Skip any non-Text messages...
+    let msg = if let Ok(s) = msg.to_str() {
+        s
+    } else {
+        return;
+    };
+
+    // TODO: Serialize the string into a Message struct
+    let _mesg: Message = serde_json::from_str(msg).unwrap();
+
+    let new_msg = format!("<User#{}>: {:?}", my_id, msg);
+
+    // New message from this user, send it to everyone else (except same uid)...
+    //
+    // We use `retain` instead of a for loop so that we can reap any user that
+    // appears to have disconnected.
+
+    for (uid, tx) in users.lock().unwrap().iter_mut() {
+        if my_id != *uid {
+            match tx.send(Ok(ws::Message::text(new_msg.clone()))) {
+                Ok(()) => (),
+                Err(_disconnected) => {
+                    // FIXME: Should send some kind of notice
+                }
+            }
+        }
+    }
 }

@@ -3,3 +3,4 @@ pub mod config;
 pub mod data;
 pub mod db;
 pub mod signaling;
+pub mod message;
