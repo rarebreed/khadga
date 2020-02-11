@@ -43,7 +43,6 @@ class LoginModal extends AbstractModal<ModalProps> {
     const current = this.props.modal.login.isActive;
     logger.debug(`Clicked button: current = ${current}`);
     this.props.setActive(!current, SET_LOGIN_ACTIVE);
-    // this.props.setLoginForm({ name: "", value: ""}, SET_LOGIN_CLEAR);
   }
 
   cancel = (_: React.MouseEvent<HTMLAnchorElement>) => {
@@ -82,7 +81,6 @@ class LoginModal extends AbstractModal<ModalProps> {
       // TODO: Once login is complete, we need to enable Chat in the toolbar.
       this.props.setActive(false, SET_LOGIN_ACTIVE);
       this.props.login(this.props.userLoginState.username, USER_LOGIN);
-      this.props.setLoginForm({ name: "", value: ""}, SET_LOGIN_CLEAR);
     }
   }
 }

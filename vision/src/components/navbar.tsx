@@ -73,6 +73,13 @@ const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class NavBar extends React.Component<PropsFromRedux> {
+  sock: WebSocket | null;
+
+  constructor(props: PropsFromRedux) {
+    super(props);
+    this.sock = null;
+  }
+
   signUpHandler = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     this.props.signUp(true, SET_SIGNUP_ACTIVE);
   }
@@ -109,7 +116,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     return this.props.loggedIn ? logout : buttons;
   }
 
-  setupWebcam =(_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  setupWebcam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     const mediaDevs = noesis.list_media_devices();
     logger.log(JSON.stringify(mediaDevs));
     const webcamState = {
@@ -118,6 +125,21 @@ class NavBar extends React.Component<PropsFromRedux> {
 
     this.props.webcam(webcamState, WEBCAM_ENABLE);
     return;
+  }
+
+  setupChat = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    const origin = window.location.host;
+    const url = `ws://${origin}/chat/${this.props.user}`;
+    logger.log(`Connecting to ${url}`);
+    this.sock = new WebSocket(url);
+
+    this.sock.onopen = (ev: Event) => {
+      logger.log("Now connected");
+    };
+
+    this.sock.onmessage = (evt: MessageEvent) => {
+      logger.log(evt);
+    };
   }
 
   render() {
@@ -146,6 +168,7 @@ class NavBar extends React.Component<PropsFromRedux> {
               <div className="navbar-dropdown">
                 <NavBarItem item="About" />
                 <NavBarItem item="Blog" href="https://rarebreed.github.io"/>
+                <NavBarItem item="Chat" callback={ this.setupChat }/>
                 <NavBarItem item="Webcam" callback={ this.setupWebcam }/>
                 <hr className="navbar-divider" />
                 <NavBarItem item="Report an issue" />

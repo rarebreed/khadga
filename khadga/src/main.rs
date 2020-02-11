@@ -1,5 +1,6 @@
 use khadga::{auth::{login,
-                    register},
+                    register,
+                    chat},
              config::Settings};
 use std::{net::SocketAddr,
           sync::{Arc, Mutex},
@@ -46,6 +47,7 @@ async fn main() {
     let log = warp::log("khadga");
     let app = login()
       .or(register())
+      .or(chat(connected_users.clone()))
       .or(start)
       .with(log);
 

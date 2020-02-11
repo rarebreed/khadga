@@ -31,7 +31,7 @@ use crate::{data::User,
             db::{add_user,
                  get_user,
                  validate_user_pw}};
-use log::error;
+use log::{error, info};
 use serde::{Deserialize,
             Serialize};
 use warp::{filters::BoxedFilter,
@@ -107,13 +107,12 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
 pub fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
     let users2 = warp::any().map(move || users.clone());
 
-    let chat = warp::post()
-        .and(warp::path("chat"))
+    let chat = warp::path("chat")
         .and(ws())
         .and(warp::path::param().map(|username: String| username))
         .and(users2)
         .map(|ws: ws::Ws, username: String, users: Users| {
-            println!("{}", username);
+            println!("User {} starting chat", username);
             // TODO: Need a login handler and a websocket endpoint
             // When a user logs in, they will be given an auth token which can be used
             // to hain access to chat and video for as long as the session maintains activity
@@ -153,21 +152,6 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
     login.boxed()
 }
 
-pub async fn disconnect_user(
-    ws: ws::WebSocket
-) -> impl Future<Output = Result<(), ()>> {
-    // Split the socket into a sender and receive of messages.
-    let (mut user_tx, _) = ws.split();
-
-    // Create an async task that handles the messages streaming from rx by forwarding them
-    // to user_tx
-    tokio::task::spawn(async move {
-        user_tx.send(ws::Message::text("Unable to login"));
-    });
-
-    future::ready(Ok(()))
-}
-
 pub fn connect_user(
     ws: ws::WebSocket,
     users: Users,
@@ -179,9 +163,11 @@ pub fn connect_user(
     // Use an unbounded channel to handle buffering and flushing of messages
     // to the websocket
     let (tx, rx) = mpsc::unbounded_channel();
+    let tx2 = tx.clone();
 
     // Create an async task that handles the messages streaming from rx by forwarding them
-    // to user_tx
+    // to user_tx.  This will drive the Stream backed by rx to send values to user_tx until
+    // rx is exhausted
     tokio::task::spawn(rx.forward(user_tx).map(|result| {
         if let Err(e) = result {
             eprintln!("websocket send error: {}", e);
@@ -192,8 +178,33 @@ pub fn connect_user(
     let user_copy = username.clone();
     users.lock().unwrap().insert(user_copy, tx);
 
+    let mut user_list: Vec<String> = vec![];
     let users2 = users.clone();
+    {
+        let list = users2.lock().unwrap();
+        info!("Connected Users:");
+        
+        for (key, _) in list.iter() {
+            info!("{}", key);
+            user_list.push(key.clone());
+        }
 
+        let mut _user_str = user_list
+          .iter()
+          .fold("".into(), |mut acc: String, next| {
+            acc = acc + &next + "\n";
+            acc
+          });
+    }
+    
+    // Send back a list of connected users.  Remember that tx is connected to rx.  Earlier
+    // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
+    // by rx, and therefore will be sent over to user_tx and then over the websocket
+    let connect_msg = Message::new(username.clone(), vec![], user_list);
+    let connect_msg_str: String = serde_json::to_string(&connect_msg)
+      .expect("Unable to serialize to Message");
+    tx2.send(Ok(ws::Message::text(connect_msg_str))).expect("Failed to send to tx");
+    
     // Every time the logged in user sends a message, send it to
     // all other users specified in the msg
     let copied_user = username.clone();
@@ -214,7 +225,7 @@ pub fn connect_user(
 }
 
 fn user_disconnected(my_id: String, users: &Users) {
-    eprintln!("good bye user: {}", my_id);
+    info!("good bye user: {}", my_id);
 
     // Stream closed up, so remove from the user list
     users.lock().unwrap().remove(&my_id);
@@ -229,7 +240,7 @@ fn user_message(my_id: String, msg: ws::Message, users: &Users)  {
     };
 
     // TODO: Serialize the string into a Message struct
-    let _mesg: Message = serde_json::from_str(msg).unwrap();
+    let _mesg: Message<String> = serde_json::from_str(msg).unwrap();
 
     let new_msg = format!("<User#{}>: {:?}", my_id, msg);
 
@@ -237,8 +248,8 @@ fn user_message(my_id: String, msg: ws::Message, users: &Users)  {
     //
     // We use `retain` instead of a for loop so that we can reap any user that
     // appears to have disconnected.
-
     for (uid, tx) in users.lock().unwrap().iter_mut() {
+        // TODO: Get the recipients from mesg.recipients and loop through that
         if my_id != *uid {
             match tx.send(Ok(ws::Message::text(new_msg.clone()))) {
                 Ok(()) => (),
