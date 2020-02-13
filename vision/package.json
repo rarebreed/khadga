@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@khadga/noesis": "^0.1.0",
+    "@tensorflow/tfjs": "^1.5.2",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-redux": "^7.1.3",

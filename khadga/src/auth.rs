@@ -41,8 +41,7 @@ use warp::{filters::BoxedFilter,
            Reply,
            ws};
 use tokio::sync::{mpsc};
-use futures::{Future, FutureExt, StreamExt, future,
-              SinkExt};
+use futures::{Future, FutureExt, StreamExt, future};
 use std::{sync::{Arc, Mutex},
           collections::{HashMap}};
 use super::message::{Message};
