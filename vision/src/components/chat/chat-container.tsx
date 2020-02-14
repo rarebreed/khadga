@@ -16,6 +16,7 @@ import { ChatMessage } from "./message";
 import UserList from "./user-list";
 import { VideoStream } from "../inputs/webcam";
 import { State } from "../../state/store";
+import { BlogPost } from "../blogs/blog";
 
 const mapStateToProps = (state: State) => {
   return {
@@ -38,6 +39,7 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 					<UserList />
 				</div>
 				<div className="column has-text-right">
+					<BlogPost />
 					<ul>
 						{ this.messages }
 					</ul>

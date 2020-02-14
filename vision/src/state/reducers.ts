@@ -64,7 +64,7 @@ const initialWebcamState: WebcamState = {
 		height: 480,
 		width: 640
 	}
-}
+};
 
 // This is the total data store of our app
 export const state: StateStore = {
@@ -260,4 +260,4 @@ export const webcamReducer = ( previous: WebcamState = initialWebcamState
 	}
 
 	return newstate;
-}
+};
