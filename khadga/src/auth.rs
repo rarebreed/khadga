@@ -27,27 +27,31 @@
 //! Once authenticated, a JWT will be created.  This token will expire in 15 minutes.  All requests
 //! from the agent (the user is using) will pass this JWT token around.
 
+use super::message::Message;
 use crate::{data::User,
             db::{add_user,
                  get_user,
                  validate_user_pw}};
-use log::{error, info};
+use futures::{future,
+              Future,
+              FutureExt,
+              StreamExt};
+use log::{error,
+          info};
 use serde::{Deserialize,
             Serialize};
+use std::{collections::HashMap,
+          sync::{Arc,
+                 Mutex}};
+use tokio::sync::mpsc;
 use warp::{filters::BoxedFilter,
            http::{Response,
                   StatusCode},
+           ws,
            Filter,
-           Reply,
-           ws};
-use tokio::sync::{mpsc};
-use futures::{Future, FutureExt, StreamExt, future};
-use std::{sync::{Arc, Mutex},
-          collections::{HashMap}};
-use super::message::{Message};
+           Reply};
 
-type Users = Arc<Mutex<HashMap<String, 
-                               mpsc::UnboundedSender<Result<ws::Message, warp::Error>>>>>;
+type Users = Arc<Mutex<HashMap<String, mpsc::UnboundedSender<Result<ws::Message, warp::Error>>>>>;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LoginParams {
@@ -99,9 +103,9 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
 }
 
 /// FIXME: This automatically accepts all users.
-/// 
+///
 /// Route for /chat/:username
-/// 
+///
 /// This should be converted to a 'chat' endpoint, and login will do the actual authentication
 pub fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
     let users2 = warp::any().map(move || users.clone());
@@ -118,8 +122,7 @@ pub fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
             // let builder = Response::builder();
             // let user = User::new(login_params.uname, login_params.psw, "".into());
             ws.on_upgrade(move |socket| {
-                connect_user(socket, users, username)
-                  .map(|result| result.unwrap())
+                connect_user(socket, users, username).map(|result| result.unwrap())
             })
         });
     chat.boxed()
@@ -140,7 +143,7 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
                 Ok((_, true)) => {
                     // TODO: Provide a JWT token we can use for other endpoints like `chat`
                     builder.status(StatusCode::OK).body("User authenticated")
-                },
+                }
                 _ => {
                     builder
                         .status(StatusCode::from_u16(403).unwrap())
@@ -182,28 +185,27 @@ pub fn connect_user(
     {
         let list = users2.lock().unwrap();
         info!("Connected Users:");
-        
+
         for (key, _) in list.iter() {
             info!("{}", key);
             user_list.push(key.clone());
         }
 
-        let mut _user_str = user_list
-          .iter()
-          .fold("".into(), |mut acc: String, next| {
+        let mut _user_str = user_list.iter().fold("".into(), |mut acc: String, next| {
             acc = acc + &next + "\n";
             acc
-          });
+        });
     }
-    
+
     // Send back a list of connected users.  Remember that tx is connected to rx.  Earlier
     // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
     // by rx, and therefore will be sent over to user_tx and then over the websocket
     let connect_msg = Message::new(username.clone(), vec![], user_list);
-    let connect_msg_str: String = serde_json::to_string(&connect_msg)
-      .expect("Unable to serialize to Message");
-    tx2.send(Ok(ws::Message::text(connect_msg_str))).expect("Failed to send to tx");
-    
+    let connect_msg_str: String =
+        serde_json::to_string(&connect_msg).expect("Unable to serialize to Message");
+    tx2.send(Ok(ws::Message::text(connect_msg_str)))
+        .expect("Failed to send to tx");
+
     // Every time the logged in user sends a message, send it to
     // all other users specified in the msg
     let copied_user = username.clone();
@@ -230,7 +232,7 @@ fn user_disconnected(my_id: String, users: &Users) {
     users.lock().unwrap().remove(&my_id);
 }
 
-fn user_message(my_id: String, msg: ws::Message, users: &Users)  {
+fn user_message(my_id: String, msg: ws::Message, users: &Users) {
     // Skip any non-Text messages...
     let msg = if let Ok(s) = msg.to_str() {
         s

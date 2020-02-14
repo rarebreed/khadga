@@ -1,23 +1,23 @@
-use khadga::{auth::{login,
-                    register,
-                    chat},
+use khadga::{auth::{chat,
+                    login,
+                    register},
              config::Settings};
-use std::{net::SocketAddr,
-          sync::{Arc, Mutex},
-          collections::HashMap};
-use warp::{Filter,
-           ws};
-use tokio::sync::{mpsc};
+use std::{collections::HashMap,
+          net::SocketAddr,
+          sync::{Arc,
+                 Mutex}};
+use tokio::sync::mpsc;
+use warp::{ws,
+           Filter};
 
 /// This is a map of users to a tokio mpsc channel
-/// 
-/// It is wrapped in an Arc so that we can share it across different runtime executors which might 
+///
+/// It is wrapped in an Arc so that we can share it across different runtime executors which might
 /// happen since we are using tokio.  The Mutex makes that only one Executor thread can access the
 /// HashMap storing the data at a time.
-/// 
+///
 /// The mpsc  
-type Users = Arc<Mutex<HashMap<String, 
-                               mpsc::UnboundedSender<Result<ws::Message, warp::Error>>>>>;
+type Users = Arc<Mutex<HashMap<String, mpsc::UnboundedSender<Result<ws::Message, warp::Error>>>>>;
 
 #[tokio::main]
 async fn main() {
@@ -36,7 +36,6 @@ async fn main() {
 
     let connected_users: Users = Arc::new(Mutex::new(HashMap::new()));
 
-
     // This is the main entry point to the application
     // Note the relative path.  The path is relative to where you are executing/launching khadga
     // from.  In this case, if we run `cargo run`, this path will work.  However, if we run like
@@ -46,10 +45,10 @@ async fn main() {
 
     let log = warp::log("khadga");
     let app = login()
-      .or(register())
-      .or(chat(connected_users.clone()))
-      .or(start)
-      .with(log);
+        .or(register())
+        .or(chat(connected_users.clone()))
+        .or(start)
+        .with(log);
 
     let host: SocketAddr = khadga_addr
         .parse()

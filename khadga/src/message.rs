@@ -1,7 +1,8 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize,
+            Serialize};
 
 /// Message that is sent from websocket
-/// 
+///
 /// {
 ///   sender: "stoner",
 ///   recipients: [
@@ -11,17 +12,17 @@ use serde::{Serialize, Deserialize};
 /// }
 #[derive(Serialize, Deserialize)]
 pub struct Message<T> {
-	sender: String,
-	recipients: Vec<String>,
-	body: T
+    sender: String,
+    recipients: Vec<String>,
+    body: T,
 }
 
 impl<T> Message<T> {
-	pub fn new(sender: String, recipients: Vec<String>, body: T) -> Self {
-		Message {
-			sender,
-			recipients,
-			body
-		}
-	}
+    pub fn new(sender: String, recipients: Vec<String>, body: T) -> Self {
+        Message {
+            sender,
+            recipients,
+            body,
+        }
+    }
 }

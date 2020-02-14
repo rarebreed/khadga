@@ -4,8 +4,6 @@ services:
     image: "mongo:4.2-bionic"
     ports:
       - 27017:27017
-    volumes:
-      - "mongodata:/data/db"
   khadga:
     build: .
     ports:
