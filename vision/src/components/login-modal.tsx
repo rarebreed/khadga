@@ -4,7 +4,7 @@ import { connect, ConnectedProps } from "react-redux";
 import { AbstractModal } from "./forms/abstract-modal";
 import { mapDispatch } from "./common-modal";
 import { SET_LOGIN_ACTIVE, USER_LOGIN, SET_LOGIN_CLEAR } from "../state/types";
-import { createLoginAction, setLoginForm } from "../state/action-creators";
+import { createLoginAction, setLoginFormAction } from "../state/action-creators";
 import { State } from "../state/store";
 
 const logger = console;
@@ -25,7 +25,7 @@ export const mapState = (state: State) => {
 const mapDispatchLogin = {
   login: createLoginAction,
   setActive: mapDispatch.setActive,
-  setLoginForm
+  setLoginForm: setLoginFormAction
 };
 
 const connector = connect(mapState, mapDispatchLogin);

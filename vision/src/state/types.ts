@@ -34,6 +34,10 @@ export const WEBCAM_DISABLE = "WEBCAM_DISABLE";
 export const WEBCAM_RESIZE = "WEBCAM_RESIZE";
 export type WEBCAM_ACTIONS = "WEBCAM_ENABLE" | "WEBCAM_DISABLE" | "WEBCAM_RESIZE";
 
+export const CONNECTION_ADD = "CONNECTION_ADD";
+export const CONNECTION_REMOVE = "CONNECTION_REMOVE";
+export type CONNECT_ACTIONS = "CONNECTION_ADD" | "CONNECTION_REMOVE";
+
 export interface ActiveState {
 	isActive: boolean
 }
@@ -88,11 +92,15 @@ export interface LoginFormAction {
 	form: NamePropState<string>
 }
 
+export interface Connected {
+	connected: string[]
+}
+
 export interface LoginReducerState {
 	connected: string[],
 	loggedIn: boolean
 }
-export interface Message {
+export interface ChatMessage {
 	sender: string,
 	recipient?: string,
 	message: string,
@@ -102,7 +110,7 @@ export interface Message {
 
 export interface MessageAction {
 	type: MESSAGE_ACTIONS,
-	message: Message
+	message: ChatMessage
 }
 
 export interface WebcamState {
@@ -118,6 +126,22 @@ export interface WebcamAction {
 	webcam: WebcamState
 }
 
+export interface ConnectAction {
+	type: CONNECT_ACTIONS,
+	users: string[]
+}
+
+/// This is the typescript equivalent of the message::MessageEvent from rust
+type MessageEvent = "Connect" | "Disconnect" | "Message" | "Data";
+
+/// This is the typescript equivalent of the message::Message type
+export interface WsMessage<T> {
+	sender: string,
+	recipients: string[],
+	body: T
+	event_type: MessageEvent
+}
+
 /**
  * This is the final data store for redux.
  */
@@ -127,5 +151,5 @@ export interface StateStore {
 	login: UserLogin,
 	loggedIn: boolean,     // If user has logged in (don't show Login or Signup button)
 	connectedUsers: string[],
-	messages: Message[]
+	messages: ChatMessage[]
 }

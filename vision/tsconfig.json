@@ -9,7 +9,8 @@
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "allowJs": true
+    "allowJs": true,
+    "sourceMap": true
   },
   "include": [
     "**/*.ts",

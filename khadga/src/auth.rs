@@ -27,8 +27,9 @@
 //! Once authenticated, a JWT will be created.  This token will expire in 15 minutes.  All requests
 //! from the agent (the user is using) will pass this JWT token around.
 
-use super::message::Message;
+//use super::message::Message;
 use crate::{data::User,
+            message::{Message, MessageEvent, ConnectionMsg},
             db::{add_user,
                  get_user,
                  validate_user_pw}};
@@ -106,7 +107,7 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
 ///
 /// Route for /chat/:username
 ///
-/// This should be converted to a 'chat' endpoint, and login will do the actual authentication
+/// Should use JWT tokens to make sure user has been authorized
 pub fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
     let users2 = warp::any().map(move || users.clone());
 
@@ -116,9 +117,8 @@ pub fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
         .and(users2)
         .map(|ws: ws::Ws, username: String, users: Users| {
             println!("User {} starting chat", username);
-            // TODO: Need a login handler and a websocket endpoint
-            // When a user logs in, they will be given an auth token which can be used
-            // to hain access to chat and video for as long as the session maintains activity
+            // TODO: When a user logs in, they will be given an auth token which can be used
+            // to gain access to chat and video for as long as the session maintains activity
             // let builder = Response::builder();
             // let user = User::new(login_params.uname, login_params.psw, "".into());
             ws.on_upgrade(move |socket| {
@@ -128,6 +128,9 @@ pub fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
     chat.boxed()
 }
 
+/// FIXME: This should be in a different module
+/// 
+/// This is the handler for when the user clicks the Login button on the app.
 pub fn login() -> BoxedFilter<(impl Reply,)> {
     let login = warp::post()
         .and(warp::path("login"))
@@ -200,9 +203,10 @@ pub fn connect_user(
     // Send back a list of connected users.  Remember that tx is connected to rx.  Earlier
     // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
     // by rx, and therefore will be sent over to user_tx and then over the websocket
-    let connect_msg = Message::new(username.clone(), vec![], user_list);
-    let connect_msg_str: String =
-        serde_json::to_string(&connect_msg).expect("Unable to serialize to Message");
+    let conn_list = ConnectionMsg::new(user_list);
+    let connect_msg = Message::new(username.clone(), vec![], MessageEvent::Connect, conn_list);
+    let connect_msg_str: String = serde_json::to_string(&connect_msg)
+        .expect("Unable to serialize to Message");
     tx2.send(Ok(ws::Message::text(connect_msg_str)))
         .expect("Failed to send to tx");
 

@@ -17,6 +17,7 @@ import UserList from "./user-list";
 import { VideoStream } from "../inputs/webcam";
 import { State } from "../../state/store";
 import { BlogPost } from "../blogs/blog";
+import { logger } from "../../logger";
 
 const mapStateToProps = (state: State) => {
   return {
@@ -33,6 +34,8 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 
   render() {
 		const showCam = this.props.webcam.active && this.props.connected;
+		logger.info(`webcam.active = ${this.props.webcam.active}`);
+		logger.info(`connected = ${this.props.connected}`);
 		const cntr = (
 			<div className="columns is-fullheight" style={ { flex: 1 } }>
 				<div className="column is-one-fifth has-background-black has-text-light">

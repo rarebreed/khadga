@@ -4,6 +4,10 @@ import { ModalAction
 			 , LoginFormAction
 			 , LOGIN_ACTIONS
 			 , LoginAction
+			 , Connected
+			 , CONNECTION_ADD
+			 , CONNECTION_REMOVE
+			 , CONNECT_ACTIONS
 			 , NamePropState
 			 , SET_SIGNUP
 			 , SET_LOGIN_FORM
@@ -28,9 +32,9 @@ export const setSignUp = (state: NamePropState<string>, type: SET_SIGNUP): SignU
 	return action;
 };
 
-export const setLoginForm = ( state: NamePropState<string>
-														, type: SET_LOGIN_FORM)
-														: LoginFormAction => {
+export const setLoginFormAction = ( state: NamePropState<string>
+														      , type: SET_LOGIN_FORM)
+														      : LoginFormAction => {
 	const action: LoginFormAction = {
 		type,
 		form: state
@@ -50,5 +54,12 @@ export const webcamCamAction = (state: WebcamState, action: WEBCAM_ACTIONS): Web
 	return {
 		type: action,
 		webcam: state
+	};
+};
+
+export const connectAction = (users: string[], action: CONNECT_ACTIONS) => {
+	return {
+		type: action,
+		users
 	};
 };

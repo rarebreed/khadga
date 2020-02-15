@@ -5,14 +5,18 @@ import { SignUp } from "./signup";
 import { State } from "../state/store";
 import { setActive
        , createLoginAction
-       , setLoginForm
+       , setLoginFormAction
        , webcamCamAction
+       , connectAction
        } from "../state/action-creators";
 import { logger } from "../logger";
 import { SET_SIGNUP_ACTIVE
        , SET_LOGIN_ACTIVE
        , USER_DISCONNECT
        , WEBCAM_ENABLE
+       , CONNECTION_ADD
+       , CONNECT_ACTIONS
+       , WsMessage
        } from "../state/types";
 import  Login from "./login";
 import * as noesis from "@khadga/noesis";
@@ -65,8 +69,9 @@ const mapState = (state: State) => {
 const mapDispatch = {
   signUp: setActive,
   login: createLoginAction,
-  setLoginForm,
-  webcam: webcamCamAction
+  setLoginForm: setLoginFormAction,
+  webcam: webcamCamAction,
+  connect: connectAction
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -138,7 +143,10 @@ class NavBar extends React.Component<PropsFromRedux> {
     };
 
     this.sock.onmessage = (evt: MessageEvent) => {
-      logger.log(evt);
+      // TODO: use the data in the event to update the user list.
+      const msg: WsMessage<{ connected_users: string[] }> = JSON.parse(evt.data);
+      this.props.connect(msg.body.connected_users, CONNECTION_ADD);
+      logger.log(msg);
     };
   }
 

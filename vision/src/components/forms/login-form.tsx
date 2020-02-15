@@ -8,7 +8,7 @@ import { UserLogin
 			 , SET_LOGIN_PASSWORD
 			 } from "../../state/types";
 import { NamedField } from "./namedfield";
-import { setLoginForm } from "../../state/action-creators";
+import { setLoginFormAction } from "../../state/action-creators";
 import { InputTypeProps } from "./namedfield";
 
 const logger = console;
@@ -20,7 +20,7 @@ const mapStateToPropsLogin = (state: State): UserLogin => {
 
 // As the user types in, we will call setLoginForm which is our action creator
 const mapDispatchLogin = {
-	setLoginForm
+	setLoginForm: setLoginFormAction
 };
 
 const loginConnector = connect(mapStateToPropsLogin, mapDispatchLogin);
@@ -29,7 +29,6 @@ type SignupProps = PropsFromReduxLogin & InputTypeProps;
 
 class LoginNamedField extends React.Component<SignupProps> {
   nameHandler = (evt: React.ChangeEvent<HTMLInputElement>) => {
-		logger.log(evt.target);
 		const name = this.props.name.toLocaleLowerCase();
 		const actionType: SET_LOGIN_FORM = name === "username" ? SET_LOGIN_USERNAME
 																													 : SET_LOGIN_PASSWORD;
@@ -38,13 +37,13 @@ class LoginNamedField extends React.Component<SignupProps> {
 	    name: this.props.name,
 	    value: evt.target.value
 		};
-		logger.log(`in nameHandler, sending ${JSON.stringify(action, null, 2)}`);
+		// logger.log(`in nameHandler, sending ${JSON.stringify(action, null, 2)}`);
 		this.props.setLoginForm(action, actionType);
 	}
 
 	render() {
-		logger.log(`In LoginNamedField: ${JSON.stringify(this.props, null, 2)}`);
-		logger.log(`placeholder should equal ${this.props.value}`);
+		// logger.log(`In LoginNamedField: ${JSON.stringify(this.props, null, 2)}`);
+		// logger.log(`placeholder should equal ${this.props.value}`);
 		return (
 			<div className="field">
 				<label className="label has-text-light">

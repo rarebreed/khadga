@@ -6,7 +6,7 @@
 
 import React from "react";
 import * as noesis from "@khadga/noesis";
-import tf from "@tensorflow/tfjs";
+import * as tf from "@tensorflow/tfjs";
 
 const logger = console;
 
@@ -35,7 +35,7 @@ export class VideoStream extends React.Component {
 			video.srcObject = cam;
 			video.play();
 		} else {
-			logger.warn("video is not available");
+			alert("video is not available");
 		}
 	}
 
@@ -44,7 +44,7 @@ export class VideoStream extends React.Component {
 			const video = this.videoRef.current;
 			video.pause();
 			const cam = await tf.data.webcam(video);
-			cam.start()
+			cam.start();
 		}
 
 		alert("TODO: Send action to set webcam state to disabled");

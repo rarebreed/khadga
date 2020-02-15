@@ -18,7 +18,7 @@ import { ModalState
 			 , USER_LOGIN
 			 , USER_DISCONNECT
 			 , USER_TEST
-			 , Message
+			 , ChatMessage
 			 , MessageAction
 			 , MESSAGE_ADD
 			 , MESSAGE_DELETE
@@ -30,7 +30,8 @@ import { ModalState
 			 , WebcamAction
 			 , WEBCAM_DISABLE
 			 , WEBCAM_ENABLE
-			 , WEBCAM_RESIZE
+			 , WEBCAM_RESIZE,
+			 ConnectAction
 			 } from "./types";
 import { logger } from "../logger";
 
@@ -116,7 +117,7 @@ export const modalReducer = ( previous: ModalState = initialModalState
 export const signupReducer = ( previous: SignUp = initialSignupState
 														 , action: SignUpAction )
 														 : SignUp => {
-	logger.debug(`Current state for signupReducer`, previous);
+	// logger.debug(`Current state for signupReducer`, previous);
 
 	// FIXME: Technically we should only do this except on default case
 	const newstate = Object.assign({}, previous);
@@ -162,8 +163,16 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 	                          , action: LoginAction) => {
 	const newstate = Object.assign({}, previous);
 
+	const isCurrentUser = (newUser: string): boolean => {
+		return previous.connected.includes(newUser);
+	};
+
 	switch (action.type) {
 		case USER_LOGIN:
+			if (isCurrentUser(action.username)) {
+				logger.log(`${action.username} is already connected`);
+				return previous;
+			}
 			newstate.connected.push(action.username);
 			newstate.loggedIn = true;
 			break;
@@ -178,9 +187,15 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 			return previous;
 	}
 
-	const disp = (arg: any) => JSON.stringify(arg, null, 2);
-  logger.debug(`previous=${disp(previous)},\ncurrent=${disp(newstate)}`);
+	// const disp = (arg: any) => JSON.stringify(arg, null, 2);
+  // logger.debug(`previous=${disp(previous)},\ncurrent=${disp(newstate)}`);
 	return newstate;
+};
+
+export const connectedUserReducer = ( previous: string[] = []
+	                                  , action: ConnectAction) => {
+	
+	return previous;
 };
 
 /**
@@ -210,15 +225,15 @@ export const loginFormReducer = ( previous: UserLogin = initialUserLogin
 	}
 
 	const disp = (arg: any) => JSON.stringify(arg, null, 2);
-	logger.debug(`Called with ${disp(action)}`);
-	logger.debug(`Previous=${disp(previous)}\ncurrent=${disp(newstate)}`);
+	// logger.debug(`Called with ${disp(action)}`);
+	// logger.debug(`Previous=${disp(previous)}\ncurrent=${disp(newstate)}`);
 	return newstate;
 };
 
 /**
  * Sets new Message components in the chat container (the middle part)
  */
-export const messageReducer = ( previous: Message[] = []
+export const messageReducer = ( previous: ChatMessage[] = []
 	                            , action: MessageAction) => {
 	let newstate = Array.from(previous);
 
