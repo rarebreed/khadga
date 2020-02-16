@@ -11,4 +11,4 @@ services:
     links:
       - mongodb
     volumes:
-      - ./vision/dist:/app/dist
+      - ./vision/dist:/apps/vision/dist

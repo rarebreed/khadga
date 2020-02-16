@@ -22,7 +22,8 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class UserList extends React.Component<PropsFromRedux> {
 	render() {
-		const listItems = this.props.connectState.connected.map(user => {
+		const connected = Array.from(this.props.connectState.connected);
+		const listItems = connected.map(user => {
 			const item = <li key={user}>{user}</li>;
 			return item;
 		});

@@ -16,6 +16,6 @@ COPY vision/dist ./dist
 COPY khadga/config ./config
 COPY target/debug/khadga .
 
-VOLUME [ "/apps/vision/dist" ]
+VOLUME [ "vision/dist" ]
 
 CMD [ "./khadga" ]

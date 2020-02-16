@@ -163,21 +163,40 @@ pub fn connect_user(
     username: String,
 ) -> impl Future<Output = Result<(), ()>> {
     // Split the socket into a sender and receive of messages.
-    let (user_tx, user_rx) = ws.split();
+    let (user_tx, mut user_rx) = ws.split();
 
     // Use an unbounded channel to handle buffering and flushing of messages
     // to the websocket
+    // FIXME:  We really shouldn't use an unbounded channel or we can run into memory pressure
+    // issues.  Might need to do some profiling, but since rust's async uses a polling method
+    // we automatically get backpressure support.
     let (tx, rx) = mpsc::unbounded_channel();
-    let tx2 = tx.clone();
+
+    //let (to_tx, from_rx) = mpsc::unbounded_channel();
 
     // Create an async task that handles the messages streaming from rx by forwarding them
     // to user_tx.  This will drive the Stream backed by rx to send values to user_tx until
-    // rx is exhausted
+    // rx is exhausted.  This is how we send messages from khadga to the client
     tokio::task::spawn(rx.forward(user_tx).map(|result| {
         if let Err(e) = result {
-            eprintln!("websocket send error: {}", e);
+            error!("websocket send error: {}", e);
         }
     }));
+
+    // Create another async task that will listen for messages from the client over user_rx
+    /*
+    tokio::task::spawn(async move {
+        let msg = user_rx.next().await.expect("Could not get message");
+        match msg {
+            Err(e) => {
+                error!("websocket recv error: {}", e);
+            },
+            Ok(m) => {
+                to_tx.send(m);
+            }
+        }
+    });
+    */
 
     // Save the sender in our list of connected users state
     let user_copy = username.clone();
@@ -205,18 +224,28 @@ pub fn connect_user(
     // by rx, and therefore will be sent over to user_tx and then over the websocket
     let conn_list = ConnectionMsg::new(user_list);
     let connect_msg = Message::new(username.clone(), vec![], MessageEvent::Connect, conn_list);
-    let connect_msg_str: String = serde_json::to_string(&connect_msg)
-        .expect("Unable to serialize to Message");
-    tx2.send(Ok(ws::Message::text(connect_msg_str)))
-        .expect("Failed to send to tx");
+
+    // Send a connection event to each connected user
+    // FIXME:  I think we can put this in the loop above.  No need to clone again
+    let event_users = users.clone();
+    let list = event_users.lock().unwrap();
+    for (user, tx) in list.iter() {
+        info!("Sending connect event to {}", user);
+        let connect_msg_str: String = serde_json::to_string(&connect_msg)
+            .expect("Unable to serialize to Message");
+        tx.send(Ok(ws::Message::text(connect_msg_str)))
+            .expect("Failed to send to tx");
+    }
 
     // Every time the logged in user sends a message, send it to
     // all other users specified in the msg
     let copied_user = username.clone();
     let res = user_rx
         .for_each(move |msg| {
+            let m = msg.unwrap();
+            
             let user_copy = copied_user.clone();
-            user_message(user_copy, msg.unwrap(), &users);
+            user_message(user_copy, m, &users);
             future::ready(())
         })
         // for_each will keep processing as long as the user stays
@@ -229,11 +258,49 @@ pub fn connect_user(
     res
 }
 
-fn user_disconnected(my_id: String, users: &Users) {
-    info!("good bye user: {}", my_id);
+fn get_users(users: &Users) -> Vec<String> {
+    let mut user_list: Vec<String> = vec![];
+    let users2 = users.clone();
+    {
+        let list = users2.lock().unwrap();
+        info!("Connected Users:");
+
+        for (key, _) in list.iter() {
+            info!("{}", key);
+            user_list.push(key.clone());
+        }
+
+        let mut _user_str = user_list.iter().fold("".into(), |mut acc: String, next| {
+            acc = acc + &next + "\n";
+            acc
+        });
+    }
+    user_list
+}
+
+fn user_disconnected(username: String, users: &Users) {
+    info!("good bye user: {}", username);
 
     // Stream closed up, so remove from the user list
-    users.lock().unwrap().remove(&my_id);
+    let mut list = users.lock().unwrap();
+    list.remove(&username);
+
+    // Send message to all other users that user has disconnected
+    // Send back a list of connected users.  Remember that tx is connected to rx.  Earlier
+    // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
+    // by rx, and therefore will be sent over to user_tx and then over the websocket
+    
+    let user_list = get_users(&users);
+    let conn_list = ConnectionMsg::new(user_list);
+    let connect_msg = Message::new(username.clone(), vec![], MessageEvent::Disconnect, conn_list);
+
+    for (user, tx) in list.iter() {
+        info!("Sending connection event to {}", user);
+        let connect_msg_str: String = serde_json::to_string(&connect_msg)
+            .expect("Unable to serialize to Message");
+        tx.send(Ok(ws::Message::text(connect_msg_str)))
+            .expect("Failed to send to tx");
+    }
 }
 
 fn user_message(my_id: String, msg: ws::Message, users: &Users) {
@@ -249,10 +316,7 @@ fn user_message(my_id: String, msg: ws::Message, users: &Users) {
 
     let new_msg = format!("<User#{}>: {:?}", my_id, msg);
 
-    // New message from this user, send it to everyone else (except same uid)...
-    //
-    // We use `retain` instead of a for loop so that we can reap any user that
-    // appears to have disconnected.
+    // New message from this user, send it to everyone in the recipient list
     for (uid, tx) in users.lock().unwrap().iter_mut() {
         // TODO: Get the recipients from mesg.recipients and loop through that
         if my_id != *uid {

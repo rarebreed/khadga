@@ -17,7 +17,11 @@ export type SET_SIGNUP = "SET_SIGNUP_USERNAME"
 export const USER_LOGIN = "USER_LOGIN";
 export const USER_DISCONNECT = "USER_DISCONNECT";
 export const USER_TEST = "USER_TEST";
-export type LOGIN_ACTIONS = "USER_LOGIN" | "USER_DISCONNECT" | "USER_TEST";
+export const USER_CONNECTION_EVT = "USER_CONNECTION_EVT";
+export type LOGIN_ACTIONS = "USER_LOGIN"
+													| "USER_DISCONNECT"
+													| "USER_TEST"
+													| "USER_CONNECTION_EVT";
 
 export const SET_LOGIN_USERNAME = "SET_LOGIN_USERNAME";
 export const SET_LOGIN_PASSWORD = "SET_LOGIN_PASSWORD";
@@ -33,10 +37,6 @@ export const WEBCAM_ENABLE = "WEBCAM_ENABLE";
 export const WEBCAM_DISABLE = "WEBCAM_DISABLE";
 export const WEBCAM_RESIZE = "WEBCAM_RESIZE";
 export type WEBCAM_ACTIONS = "WEBCAM_ENABLE" | "WEBCAM_DISABLE" | "WEBCAM_RESIZE";
-
-export const CONNECTION_ADD = "CONNECTION_ADD";
-export const CONNECTION_REMOVE = "CONNECTION_REMOVE";
-export type CONNECT_ACTIONS = "CONNECTION_ADD" | "CONNECTION_REMOVE";
 
 export interface ActiveState {
 	isActive: boolean
@@ -84,7 +84,8 @@ export type SignUp = UserLogin & {
 
 export interface LoginAction {
 	type: LOGIN_ACTIONS,
-	username: string
+	username: string,
+	connected?: Set<string>
 }
 
 export interface LoginFormAction {
@@ -97,7 +98,7 @@ export interface Connected {
 }
 
 export interface LoginReducerState {
-	connected: string[],
+	connected: Set<string>,
 	loggedIn: boolean
 }
 export interface ChatMessage {
@@ -124,11 +125,6 @@ export interface WebcamState {
 export interface WebcamAction {
 	type: WEBCAM_ACTIONS,
 	webcam: WebcamState
-}
-
-export interface ConnectAction {
-	type: CONNECT_ACTIONS,
-	users: string[]
 }
 
 /// This is the typescript equivalent of the message::MessageEvent from rust

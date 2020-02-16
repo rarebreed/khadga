@@ -7,15 +7,13 @@ import { setActive
        , createLoginAction
        , setLoginFormAction
        , webcamCamAction
-       , connectAction
        } from "../state/action-creators";
 import { logger } from "../logger";
 import { SET_SIGNUP_ACTIVE
        , SET_LOGIN_ACTIVE
        , USER_DISCONNECT
+       , USER_CONNECTION_EVT
        , WEBCAM_ENABLE
-       , CONNECTION_ADD
-       , CONNECT_ACTIONS
        , WsMessage
        } from "../state/types";
 import  Login from "./login";
@@ -68,10 +66,9 @@ const mapState = (state: State) => {
 
 const mapDispatch = {
   signUp: setActive,
-  login: createLoginAction,
+  connection: createLoginAction,
   setLoginForm: setLoginFormAction,
-  webcam: webcamCamAction,
-  connect: connectAction
+  webcam: webcamCamAction
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -95,7 +92,7 @@ class NavBar extends React.Component<PropsFromRedux> {
   }
 
   logout = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    this.props.login(this.props.user, USER_DISCONNECT);
+    this.props.connection(new Set(), this.props.user, USER_DISCONNECT);
   }
 
   isLoggedIn = () => {
@@ -139,14 +136,14 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.sock = new WebSocket(url);
 
     this.sock.onopen = (ev: Event) => {
-      logger.log("Now connected");
+      logger.log("Now connected to khadga");
     };
 
     this.sock.onmessage = (evt: MessageEvent) => {
       // TODO: use the data in the event to update the user list.
-      const msg: WsMessage<{ connected_users: string[] }> = JSON.parse(evt.data);
-      this.props.connect(msg.body.connected_users, CONNECTION_ADD);
-      logger.log(msg);
+      const msg: WsMessage<{ connected_users: Set<string> }> = JSON.parse(evt.data);
+      logger.log("Got websocket event", msg);
+      this.props.connection(msg.body.connected_users, "", USER_CONNECTION_EVT);
     };
   }
 

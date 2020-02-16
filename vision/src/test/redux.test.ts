@@ -3,15 +3,16 @@ import { createStore} from "redux";
 import store from "../state/store";
 import { logger } from "../logger";
 import { SET_SIGNUP_ACTIVE
-	   , SET_SIGNUP_EMAIL
+	     , SET_SIGNUP_EMAIL
        , SET_SIGNUP_PASSWORD
-	   , SET_SIGNUP_USERNAME
-	   , USER_LOGIN
-	   , USER_DISCONNECT,
-		 SET_LOGIN_PASSWORD,
-		 SET_LOGIN_USERNAME
+	     , SET_SIGNUP_USERNAME
+	     , USER_LOGIN
+	     , USER_DISCONNECT,
+		   SET_LOGIN_PASSWORD,
+		   SET_LOGIN_USERNAME,
+			 USER_CONNECTION_EVT
 			 } from "../state/types";
-import { state } from "../state/reducers";
+import { loginReducer, state } from "../state/reducers";
 
 test("Tests the store", () => {
 	const stateStore = createStore(store.reducers);
@@ -86,8 +87,8 @@ test("Tests adding user to connectedUsers", () => {
 	let stateNow = stateStore.getState();
 
 	logger.log(stateNow);
-	expect(stateNow.connectState.connected.includes("sean")).toBeTruthy();
-	expect(stateNow.connectState.connected.includes("toner")).toBeTruthy();
+	expect(stateNow.connectState.connected.has("sean")).toBeTruthy();
+	expect(stateNow.connectState.connected.has("toner")).toBeTruthy();
 	expect(stateNow.connectState.loggedIn).toBeTruthy();
 
 	stateStore.dispatch({
@@ -95,9 +96,28 @@ test("Tests adding user to connectedUsers", () => {
 		username: "sean"
 	});
 	stateNow = stateStore.getState();
+	logger.log("Called USER_DISCONNECT with sean");
 	logger.log(stateNow);
-	expect(stateNow.connectState.connected.includes("sean")).toBeFalsy();
+	expect(stateNow.connectState.connected.has("sean")).toBeFalsy();
 	expect(stateNow.connectState.loggedIn).toBeFalsy();
+
+	const now = new Set(stateNow.connectState.connected).add("henry");
+	stateStore.dispatch({
+		type: USER_CONNECTION_EVT,
+		username: "",
+		connected: now
+	});
+
+	stateNow = stateStore.getState();
+	logger.log(stateNow);
+	expect(stateNow.connectState.connected.has("henry")).toBeTruthy();
+
+	stateStore.dispatch({
+		type: USER_LOGIN,
+		username: "toner"
+	});
+	stateNow = stateStore.getState();
+	logger.log(stateNow);
 });
 
 test("Test loginFormReducer", () => {

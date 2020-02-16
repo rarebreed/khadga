@@ -80,7 +80,7 @@ class LoginModal extends AbstractModal<ModalProps> {
       // with a timestamp. We can then reuse the JWT
       // TODO: Once login is complete, we need to enable Chat in the toolbar.
       this.props.setActive(false, SET_LOGIN_ACTIVE);
-      this.props.login(this.props.userLoginState.username, USER_LOGIN);
+      this.props.login(new Set(), this.props.userLoginState.username, USER_LOGIN);
     }
   }
 }
