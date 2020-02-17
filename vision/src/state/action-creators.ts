@@ -5,13 +5,14 @@ import { ModalAction
 			 , LOGIN_ACTIONS
 			 , LoginAction
 			 , WebSocketAction
-			 , WEBSOCKET_ACTIONS
 			 , NamePropState
 			 , SET_SIGNUP
 			 , SET_LOGIN_FORM
 			 , WebcamAction
 			 , WebcamState
-			 , WEBCAM_ACTIONS
+			 , WEBCAM_ACTIONS,
+			 ChatMessageState,
+			 CHAT_MESSAGE_ACTIONS
 			 } from "./types";
 
 export const setActive = (isActive: boolean, action: SET_MODAL_ACTIVE): ModalAction => {
@@ -72,5 +73,12 @@ export const websocketAction = ( ws: WebSocket | null)
 		socket: {
 			socket: ws
 		}
+	};
+};
+
+export const chatMessageAction = ( message: ChatMessageState, action: CHAT_MESSAGE_ACTIONS) => {
+	return {
+		type: action,
+		message
 	};
 };

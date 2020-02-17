@@ -24,7 +24,8 @@ const mapStateToProps = (state: State) => {
   return {
 		webcam: state.webcam,
 		connected: state.connectState.loggedIn,
-		websocket: state.websocket
+		websocket: state.websocket,
+		messages: state.messages
 	};
 };
 
@@ -32,12 +33,20 @@ const connector = connect(mapStateToProps);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class ChatContainer extends React.Component<PropsFromRedux> {
-  messages: ChatMessage[] = [];
+
+	makeChatMessage = () => {
+		return this.props.messages.map(msg => {
+			return (
+				<ChatMessage body={msg.body} sender={ msg.sender }/>
+			);
+		});
+	}
 
   render() {
 		const showCam = this.props.webcam.active && this.props.connected;
 		logger.info(`webcam.active = ${this.props.webcam.active}`);
 		logger.info(`connected = ${this.props.connected}`);
+
 		const cntr = (
 			<div className="columns is-fullheight" style={ { flex: 1 } }>
 				<div className="column is-one-fifth has-background-black has-text-light">
@@ -45,9 +54,9 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 				</div>
 				<div className="column has-text-right">
 				  { showCam ? <VideoStream /> : null }
-					<BlogPost />
+		      { this.props.websocket.socket === null ? <BlogPost /> : null }
 					<ul>
-						{ this.messages }
+						{ this.makeChatMessage() }
 					</ul>
           <TextInput />
 				</div>

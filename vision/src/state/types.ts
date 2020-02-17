@@ -42,6 +42,14 @@ export const WEBSOCKET_CREATE = "WEBSOCKET_CREATE";
 export const WEBSOCKET_CLOSE = "WEBSOCKET_CLOSE";
 export type WEBSOCKET_ACTIONS = "WEBSOCKET_CREATE" | "WEBSOCKET_CLOSE";
 
+export const CHAT_MESSAGE_ADD = "CHAT_MESSAGE_ADD";
+export const CHAT_MESSAGE_DELETE = "CHAT_MESSAGE_DELETE";
+export const CHAT_MESSAGE_EDIT = "CHAT_MESSAGE_EDIT";
+export const CHAT_MESSAGE_REPLY = "CHAT_MESSAGE_REPLY";
+export type CHAT_MESSAGE_ACTIONS = "CHAT_MESSAGE_ADD"
+																 | "CHAT_MESSAGE_DELETE"
+																 | "CHAT_MESSAGE_EDIT"
+																 | "CHAT_MESSAGE_REPLY";
 export interface ActiveState {
 	isActive: boolean
 }
@@ -152,6 +160,22 @@ export interface WebSocketState {
 export interface WebSocketAction {
 	type: WEBSOCKET_ACTIONS,
 	socket: WebSocketState
+}
+
+export interface ChatMessageState {
+	sender: string,
+	recipients: string[],
+	time: string,
+	body: string
+	replies?: ChatMessageState
+}
+
+/**
+ * Actions for chat messages
+ */
+export interface ChatMessageAction {
+	type: CHAT_MESSAGE_ACTIONS
+	message: ChatMessageState
 }
 
 /**

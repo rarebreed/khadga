@@ -5,8 +5,9 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
-import { WsMessage } from "../../state/types";
+import { WsMessage, ChatMessageState, CHAT_MESSAGE_ADD } from "../../state/types";
 import { State } from "../../state/store";
+import { chatMessageAction } from "../../state/action-creators";
 
 const logger = console;
 
@@ -18,11 +19,17 @@ interface TextState {
 const mapPropsToState = (store: State) => {
 	return {
 		socket: store.websocket.socket,
-		loggedIn: store.connectState.loggedIn
+		loggedIn: store.connectState.loggedIn,
+		connected: store.connectState.connected,
+		username: store.login.username
 	};
 };
 
-const textInputConnector = connect(mapPropsToState);
+const mapPropsToDispatch = {
+	sendMessage: chatMessageAction
+};
+
+const textInputConnector = connect(mapPropsToState, mapPropsToDispatch);
 type PropsFromReduxLogin = ConnectedProps<typeof textInputConnector>;
 
 class TextInput extends React.Component<PropsFromReduxLogin, TextState> {
@@ -48,6 +55,8 @@ class TextInput extends React.Component<PropsFromReduxLogin, TextState> {
 
 	send = (evt: React.MouseEvent<HTMLButtonElement>) => {
 		const msg = this.makeMessage(this.state.message);
+    msg.recipients = Array.from(this.props.connected);
+
 		logger.log(`sending ${msg}`);
 		if (this.props.socket) {
 			this.props.socket.send(JSON.stringify(msg));
@@ -63,12 +72,18 @@ class TextInput extends React.Component<PropsFromReduxLogin, TextState> {
 		this.setState({
 			message: ""
 		});
+
+		this.props.sendMessage(this.makeChatMessage(msg), CHAT_MESSAGE_ADD);
 	}
 
-	makeMessage = (body: string): WsMessage<string> => {
+	makeMessage = (body: string, recipients: string[] = []): WsMessage<string> => {
+		if (recipients.length === 0) {
+			recipients = Array.from(this.props.connected);
+		}
+
 		const msg: WsMessage<string> = {
-			sender: "",
-			recipients: [],
+			sender: this.props.username,
+			recipients,
 			body,
 			event_type: "Message"
 		};
@@ -76,8 +91,18 @@ class TextInput extends React.Component<PropsFromReduxLogin, TextState> {
 		return msg;
 	}
 
+	makeChatMessage = (msg: WsMessage<string>): ChatMessageState => {
+		return {
+			sender: msg.sender,
+			recipients: msg.recipients,
+			body: msg.body,
+			time: new Date().toUTCString()
+		};
+	}
+
 	render() {
-		let cName = this.props.loggedIn ? "" : " is-hidden";
+		const shouldShow = this.props.socket && this.props.loggedIn;
+		let cName = shouldShow ? "" : " is-hidden";
 		cName = "field has-addons" + cName;
 
 		return (

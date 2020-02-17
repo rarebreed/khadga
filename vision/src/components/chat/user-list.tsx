@@ -29,7 +29,7 @@ class UserList extends React.Component<PropsFromRedux> {
 		});
 
 		return(
-			<div>
+			<div className="is-pulled-right">
 				<ul>
 				  { listItems }
 			  </ul>

@@ -1,13 +1,13 @@
 import React from "react";
 
 interface MessageBody {
-	body: string
+	body: string,
+	sender: string
 }
 
 type MediaProps = MessageBody & {
 	avatar?: string
 };
-
 
 export class ChatMessage extends React.Component<MediaProps> {
 	render() {
@@ -16,7 +16,7 @@ export class ChatMessage extends React.Component<MediaProps> {
 				<div className="media-content">
 					<div className="content">
 						<p>
-							<strong>John Smith</strong> <small>@johnsmith</small> <small>31m</small>
+		          <strong>{ this.props.sender }</strong> <small>{ Date.now() }</small>
 							<br />
 							{ this.props.body }
 						</p>

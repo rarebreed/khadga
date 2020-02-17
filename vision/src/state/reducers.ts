@@ -33,7 +33,13 @@ import { ModalState
 			 , WEBCAM_RESIZE
 			 , USER_CONNECTION_EVT
 			 , WebSocketAction
-			 , WebSocketState
+			 , WebSocketState,
+			 ChatMessageState,
+			 ChatMessageAction,
+			 CHAT_MESSAGE_DELETE,
+			 CHAT_MESSAGE_ADD,
+			 CHAT_MESSAGE_EDIT,
+			 CHAT_MESSAGE_REPLY
 			 } from "./types";
 import { logger } from "../logger";
 
@@ -292,5 +298,26 @@ export const websocketReducer = ( previous: WebSocketState = { socket: null }
 	} else {
 		logger.log(`for websocket action: ${JSON.stringify(action)}`);
 		return previous;
+	}
+};
+
+export const chatMessageReducer = ( previous: ChatMessageState[] = []
+	                                , action: ChatMessageAction) => {
+  switch(action.type) {
+		case CHAT_MESSAGE_ADD:
+			const newstate = Object.assign([], previous);
+			newstate.push(action.message);
+			return newstate;
+		case CHAT_MESSAGE_DELETE:
+			logger.error("Needs to be implemented");
+			break;
+		case CHAT_MESSAGE_EDIT:
+			logger.error("Needs to be implemented");
+			break;
+		case CHAT_MESSAGE_REPLY:
+			logger.error("Needs to be implemented");
+			break;
+		default:
+			return previous;
 	}
 };
