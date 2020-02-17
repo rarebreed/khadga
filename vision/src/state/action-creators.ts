@@ -4,7 +4,8 @@ import { ModalAction
 			 , LoginFormAction
 			 , LOGIN_ACTIONS
 			 , LoginAction
-			 , Connected
+			 , WebSocketAction
+			 , WEBSOCKET_ACTIONS
 			 , NamePropState
 			 , SET_SIGNUP
 			 , SET_LOGIN_FORM
@@ -54,5 +55,22 @@ export const webcamCamAction = (state: WebcamState, action: WEBCAM_ACTIONS): Web
 	return {
 		type: action,
 		webcam: state
+	};
+};
+
+/**
+ * Action creator for Websockets
+ *
+ * If called with WEBSOCKET
+ * @param ws
+ * @param action
+ */
+export const websocketAction = ( ws: WebSocket | null)
+															 : WebSocketAction => {
+	return {
+		type: ws !== null ? "WEBSOCKET_CREATE" : "WEBSOCKET_CLOSE",
+		socket: {
+			socket: ws
+		}
 	};
 };

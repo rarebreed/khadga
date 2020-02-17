@@ -5,9 +5,6 @@ import LoginNamedField from "./forms/login-form";
 import Modal from "./login-modal";
 import { State } from "../state/store";
 
-
-const logger = console;
-
 const mapStateToProps = (state: State) => {
   return {
     password: state.login.password,

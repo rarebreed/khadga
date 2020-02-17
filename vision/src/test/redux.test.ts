@@ -7,12 +7,12 @@ import { SET_SIGNUP_ACTIVE
        , SET_SIGNUP_PASSWORD
 	     , SET_SIGNUP_USERNAME
 	     , USER_LOGIN
-	     , USER_DISCONNECT,
-		   SET_LOGIN_PASSWORD,
-		   SET_LOGIN_USERNAME,
-			 USER_CONNECTION_EVT
+			 , USER_DISCONNECT
+			 , SET_LOGIN_PASSWORD
+			 , SET_LOGIN_USERNAME
+			 , USER_CONNECTION_EVT
 			 } from "../state/types";
-import { loginReducer, state } from "../state/reducers";
+import { websocketAction } from "../state/action-creators";
 
 test("Tests the store", () => {
 	const stateStore = createStore(store.reducers);

@@ -18,11 +18,13 @@ import { VideoStream } from "../inputs/webcam";
 import { State } from "../../state/store";
 import { BlogPost } from "../blogs/blog";
 import { logger } from "../../logger";
+import TextInput from "../../components/inputs/text";
 
 const mapStateToProps = (state: State) => {
   return {
 		webcam: state.webcam,
-		connected: state.connectState.loggedIn
+		connected: state.connectState.loggedIn,
+		websocket: state.websocket
 	};
 };
 
@@ -42,11 +44,12 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 					<UserList />
 				</div>
 				<div className="column has-text-right">
+				  { showCam ? <VideoStream /> : null }
 					<BlogPost />
 					<ul>
 						{ this.messages }
 					</ul>
-					{ showCam ? <VideoStream /> : null }
+          <TextInput />
 				</div>
 			</div>
 		);

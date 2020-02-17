@@ -32,9 +32,10 @@ import { ModalState
 			 , WEBCAM_ENABLE
 			 , WEBCAM_RESIZE
 			 , USER_CONNECTION_EVT
+			 , WebSocketAction
+			 , WebSocketState
 			 } from "./types";
 import { logger } from "../logger";
-import { connectAdvanced } from "react-redux";
 
 const initialModalState: ModalState = {
 	signup: {
@@ -271,4 +272,23 @@ export const webcamReducer = ( previous: WebcamState = initialWebcamState
 	}
 
 	return newstate;
+};
+
+export const websocketReducer = ( previous: WebSocketState = { socket: null }
+																, action: WebSocketAction)
+																: WebSocketState => {
+  const sockState: WebSocketState = {
+		socket: null
+	};
+
+	logger.log(`Got a ${action.type} action`);
+  if (action.type === "WEBSOCKET_CLOSE") {
+		logger.log("Got a WEBSOCKET_CLOSE action");
+		return sockState;
+	} else if (action.type === "WEBSOCKET_CREATE") {
+		sockState.socket = action.socket.socket;
+		return sockState;
+	} else {
+		return previous;
+	}
 };

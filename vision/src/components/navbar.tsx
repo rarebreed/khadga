@@ -7,6 +7,7 @@ import { setActive
        , createLoginAction
        , setLoginFormAction
        , webcamCamAction
+       , websocketAction
        } from "../state/action-creators";
 import { logger } from "../logger";
 import { SET_SIGNUP_ACTIVE
@@ -68,7 +69,8 @@ const mapDispatch = {
   signUp: setActive,
   connection: createLoginAction,
   setLoginForm: setLoginFormAction,
-  webcam: webcamCamAction
+  webcam: webcamCamAction,
+  websocket: websocketAction
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -135,6 +137,9 @@ class NavBar extends React.Component<PropsFromRedux> {
     logger.log(`Connecting to ${url}`);
     this.sock = new WebSocket(url);
 
+    // Pass along our websocket so the Chat components can use it
+    this.props.websocket(this.sock);
+
     this.sock.onopen = (ev: Event) => {
       logger.log("Now connected to khadga");
     };
@@ -144,6 +149,10 @@ class NavBar extends React.Component<PropsFromRedux> {
       const msg: WsMessage<{ connected_users: Set<string> }> = JSON.parse(evt.data);
       logger.log("Got websocket event", msg);
       this.props.connection(msg.body.connected_users, "", USER_CONNECTION_EVT);
+    };
+
+    this.sock.onclose = (ev: CloseEvent) => {
+      this.props.websocket(null);
     };
   }
 

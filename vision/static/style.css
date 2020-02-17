@@ -22,3 +22,9 @@
 .vision-navbar {
 	background-color: rgb(61, 123, 194);
 }
+
+.blog {
+  padding: 10px;
+  border: 2px solid #000000;
+  border-radius: 10px;
+}

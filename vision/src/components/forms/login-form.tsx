@@ -7,7 +7,6 @@ import { UserLogin
 			 , SET_LOGIN_USERNAME
 			 , SET_LOGIN_PASSWORD
 			 } from "../../state/types";
-import { NamedField } from "./namedfield";
 import { setLoginFormAction } from "../../state/action-creators";
 import { InputTypeProps } from "./namedfield";
 

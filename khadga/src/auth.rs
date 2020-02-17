@@ -237,15 +237,14 @@ pub fn connect_user(
             .expect("Failed to send to tx");
     }
 
-    // Every time the logged in user sends a message, send it to
-    // all other users specified in the msg
+    // This is the handler for messages that are received from a connected user.
     let copied_user = username.clone();
     let res = user_rx
         .for_each(move |msg| {
             let m = msg.unwrap();
-            
             let user_copy = copied_user.clone();
-            user_message(user_copy, m, &users);
+
+            user_message_handler(user_copy, m, &users);
             future::ready(())
         })
         // for_each will keep processing as long as the user stays
@@ -303,15 +302,14 @@ fn user_disconnected(username: String, users: &Users) {
     }
 }
 
-fn user_message(my_id: String, msg: ws::Message, users: &Users) {
+fn user_message_handler(my_id: String, msg: ws::Message, users: &Users) {
     // Skip any non-Text messages...
     let msg = if let Ok(s) = msg.to_str() {
         s
     } else {
         return;
     };
-
-    // TODO: Serialize the string into a Message struct
+    
     let _mesg: Message<String> = serde_json::from_str(msg).unwrap();
 
     let new_msg = format!("<User#{}>: {:?}", my_id, msg);

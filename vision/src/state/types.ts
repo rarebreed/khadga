@@ -38,6 +38,10 @@ export const WEBCAM_DISABLE = "WEBCAM_DISABLE";
 export const WEBCAM_RESIZE = "WEBCAM_RESIZE";
 export type WEBCAM_ACTIONS = "WEBCAM_ENABLE" | "WEBCAM_DISABLE" | "WEBCAM_RESIZE";
 
+export const WEBSOCKET_CREATE = "WEBSOCKET_CREATE";
+export const WEBSOCKET_CLOSE = "WEBSOCKET_CLOSE";
+export type WEBSOCKET_ACTIONS = "WEBSOCKET_CREATE" | "WEBSOCKET_CLOSE";
+
 export interface ActiveState {
 	isActive: boolean
 }
@@ -136,6 +140,18 @@ export interface WsMessage<T> {
 	recipients: string[],
 	body: T
 	event_type: MessageEvent
+}
+
+export interface WebSocketState {
+	socket: WebSocket | null
+}
+
+/**
+ * Action for what happens to a websocket
+ */
+export interface WebSocketAction {
+	type: WEBSOCKET_ACTIONS,
+	socket: WebSocketState
 }
 
 /**

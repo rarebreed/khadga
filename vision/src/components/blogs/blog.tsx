@@ -8,7 +8,7 @@ import React from "react";
 export class BlogPost extends React.Component {
 	render() {
 		return (
-			<div>
+			<div className="container is-fluid blog">
 				<article className="media">
 					<figure className="media-left">
 						<p className="image is-64x64">
