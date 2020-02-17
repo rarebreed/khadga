@@ -29,9 +29,11 @@ class UserList extends React.Component<PropsFromRedux> {
 		});
 
 		return(
-			<ul>
-				{ listItems }
-			</ul>
+			<div>
+				<ul>
+				  { listItems }
+			  </ul>
+			</div>
 		);
 	}
 }

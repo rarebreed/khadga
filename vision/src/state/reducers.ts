@@ -281,14 +281,16 @@ export const websocketReducer = ( previous: WebSocketState = { socket: null }
 		socket: null
 	};
 
-	logger.log(`Got a ${action.type} action`);
   if (action.type === "WEBSOCKET_CLOSE") {
 		logger.log("Got a WEBSOCKET_CLOSE action");
 		return sockState;
 	} else if (action.type === "WEBSOCKET_CREATE") {
+		logger.log("Got a WEBSOCKET_CREATE action");
+		logger.log(`socket is ${action.socket.socket}`);
 		sockState.socket = action.socket.socket;
 		return sockState;
 	} else {
+		logger.log(`for websocket action: ${JSON.stringify(action)}`);
 		return previous;
 	}
 };

@@ -16,6 +16,7 @@ import { SET_SIGNUP_ACTIVE
        , USER_CONNECTION_EVT
        , WEBCAM_ENABLE
        , WsMessage
+       , WebSocketState
        } from "../state/types";
 import  Login from "./login";
 import * as noesis from "@khadga/noesis";
@@ -61,7 +62,8 @@ const mapState = (state: State) => {
   return {
     user: state.login.username,
     modal: state.modal,
-    loggedIn: state.connectState.loggedIn
+    loggedIn: state.connectState.loggedIn,
+    socket: state.websocket.socket
   };
 };
 
@@ -77,11 +79,11 @@ const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class NavBar extends React.Component<PropsFromRedux> {
-  sock: WebSocket | null;
+  // sock: WebSocket | null;
 
   constructor(props: PropsFromRedux) {
     super(props);
-    this.sock = null;
+    // this.sock = null;
   }
 
   signUpHandler = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
@@ -135,25 +137,34 @@ class NavBar extends React.Component<PropsFromRedux> {
     const origin = window.location.host;
     const url = `ws://${origin}/chat/${this.props.user}`;
     logger.log(`Connecting to ${url}`);
-    this.sock = new WebSocket(url);
-
-    // Pass along our websocket so the Chat components can use it
-    this.props.websocket(this.sock);
-
-    this.sock.onopen = (ev: Event) => {
-      logger.log("Now connected to khadga");
+    const sock: WebSocketState = {
+      socket: null
     };
 
-    this.sock.onmessage = (evt: MessageEvent) => {
-      // TODO: use the data in the event to update the user list.
-      const msg: WsMessage<{ connected_users: Set<string> }> = JSON.parse(evt.data);
-      logger.log("Got websocket event", msg);
-      this.props.connection(msg.body.connected_users, "", USER_CONNECTION_EVT);
-    };
+    if (!this.props.socket) {
+      sock.socket = new WebSocket(url);
 
-    this.sock.onclose = (ev: CloseEvent) => {
-      this.props.websocket(null);
-    };
+      const socket = sock.socket;
+      socket.onopen = (ev: Event) => {
+        logger.log("Now connected to khadga");
+        // Pass along our websocket so the Chat components can use it
+        logger.log(`socket is ${socket}`);
+        this.props.websocket(socket);
+      };
+
+      socket.onmessage = (evt: MessageEvent) => {
+        // TODO: use the data in the event to update the user list.
+        const msg: WsMessage<{ connected_users: Set<string> }> = JSON.parse(evt.data);
+        logger.log("Got websocket event", msg);
+        this.props.connection(msg.body.connected_users, "", USER_CONNECTION_EVT);
+      };
+
+      socket.onclose = (ev: CloseEvent) => {
+        this.props.websocket(null);
+      };
+    } else {
+      logger.log(`In setupChat: ${JSON.stringify(this.props)}`);
+    }
   }
 
   render() {

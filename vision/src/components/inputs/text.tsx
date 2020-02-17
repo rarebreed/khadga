@@ -5,14 +5,14 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
-import { WsMessage, WebSocketState } from "../../state/types";
+import { WsMessage } from "../../state/types";
 import { State } from "../../state/store";
-import { state } from "../../state/reducers";
 
 const logger = console;
 
 interface TextState {
-	message: string
+	message: string,
+	target: React.RefObject<HTMLInputElement>
 }
 
 const mapPropsToState = (store: State) => {
@@ -26,37 +26,43 @@ const textInputConnector = connect(mapPropsToState);
 type PropsFromReduxLogin = ConnectedProps<typeof textInputConnector>;
 
 class TextInput extends React.Component<PropsFromReduxLogin, TextState> {
-	ws: WebSocketState;
 	message: string;
+	target: React.RefObject<HTMLInputElement>;
 
   constructor(props: PropsFromReduxLogin) {
 		super(props);
-		this.ws = {
-			socket: props.socket
-		};
 		this.message = "";
+		this.target = React.createRef();
 
 		this.state = {
-			message: this.message
+			message: this.message,
+			target: this.target
 		};
 	}
 
 	dataHandler = (evt: React.ChangeEvent<HTMLInputElement>) => {
-		logger.log(evt.target.value);
-
 		this.setState({
 			message: evt.target.value
 		});
 	}
 
-	send = (_: React.MouseEvent<HTMLButtonElement>) => {
+	send = (evt: React.MouseEvent<HTMLButtonElement>) => {
 		const msg = this.makeMessage(this.state.message);
-		logger.log(`socket is ${this.ws.socket}`);
-		if (this.ws.socket !== null) {
-			this.ws.socket.send(JSON.stringify(msg));
+		logger.log(`sending ${msg}`);
+		if (this.props.socket) {
+			this.props.socket.send(JSON.stringify(msg));
 		} else {
+			logger.log("this.ws:", this.props);
 			alert("No websocket connection.\nLog out and back in");
 		}
+
+		if (this.target.current) {
+			this.target.current.value = "";
+		}
+
+		this.setState({
+			message: ""
+		});
 	}
 
 	makeMessage = (body: string): WsMessage<string> => {
@@ -77,7 +83,10 @@ class TextInput extends React.Component<PropsFromReduxLogin, TextState> {
 		return (
 			<div className={ cName }>
 				<div className="control is-expanded">
-				  <input className="input is-info" type="text" onInput={ this.dataHandler }></input>
+					<input className="input is-info"
+					       ref={ this.target }
+								 type="text"
+								 onInput={ this.dataHandler }></input>
 				</div>
 				<div className="control">
 					<button className="button is-info" onClick={ this.send }>Send</button>

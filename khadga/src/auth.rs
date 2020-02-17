@@ -313,6 +313,7 @@ fn user_message_handler(my_id: String, msg: ws::Message, users: &Users) {
     let _mesg: Message<String> = serde_json::from_str(msg).unwrap();
 
     let new_msg = format!("<User#{}>: {:?}", my_id, msg);
+    info!("Got message {}", new_msg);
 
     // New message from this user, send it to everyone in the recipient list
     for (uid, tx) in users.lock().unwrap().iter_mut() {
