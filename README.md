@@ -85,7 +85,6 @@ Do the following:
 This project uses wasm-pack, so we will use it to build the library.
 
 
-
 ## Testing khadga
 
 Simply run `cargo test` as usual
@@ -103,6 +102,27 @@ khadga backend with mongodb.
 
 ### Building through docker
 
-There is a build.sh script will set everything up
+There is a build.sh script will set everything up, including building the noesis webassembly
+library, and the vision front end.  There are 2 ways to use the script:
+
+```bash
+./build.sh  # Will build all sub projects, and then do a docker build
+./build.sh <CLUSTER_NAME> <ZONE> <PROJECT> <TAG>  # Will do above + auth docker with gcloud and push image to GCR
+```
+
+### Using docker-compose for testing
+
+I find docker-compose easier for testing than using minikube.
+
+After running the build.sh script, you can bring up the app by running:
+
+```bash
+sudo docker-compose up
+```
+
+Then in your browser, you can go to http://localhost:7001
+
+From there, you can play around with the application as it develops.
+
 
 [-book]: https://rarebreed.github.io/khadga/

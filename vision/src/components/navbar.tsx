@@ -134,6 +134,11 @@ class NavBar extends React.Component<PropsFromRedux> {
   }
 
   setupChat = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    if (!this.props.loggedIn) {
+      alert("Please Log in first");
+      return;
+    }
+
     const origin = window.location.host;
     const url = `ws://${origin}/chat/${this.props.user}`;
     logger.log(`Connecting to ${url}`);

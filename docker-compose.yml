@@ -5,7 +5,9 @@ services:
     ports:
       - 27017:27017
   khadga:
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/builder/Dockerfile
     ports:
       - 7001:7001
     links:

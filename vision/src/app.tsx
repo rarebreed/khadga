@@ -16,11 +16,6 @@ interface ContainerStyle {
 }
 
 class App extends React.Component {
-  style: ContainerStyle = {
-    "flex-direction": "column",
-    height: "100vh"
-  };
-
   render() {
     return (
       <div className="is-flex vision-container" id="main-container">

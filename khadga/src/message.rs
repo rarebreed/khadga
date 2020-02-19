@@ -11,7 +11,7 @@ use serde::{Deserialize,
 ///   body: "How are you doing?",
 ///   event_type: MessageEvent::Message
 /// }
-/// 
+///
 /// {
 ///   sender: "stoner",
 ///   recipients: [
@@ -27,19 +27,16 @@ pub struct Message<T> {
     pub sender: String,
     pub recipients: Vec<String>,
     pub body: T,
-    pub event_type: MessageEvent
+    pub event_type: MessageEvent,
 }
 
 impl<T> Message<T> {
-    pub fn new( sender: String
-              , recipients: Vec<String>
-              , evt_type: MessageEvent
-              , body: T) -> Self {
+    pub fn new(sender: String, recipients: Vec<String>, evt_type: MessageEvent, body: T) -> Self {
         Message {
             sender,
             recipients,
             body,
-            event_type: evt_type
+            event_type: evt_type,
         }
     }
 }
@@ -50,18 +47,18 @@ pub enum MessageEvent {
     Disconnect,
     Command,
     Message,
-    Data
+    Data,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct ConnectionMsg {
-    pub connected_users: Vec<String>
+    pub connected_users: Vec<String>,
 }
 
 impl ConnectionMsg {
     pub fn new(users: Vec<String>) -> Self {
         ConnectionMsg {
-            connected_users: users
+            connected_users: users,
         }
     }
 }

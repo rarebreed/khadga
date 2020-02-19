@@ -1,4 +1,5 @@
 # TODO: convert this to a build.rs "script"
+set -xv
 PUBLISH=false
 if [ $# -eq 1 ]; then
 	PUBLISH=$1
@@ -8,7 +9,7 @@ cargo +nightly fmt
 
 cd noesis
 wasm-pack build
-if [[ ${PUBLISH} == "true" ]]; then
+if [ "${PUBLISH}" = "true" ]; then
   wasm-pack test --firefox
 	echo "Deploying noesis to npm"
 	npm login
@@ -28,7 +29,7 @@ cd ..
 sudo docker build -t khadga .
 
 if [ $# -ne 4 ]; then
-  echo "Usage: ./build.sh CLUSTER_NAME ZONE PROJECT TAG"
+  echo "To deploy to GKE: ./build.sh CLUSTER_NAME ZONE PROJECT TAG"
 	exit
 fi
 

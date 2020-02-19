@@ -29,10 +29,12 @@
 
 //use super::message::Message;
 use crate::{data::User,
-            message::{Message, MessageEvent, ConnectionMsg},
             db::{add_user,
                  get_user,
-                 validate_user_pw}};
+                 validate_user_pw},
+            message::{ConnectionMsg,
+                      Message,
+                      MessageEvent}};
 use futures::{future,
               Future,
               FutureExt,
@@ -129,7 +131,7 @@ pub fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
 }
 
 /// FIXME: This should be in a different module
-/// 
+///
 /// This is the handler for when the user clicks the Login button on the app.
 pub fn login() -> BoxedFilter<(impl Reply,)> {
     let login = warp::post()
@@ -163,7 +165,7 @@ pub fn connect_user(
     username: String,
 ) -> impl Future<Output = Result<(), ()>> {
     // Split the socket into a sender and receive of messages.
-    let (user_tx, mut user_rx) = ws.split();
+    let (user_tx, user_rx) = ws.split();
 
     // Use an unbounded channel to handle buffering and flushing of messages
     // to the websocket
@@ -182,21 +184,6 @@ pub fn connect_user(
             error!("websocket send error: {}", e);
         }
     }));
-
-    // Create another async task that will listen for messages from the client over user_rx
-    /*
-    tokio::task::spawn(async move {
-        let msg = user_rx.next().await.expect("Could not get message");
-        match msg {
-            Err(e) => {
-                error!("websocket recv error: {}", e);
-            },
-            Ok(m) => {
-                to_tx.send(m);
-            }
-        }
-    });
-    */
 
     // Save the sender in our list of connected users state
     let user_copy = username.clone();
@@ -231,8 +218,8 @@ pub fn connect_user(
     let list = event_users.lock().unwrap();
     for (user, tx) in list.iter() {
         info!("Sending connect event to {}", user);
-        let connect_msg_str: String = serde_json::to_string(&connect_msg)
-            .expect("Unable to serialize to Message");
+        let connect_msg_str: String =
+            serde_json::to_string(&connect_msg).expect("Unable to serialize to Message");
         tx.send(Ok(ws::Message::text(connect_msg_str)))
             .expect("Failed to send to tx");
     }
@@ -288,15 +275,20 @@ fn user_disconnected(username: String, users: &Users) {
     // Send back a list of connected users.  Remember that tx is connected to rx.  Earlier
     // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
     // by rx, and therefore will be sent over to user_tx and then over the websocket
-    
+
     let user_list = get_users(&users);
     let conn_list = ConnectionMsg::new(user_list);
-    let connect_msg = Message::new(username.clone(), vec![], MessageEvent::Disconnect, conn_list);
+    let connect_msg = Message::new(
+        username.clone(),
+        vec![],
+        MessageEvent::Disconnect,
+        conn_list,
+    );
 
     for (user, tx) in list.iter() {
         info!("Sending connection event to {}", user);
-        let connect_msg_str: String = serde_json::to_string(&connect_msg)
-            .expect("Unable to serialize to Message");
+        let connect_msg_str: String =
+            serde_json::to_string(&connect_msg).expect("Unable to serialize to Message");
         tx.send(Ok(ws::Message::text(connect_msg_str)))
             .expect("Failed to send to tx");
     }
@@ -309,7 +301,7 @@ fn user_message_handler(my_id: String, msg: ws::Message, users: &Users) {
     } else {
         return;
     };
-    
+
     let _mesg: Message<String> = serde_json::from_str(msg).unwrap();
 
     let new_msg = format!("<User#{}>: {:?}", my_id, msg);

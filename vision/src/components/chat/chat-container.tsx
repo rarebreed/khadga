@@ -52,13 +52,13 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 				<div className="column is-one-fifth has-background-black has-text-light">
 					<UserList />
 				</div>
-				<div className="column has-text-right">
+				<div className="column">
 				  { showCam ? <VideoStream /> : null }
-		      { this.props.websocket.socket === null ? <BlogPost /> : null }
+		      
 					<ul>
 						{ this.makeChatMessage() }
 					</ul>
-          <TextInput />
+					<TextInput />
 				</div>
 			</div>
 		);

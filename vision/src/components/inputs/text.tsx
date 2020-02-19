@@ -103,7 +103,7 @@ class TextInput extends React.Component<PropsFromReduxLogin, TextState> {
 	render() {
 		const shouldShow = this.props.socket && this.props.loggedIn;
 		let cName = shouldShow ? "" : " is-hidden";
-		cName = "field has-addons" + cName;
+		cName = "field has-addons is-bottom"// + cName;
 
 		return (
 			<div className={ cName }>

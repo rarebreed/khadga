@@ -1,20 +1,19 @@
-#!/bin/sh
 ls -al
-cd vision
-source ~/.bashrc
+cd noesis
+wasm-pack build
+if [ "${PUBLISH}" = "true" ]; then
+  wasm-pack test --firefox
+	echo "Deploying noesis to npm"
+	npm login
+	wasm-pack publish
+fi
+
+cd ../vision
 npm install
 npm run clean
 npm run build
 npx jest
 
 cd ../khadga
-source ~/.cargo/env
 cargo build
-# cargo test
-
-# Copy the khadga binary, the vision/dist and khadga/config
-cd ..
-cp -r ./vision/dist ./bundle
-cp ./khadga/target/debug/khadga ./bundle
-cp -r ./khadga/config ./bundle
-tar czvf ./bundle.tar.gz ./bundle
+# KHADGA_DEV=true cargo test

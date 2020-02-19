@@ -1,4 +1,4 @@
-FROM fedora:31
+FROM fedora:31 as builder
 
 RUN dnf update -y \
     && dnf upgrade -y \
@@ -6,7 +6,7 @@ RUN dnf update -y \
     && dnf groupinstall -y "Development Tools" \
     && dnf groupinstall -y "C Development Tools and Libraries" \
     && dnf clean all -y \
-    && mkdir -p /apps
+    && mkdir -p /apps/vision
 
 # TODO: create a khadga user and run as that user.  We don't need to run as root
 
@@ -24,16 +24,34 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | b
 RUN source ~/.bashrc \
     && nvm install 13 \
     && nvm use 13 \
-    && mkdir /apps/bundle
+    && mkdir -p /apps/bundle \
+    && mkdir -p /src
 
 # TODO: either clone the remote repo, or copy the entire khadga project over.
 # In the "build locally" version, we assume that we've built khadga on our dev machine
 # but we could also build it in the docker container itself.  Instead of doing a COPY
 # we could do a MOUNT
-COPY ./khadga /apps/khadga
-COPY ./vision /apps/vision
-COPY ./noesis /apps/noesis
-COPY ./build-docker.sh /apps
-WORKDIR /apps
+COPY ./khadga /src/khadga
+COPY ./vision /src/vision
+COPY ./noesis /src/noesis
+COPY ./build-docker.sh /src
+WORKDIR /src
 
-CMD [ "./build-docker.sh" ]
+# TODO: If we need to publish a new noesis library, we need to 
+
+RUN source ~/.bashrc \
+    && source ~/.cargo/env \
+    && ./build-docker.sh
+
+COPY vision/dist /apps/vision/dist
+COPY khadga/config /apps/vision/config
+COPY target/debug/khadga /apps/vision
+
+# TODO: Clean up any unneeded artifacts and source
+RUN rm -rf /src
+
+FROM builder
+
+WORKDIR /apps/vision
+
+CMD [ "./khadga" ]
