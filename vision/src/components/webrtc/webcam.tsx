@@ -6,7 +6,6 @@
 
 import React from "react";
 import * as noesis from "@khadga/noesis";
-import * as tf from "@tensorflow/tfjs";
 
 const logger = console;
 
@@ -18,6 +17,8 @@ export class VideoStream extends React.Component {
 		super(props);
 		this.myRef = React.createRef();
 		this.videoRef = React.createRef();
+
+		this.disableCam.bind(this);
 	}
 
 	async componentDidMount() {
@@ -39,12 +40,12 @@ export class VideoStream extends React.Component {
 		}
 	}
 
-	async disableCam() {
-		if (this.videoRef.current !== null) {
+	disableCam = () => {
+		logger.log(this.videoRef);
+		if (this.videoRef  && this.videoRef.current !== null) {
 			const video = this.videoRef.current;
-			video.pause();
-			const cam = await tf.data.webcam(video);
-			cam.start();
+
+			video.remove();
 		}
 
 		alert("TODO: Send action to set webcam state to disabled");

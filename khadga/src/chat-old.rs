@@ -189,13 +189,11 @@ async fn user_message_handler(my_id: String, msg: ws::Message, users: &Users) {
 	// New message from this user, send it to everyone in the recipient list
 	for (uid, tx) in users.lock().unwrap().iter_mut() {
 			// TODO: Get the recipients from mesg.recipients and loop through that
-			if my_id != *uid {
-					match tx.send(Ok(ws::Message::text(new_msg.clone()))) {
-							Ok(()) => (),
-							Err(_disconnected) => {
-									// FIXME: Should send some kind of notice
-							}
-					}
-			}
+			match tx.send(Ok(ws::Message::text(new_msg.clone()))) {
+				Ok(()) => (),
+				Err(_disconnected) => {
+						// FIXME: Should send some kind of notice
+				}
+		}
 	}
 }
