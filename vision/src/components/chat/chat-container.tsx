@@ -1,24 +1,10 @@
-/**
- * This component module will handle 4 things:
- *
- * - A 3 column area
- * - One column for logged in users
- * - One column for which is a tabbed container to hold messages
- * - Third column for message threads
- *
- * An additional div will contain the text area for chats
- */
-
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
 import { ChatMessage } from "./message";
-import UserList from "./user-list";
-import { VideoStream } from "../inputs/webcam";
+import { VideoStream } from "../webrtc/webcam";
 import { State } from "../../state/store";
-import { BlogPost } from "../blogs/blog";
 import { logger } from "../../logger";
-import TextInput from "../../components/inputs/text";
 
 const mapStateToProps = (state: State) => {
   return {
@@ -34,6 +20,12 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class ChatContainer extends React.Component<PropsFromRedux> {
 
+	/**
+	 * Creates the messages that will be displayed in the GUI
+	 *
+	 * Everytime a new message is sent, the state will change from redux, which will cause a re-render
+	 * and this will call this function.  Building up the messages.
+	 */
 	makeChatMessage = () => {
 		return this.props.messages.map(msg => {
 			return (
@@ -49,16 +41,11 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 
 		const cntr = (
 			<div className="columns is-fullheight" style={ { flex: 1 } }>
-				<div className="column is-one-fifth has-background-black has-text-light">
-					<UserList />
-				</div>
 				<div className="column">
 				  { showCam ? <VideoStream /> : null }
-		      
 					<ul>
 						{ this.makeChatMessage() }
 					</ul>
-					<TextInput />
 				</div>
 			</div>
 		);

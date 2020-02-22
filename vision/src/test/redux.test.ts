@@ -1,4 +1,5 @@
 import { createStore} from "redux";
+import WebSocket from "ws";
 
 import store from "../state/store";
 import { logger } from "../logger";
@@ -11,8 +12,12 @@ import { SET_SIGNUP_ACTIVE
 			 , SET_LOGIN_PASSWORD
 			 , SET_LOGIN_USERNAME
 			 , USER_CONNECTION_EVT
+			 , WEBCAM_DISABLE
 			 } from "../state/types";
-import { websocketAction } from "../state/action-creators";
+import { websocketAction
+			 , createLoginAction
+			 , webcamCamAction
+			 } from "../state/action-creators";
 
 test("Tests the store", () => {
 	const stateStore = createStore(store.reducers);
@@ -74,48 +79,40 @@ test("Tests the signupReducer", () => {
 test("Tests adding user to connectedUsers", () => {
 	const stateStore = createStore(store.reducers);
 
-	stateStore.dispatch({
-		type: USER_LOGIN,
-		username: "sean"
-	});
+	let action = createLoginAction([], "SeanToner", null, USER_LOGIN);
+	stateStore.dispatch(action);
 
-	stateStore.dispatch({
-		type: USER_LOGIN,
-		username: "toner"
-	});
+	action = createLoginAction([], "toner", null, USER_LOGIN);
+	stateStore.dispatch(action);
 
 	let stateNow = stateStore.getState();
 
 	logger.log(stateNow);
-	expect(stateNow.connectState.connected.has("sean")).toBeTruthy();
-	expect(stateNow.connectState.connected.has("toner")).toBeTruthy();
+	expect(stateNow.connectState.connected.includes("SeanToner")).toBeTruthy();
+	expect(stateNow.connectState.connected.includes("toner")).toBeTruthy();
 	expect(stateNow.connectState.loggedIn).toBeTruthy();
 
-	stateStore.dispatch({
-		type: USER_DISCONNECT,
-		username: "sean"
-	});
+	action = createLoginAction([], "sean", null, USER_DISCONNECT);
+	stateStore.dispatch(action);
+
 	stateNow = stateStore.getState();
 	logger.log("Called USER_DISCONNECT with sean");
 	logger.log(stateNow);
-	expect(stateNow.connectState.connected.has("sean")).toBeFalsy();
+	expect(stateNow.connectState.connected.includes("sean")).toBeFalsy();
 	expect(stateNow.connectState.loggedIn).toBeFalsy();
 
-	const now = new Set(stateNow.connectState.connected).add("henry");
-	stateStore.dispatch({
-		type: USER_CONNECTION_EVT,
-		username: "",
-		connected: now
-	});
+	const now = Array.from(stateNow.connectState.connected);
+	now.push("henry")
+
+	action = createLoginAction(now, "", null, USER_CONNECTION_EVT);
+	stateStore.dispatch(action);
 
 	stateNow = stateStore.getState();
 	logger.log(stateNow);
-	expect(stateNow.connectState.connected.has("henry")).toBeTruthy();
+	expect(stateNow.connectState.connected.includes("henry")).toBeTruthy();
 
-	stateStore.dispatch({
-		type: USER_LOGIN,
-		username: "toner"
-	});
+	action = createLoginAction(stateNow.connectState.connected, "toner", null, USER_LOGIN);
+	stateStore.dispatch(action);
 	stateNow = stateStore.getState();
 	logger.log(stateNow);
 });
@@ -156,3 +153,79 @@ test("Test loginFormReducer", () => {
 	stateNow = stateStore.getState();
 	expect(stateNow.login.username).toBe("johndoe");
 });
+
+test("Tests that user signs in, clicks Chat, then logs out", async () => {
+	// First sign in
+	const stateStore = createStore(store.reducers);
+	let action = createLoginAction([], "SeanToner", null, USER_LOGIN);
+	stateStore.dispatch(action);
+
+	// Simulate clicking chat
+	let sock = new WebSocket("ws://localhost:7001/chat/SeanToner");
+	sock.on("close", (code, reason) => {
+		console.log(`Closed from server: ${code}, ${reason}`)
+	});
+
+	let prom = new Promise((resolve, reject) => {
+		sock.on("open", () => {
+			sock.send(JSON.stringify({
+				sender: "SeanToner",
+				recipients: [],
+				body: "Hello Sean!!",
+				event_type: "MESSAGE"
+			}));
+			resolve()
+		});
+
+		sock.on("error", (err) => {
+			reject(err);
+		})
+	});
+
+	await prom;
+
+	let sockaction = websocketAction(sock);
+	stateStore.dispatch(sockaction);
+
+	let stateNow = stateStore.getState();
+	console.log(`State is now: `, stateNow);
+
+	// Now log out
+	let signoutAction = createLoginAction( 
+		[], 
+		"SeanToner",
+		null,
+		USER_DISCONNECT
+	);
+
+	stateStore.dispatch(signoutAction);
+	console.log("After USER_DISCONNECT action");
+	stateNow = stateStore.getState();
+	console.log(stateNow.connectState);
+
+	// Disconnect the websocket and webcam.  This is what the GoogleAuth client does
+	// Unfortunately, it can take longer to establish the connection handshake than by the 
+	// time we get here.
+	if (sock) {
+		try {
+			sock.close()
+		} catch (ex) {
+			console.log(ex)
+		}
+	}
+	let sockAction = websocketAction(null);
+	stateStore.dispatch(sockAction);
+
+	console.log("After WEBSOCKET_DISABLE action");
+	stateNow = stateStore.getState();
+	console.log(stateNow);
+
+	let webcamAction = webcamCamAction({ active: false }, WEBCAM_DISABLE);
+	stateStore.dispatch(webcamAction);
+
+	console.log("After WEBCAM_DISABLE action");
+	stateNow = stateStore.getState();
+	console.log(stateNow);
+});
+
+// TODO: Add enzyme to do component level testing

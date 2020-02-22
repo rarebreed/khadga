@@ -17,7 +17,6 @@ import { ModalState
 			 , LoginFormAction
 			 , USER_LOGIN
 			 , USER_DISCONNECT
-			 , USER_TEST
 			 , ChatMessage
 			 , MessageAction
 			 , MESSAGE_ADD
@@ -33,14 +32,19 @@ import { ModalState
 			 , WEBCAM_RESIZE
 			 , USER_CONNECTION_EVT
 			 , WebSocketAction
-			 , WebSocketState,
-			 ChatMessageState,
-			 ChatMessageAction,
-			 CHAT_MESSAGE_DELETE,
-			 CHAT_MESSAGE_ADD,
-			 CHAT_MESSAGE_EDIT,
-			 CHAT_MESSAGE_REPLY
+			 , WebSocketState
+			 , AUTH_CREATED
+			 , AUTH_EXPIRED
+			 , WEBSOCKET_CLOSE
+			 , WEBSOCKET_CREATE
 			 } from "./types";
+import { ChatMessageState
+	     , ChatMessageAction
+	     , CHAT_MESSAGE_DELETE
+			 , CHAT_MESSAGE_ADD
+	     , CHAT_MESSAGE_EDIT
+			 , CHAT_MESSAGE_REPLY
+			 } from "./message-types";
 import { logger } from "../logger";
 
 const initialModalState: ModalState = {
@@ -125,7 +129,6 @@ export const modalReducer = ( previous: ModalState = initialModalState
 export const signupReducer = ( previous: SignUp = initialSignupState
 														 , action: SignUpAction )
 														 : SignUp => {
-	// logger.debug(`Current state for signupReducer`, previous);
 
 	// FIXME: Technically we should only do this except on default case
 	const newstate = Object.assign({}, previous);
@@ -154,9 +157,37 @@ export const signupReducer = ( previous: SignUp = initialSignupState
 };
 
 const defaultLoginState: LoginReducerState = {
-	connected: new Set(),
-	loggedIn: false
+	connected: [],
+	loggedIn: false,
+	username: "",
+	auth2: null
 };
+
+// Makes sure if we have a duplicate user in conn, that it will get a unique name
+const latestName = (conn: string[], user: string) => {
+	let baseName = user;
+	let re = new RegExp(`${baseName}-(\\d+)`);
+	let index = 0;
+	for (let name of conn) {
+		if (name === baseName) {
+      console.log(`${name} in list matches current of ${baseName}`)
+			let matched = name.match(re);
+			if (matched) {
+				index = parseInt(matched[1]) + 1;
+				console.log(matched);
+				console.log(`Got match, index is ${index}`);
+				baseName = baseName.replace(/\d+/, `${index}`);
+			} else {
+				index += 1;
+				baseName = `${baseName}-${index}`;
+			}
+		} else {
+      console.log(`${name} does not equal ${baseName}`)
+		}
+		console.log(`baseName is now ${baseName}`)
+	}
+	return baseName;
+}
 
 /**
  * Sets state for connected users
@@ -172,25 +203,43 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 	const newstate = Object.assign({}, previous);
 
 	switch (action.type) {
-		case USER_LOGIN:
-			newstate.connected.add(action.username);
+		case USER_LOGIN:  // Comes from front end
+			if (action.username === "") {
+				logger.error("action.username was empty");
+				return previous
+			}
+			// the connected field is only for when the Chat button is clicked
+			// newstate.connected.push(action.username);
 			newstate.loggedIn = true;
+			newstate.username = action.username;
 			break;
-		case USER_DISCONNECT:
-			newstate.connected = new Set();
+		case USER_DISCONNECT:  // Comes from front end
+			newstate.connected = [];
 			newstate.loggedIn = false;
+			newstate.username = ""
 			break;
-		case USER_TEST:
-			newstate.loggedIn = true;
-			break;
-		case USER_CONNECTION_EVT:
+		case USER_CONNECTION_EVT:  // Come from the server
 			if (!action.connected) {
 				return previous;
 			} else {
-				action.connected.forEach(user => {
-					newstate.connected.add(user);
-				});
+				// Only connect users who aren't already connected
+				action.connected
+					.map(user => {
+						return latestName(newstate.connected, newstate.username);
+					})
+				  .forEach(user => {
+						newstate.connected.push(user);
+					});
 			}
+			break;
+		case AUTH_CREATED:
+			newstate.auth2 = action.auth2;
+			break;
+		case AUTH_EXPIRED:
+			if (action.auth2 !== null) {
+				console.error("The action was set to AUTH_EXPIRED, but action.auth2 is not null")
+			}
+			newstate.auth2 = action.auth2;
 			break;
 		default:
 			return previous;
@@ -287,17 +336,17 @@ export const websocketReducer = ( previous: WebSocketState = { socket: null }
 		socket: null
 	};
 
-  if (action.type === "WEBSOCKET_CLOSE") {
-		logger.log("Got a WEBSOCKET_CLOSE action");
-		return sockState;
-	} else if (action.type === "WEBSOCKET_CREATE") {
-		logger.log("Got a WEBSOCKET_CREATE action");
-		logger.log(`socket is ${action.socket.socket}`);
-		sockState.socket = action.socket.socket;
-		return sockState;
-	} else {
-		logger.log(`for websocket action: ${JSON.stringify(action)}`);
-		return previous;
+	switch(action.type) {
+		case WEBSOCKET_CLOSE:
+			logger.log("Got a WEBSOCKET_CLOSE action");
+		  return sockState;
+		case WEBSOCKET_CREATE:
+			logger.log("Got a WEBSOCKET_CREATE action");
+			logger.log(`socket is ${action.socket.socket}`);
+			sockState.socket = action.socket.socket;
+			return sockState;
+		default:
+			return previous;
 	}
 };
 

@@ -10,10 +10,9 @@ import { ModalAction
 			 , SET_LOGIN_FORM
 			 , WebcamAction
 			 , WebcamState
-			 , WEBCAM_ACTIONS,
-			 ChatMessageState,
-			 CHAT_MESSAGE_ACTIONS
+			 , WEBCAM_ACTIONS
 			 } from "./types";
+import { ChatMessageState, CHAT_MESSAGE_ACTIONS} from "./message-types";
 
 export const setActive = (isActive: boolean, action: SET_MODAL_ACTIVE): ModalAction => {
 	return {
@@ -42,13 +41,15 @@ export const setLoginFormAction = ( state: NamePropState<string>
 	return action;
 };
 
-export const createLoginAction = ( connected: Set<string>
+export const createLoginAction = ( connected: string[]
 																 , uname: string
+																 , auth2: any | null
 																 , action: LOGIN_ACTIONS): LoginAction => {
 	return {
 		type: action,
 		username: uname,
-		connected
+		connected,
+		auth2
 	};
 };
 
@@ -66,7 +67,7 @@ export const webcamCamAction = (state: WebcamState, action: WEBCAM_ACTIONS): Web
  * @param ws
  * @param action
  */
-export const websocketAction = ( ws: WebSocket | null)
+export const websocketAction = ( ws: WebSocket | any | null)
 															 : WebSocketAction => {
 	return {
 		type: ws !== null ? "WEBSOCKET_CREATE" : "WEBSOCKET_CLOSE",

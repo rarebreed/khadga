@@ -1,55 +1,28 @@
 import * as React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
-import { SignUp } from "./signup";
 import { State } from "../state/store";
 import { setActive
        , createLoginAction
        , setLoginFormAction
        , webcamCamAction
-       , websocketAction
+       , websocketAction,
+       chatMessageAction
        } from "../state/action-creators";
-import { logger } from "../logger";
-import { SET_SIGNUP_ACTIVE
-       , SET_LOGIN_ACTIVE
-       , USER_DISCONNECT
-       , USER_CONNECTION_EVT
+import { USER_CONNECTION_EVT
        , WEBCAM_ENABLE
-       , WsMessage
        , WebSocketState
        } from "../state/types";
-import  Login from "./login";
+import { WsMessage
+       , makeChatMessage
+       , CHAT_MESSAGE_ADD
+       } from "../state/message-types";
 import * as noesis from "@khadga/noesis";
+import { NavBarItem } from "./navbar-item";
+import GoogleAuth from "./google-signin";
 
-interface INavBarItemProps {
-  item: string,
-  href?: string
-  callback?: (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void
-}
+const logger = console;
 
-class NavBarItem extends React.Component<INavBarItemProps> {
-  render() {
-    return (
-      <a className="navbar-item" href={this.props.href} onClick={ this.props.callback }>
-        { this.props.item }
-      </a>
-    );
-  }
-}
-
-interface INavBarLinkProps {
-  link: string
-}
-
-class NavBarLink extends React.Component<INavBarLinkProps> {
-  render() {
-    return (
-      <a className="navbar-link">
-        { this.props.link }
-      </a>
-    );
-  }
-}
 
 /**
  * Used for ConnectedComponent to map the state to properties
@@ -60,9 +33,11 @@ class NavBarLink extends React.Component<INavBarLinkProps> {
  */
 const mapState = (state: State) => {
   return {
-    user: state.login.username,
+    user: state.connectState.username,
     modal: state.modal,
     loggedIn: state.connectState.loggedIn,
+    connected: state.connectState.connected,
+		auth: state.connectState.auth2,
     socket: state.websocket.socket
   };
 };
@@ -72,57 +47,25 @@ const mapDispatch = {
   connection: createLoginAction,
   setLoginForm: setLoginFormAction,
   webcam: webcamCamAction,
-  websocket: websocketAction
+  websocket: websocketAction,
+  chatMessage: chatMessageAction
 };
 
 const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
+interface ConnectionEvent {
+  connected_users: string[]
+}
+
 class NavBar extends React.Component<PropsFromRedux> {
-  // sock: WebSocket | null;
-
-  constructor(props: PropsFromRedux) {
-    super(props);
-    // this.sock = null;
-  }
-
-  signUpHandler = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    this.props.signUp(true, SET_SIGNUP_ACTIVE);
-  }
-
-  setLogin = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    logger.log("In setLogin");
-    this.props.signUp(true, SET_LOGIN_ACTIVE);
-  }
-
-  logout = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    this.props.connection(new Set(), this.props.user, USER_DISCONNECT);
-  }
-
-  isLoggedIn = () => {
-    const buttons = (
-      <div className="buttons">
-        <a className="button is-primary" onClick={ this.signUpHandler }>
-          <strong>Sign up</strong>
-        </a>
-        <a className="button is-light" onClick={ this.setLogin }>
-          Log in
-        </a>
-      </div>
-    );
-
-    const logout = (
-      <div className="buttons">
-        <a className="button is-primary" onClick={ this.logout }>
-          <strong>Log Out</strong>
-        </a>
-      </div>
-    );
-
-    return this.props.loggedIn ? logout : buttons;
-  }
-
-  setupWebcam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+	/**
+	 * Sets up webcam
+	 *
+	 * Currently, this is not hooked up to the Signaling service at all.  This will only get the local
+	 * webcam video stream, not another user's webcam stream
+	 */
+	setupWebcam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     const mediaDevs = noesis.list_media_devices();
     logger.log(JSON.stringify(mediaDevs));
     const webcamState = {
@@ -133,6 +76,47 @@ class NavBar extends React.Component<PropsFromRedux> {
     return;
   }
 
+  messageHandler = (socket: WebSocket) => {
+    socket.onopen = (ev: Event) => {
+      logger.log("Now connected to khadga");
+      // Pass along our websocket so the Chat components can use it
+      this.props.websocket(socket);
+    };
+
+    socket.onmessage = (evt: MessageEvent) => {
+      // TODO: use the data in the event to update the user list.
+      const msg: WsMessage<any> = JSON.parse(evt.data);
+      logger.log("Got websocket event", msg);
+      const auth = this.props.auth;
+
+      switch(msg.event_type) {
+        case "Disconnect":
+        case "Connect":
+          const { connected_users } = msg.body as ConnectionEvent;
+          this.props.connection(connected_users, "", auth, USER_CONNECTION_EVT);
+          break;
+        case "Data":
+          logger.log(msg);
+          break;
+        case "Message":
+          this.props.chatMessage(makeChatMessage(msg), CHAT_MESSAGE_ADD);
+          break;
+        case "Command":
+          logger.log(`Got command message`, msg);
+          break;
+        default:
+          logger.log("Unknown message type");
+      }
+    };
+
+    socket.onclose = (ev: CloseEvent) => {
+      this.props.websocket(null);
+    };
+  }
+
+	/**
+	 * Performs initial handshake with the khadga backend to establish a websocket
+	 */
   setupChat = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     if (!this.props.loggedIn) {
       alert("Please Log in first");
@@ -150,73 +134,24 @@ class NavBar extends React.Component<PropsFromRedux> {
       sock.socket = new WebSocket(url);
 
       const socket = sock.socket;
-      socket.onopen = (ev: Event) => {
-        logger.log("Now connected to khadga");
-        // Pass along our websocket so the Chat components can use it
-        logger.log(`socket is ${socket}`);
-        this.props.websocket(socket);
-      };
+      this.messageHandler(socket);
 
-      socket.onmessage = (evt: MessageEvent) => {
-        // TODO: use the data in the event to update the user list.
-        const msg: WsMessage<{ connected_users: Set<string> }> = JSON.parse(evt.data);
-        logger.log("Got websocket event", msg);
-        this.props.connection(msg.body.connected_users, "", USER_CONNECTION_EVT);
-      };
-
-      socket.onclose = (ev: CloseEvent) => {
-        this.props.websocket(null);
-      };
     } else {
-      logger.log(`In setupChat: ${JSON.stringify(this.props)}`);
+      logger.log(`In setupChat`, this.props);
     }
-  }
+	}
 
-  render() {
-    return (
-      <nav className="navbar vision-navbar" role="navigation" aria-label="main navigation">
-        <div className="navbar-brand">
-          <a className="navbar-item" href="https://rarebreed.github.io">
-            <img src="./pngguru.png" width="120" height="120" />
-          </a>
-
-          <a role="button" className="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-            <span aria-hidden="true"></span>
-          </a>
-        </div>
-
-        <div id="navbarBasicExample" className="navbar-menu">
-          <div className="navbar-start">
-            <NavBarItem item="Home" />
-            { this.props.loggedIn ? <NavBarItem item="Chat" /> : null }
-
-            <div className="navbar-item has-dropdown is-hoverable">
-              <NavBarLink link="More" />
-
-              <div className="navbar-dropdown">
-                <NavBarItem item="About" />
-                <NavBarItem item="Blog" href="https://rarebreed.github.io"/>
-                <NavBarItem item="Chat" callback={ this.setupChat }/>
-                <NavBarItem item="Webcam" callback={ this.setupWebcam }/>
-                <hr className="navbar-divider" />
-                <NavBarItem item="Report an issue" />
-              </div>
-            </div>
-          </div>
-          <div className="navbar-end">
-            <div className="navbar-item">
-              { this.isLoggedIn() }
-            </div>
-          </div>
-
-          <SignUp />
-          <Login />
-        </div>
-      </nav>
-    );
-  }
+	render() {
+		return (
+			<nav className="navbar-grid-area">
+				<ul className="navbar">
+					<NavBarItem callback={ this.setupChat }>Chat</NavBarItem>
+          <NavBarItem callback={ this.setupWebcam }>Webcam</NavBarItem>
+					<GoogleAuth />
+				</ul>
+			</nav>
+		);
+	}
 }
 
 export default connector(NavBar);

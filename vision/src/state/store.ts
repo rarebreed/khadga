@@ -13,8 +13,8 @@ import { ModalState
 			 , UserLogin
 			 , WebcamState
 			 , WebSocketState
-			 , ChatMessageState
 			 } from "./types";
+import { ChatMessageState } from "./message-types";
 
 export interface State {
 	modal: ModalState,

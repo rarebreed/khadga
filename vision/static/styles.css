@@ -1,0 +1,221 @@
+body {
+  font-family: "Roboto";
+}
+
+.navbar {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: rgb(238, 203, 88);
+  width: 100%;
+}
+
+.login {
+  float: right;
+}
+
+.navbar-item {
+  float: left;
+}
+
+.navbar li a {
+  display: block;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  padding: 10px;
+  margin: 4px;
+  text-decoration: none;
+  line-height: 10px;
+  font-weight: bold;
+}
+
+/* Change the link color to #111 (black) on hover */
+.navbar li a:hover {
+  color: rgb(113, 47, 218);
+  cursor: pointer;
+}
+
+head {
+  margin: 0;
+  padding: 0;
+}
+
+.button {
+  border: solid black 2px;
+  border-radius: 8px;
+  background-color: rgb(185, 185, 185);
+  margin: 4px;
+}
+
+/**********************************************************************************
+ * Main grid container 
+ * Grid layout
+ *
+ * 1               2                                              3                  4
+ * +=================================================================================+ 1
+ * |                          NavBar (.navbar-grid-area)                             |
+ * +===============+==============================================+==================+ 2
+ * | .user-sidebar |          .chat-messages                      | .extra-sidebar   |
+ * |               |                                              |                  |
+ * |               |                                              |                  |
+ * |               +==============================================+                  | 3
+ * |               |          .chat-input                         |                  |
+ * +=================================================================================+ 4
+ */
+.app {
+  display: grid;
+  grid-template-columns: 1fr 6fr 1.5fr;
+  grid-template-rows: auto auto minmax(100%, 1fr);
+  /* height: 100%; */
+  height: 97vh;
+}
+
+/*
+ * This will span the whole grid first row
+ */
+.navbar-grid-area {
+  grid-column: 1 / 4;
+  grid-row-start: 1;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.user-sidebar {
+  grid-row-start: 2;
+  grid-row-end: -1;
+  background-color: black;
+  overflow: auto;
+}
+
+.user-header {
+  color: white;
+}
+
+h2.user-header {
+  margin: 0;
+  padding: 6px 0;
+  text-align: center;
+}
+
+.chat-input {
+  grid-column: 2 / 3;
+  grid-row: 3 / 4;
+  align-self: end;
+  position: sticky;
+  bottom: 0;
+}
+
+.extra-sidebar {
+  grid-row-start: 2;
+  grid-row-end: -1;
+  grid-column-start: 3;
+  background-color: rgb(255, 255, 255);
+  overflow: auto;
+  border-left: 1px solid;
+}
+
+.chat-messages {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+  overflow: auto;
+}
+
+/* End grid layouyt
+ ***********************************************************************************/
+
+.username {
+  color: white;
+  text-decoration: none;
+  list-style: none;
+  /* text-align: right; */
+  padding: 8px 4px;
+  /*  width: 100%; */
+}
+
+ul.users {
+  margin: 0;
+  padding: 10px 0;
+}
+
+.username:hover {
+  color: rgb(247, 215, 112);
+}
+
+.icon-left {
+  text-align: left;
+  margin: 0 6px;
+  display: inline-block;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.chat-input input[type=text] {
+  padding: 5px 0;
+  font-size: 17px;
+  border: 1px solid grey;
+  /* float: left; */
+  background: #f1f1f1;
+  width: 85%;
+}
+
+.chat-input button {
+  /* float: right; */
+  padding: 5px 0;
+  background: #2196F3;
+  color: white;
+  font-size: 17px;
+  border: 1px solid grey;
+  border-left: none;
+  cursor: pointer;
+  width: 15%;
+}
+
+
+.chat-input button:hover {
+  background: #0bda3f;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  align-items: stretch;
+}
+
+#localVideo {
+  position: absolute;
+  z-index: 9;
+  background-color: #f1f1f1;
+  border: 1px solid #d3d3d3;
+  text-align: center;
+}
+
+#localVideoHeader {
+  padding: 10px;
+  cursor: move;
+  z-index: 10;
+  background-color: rgb(119, 14, 139);
+  color: #fff;
+}
+
+.vision-container {
+	flex-direction: column;
+  height: 100vh;
+}
+
+.vision-navbar {
+	background-color: rgb(145, 171, 201);
+}
+
+.blog {
+  padding: 10px;
+  border: 2px solid #000000;
+  border-radius: 10px;
+}

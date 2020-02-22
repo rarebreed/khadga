@@ -1,6 +1,8 @@
 /**
  * This module will store the various Actions and data types used in the Action
  */
+import { MessageEvent } from "./message-types";
+
 export const SET_SIGNUP_ACTIVE = "SET_SIGNUP_ACTIVE";
 export const SET_LOGIN_ACTIVE = "SET_LOGIN_ACTIVE";
 export type SET_MODAL_ACTIVE = "SET_SIGNUP_ACTIVE" | "SET_LOGIN_ACTIVE";
@@ -13,15 +15,6 @@ export type SET_SIGNUP = "SET_SIGNUP_USERNAME"
 											 | "SET_SIGNUP_PASSWORD"
 											 | "SET_SIGNUP_EMAIL"
 											 | "SET_SIGNUP_CLEAR";
-
-export const USER_LOGIN = "USER_LOGIN";
-export const USER_DISCONNECT = "USER_DISCONNECT";
-export const USER_TEST = "USER_TEST";
-export const USER_CONNECTION_EVT = "USER_CONNECTION_EVT";
-export type LOGIN_ACTIONS = "USER_LOGIN"
-													| "USER_DISCONNECT"
-													| "USER_TEST"
-													| "USER_CONNECTION_EVT";
 
 export const SET_LOGIN_USERNAME = "SET_LOGIN_USERNAME";
 export const SET_LOGIN_PASSWORD = "SET_LOGIN_PASSWORD";
@@ -42,14 +35,19 @@ export const WEBSOCKET_CREATE = "WEBSOCKET_CREATE";
 export const WEBSOCKET_CLOSE = "WEBSOCKET_CLOSE";
 export type WEBSOCKET_ACTIONS = "WEBSOCKET_CREATE" | "WEBSOCKET_CLOSE";
 
-export const CHAT_MESSAGE_ADD = "CHAT_MESSAGE_ADD";
-export const CHAT_MESSAGE_DELETE = "CHAT_MESSAGE_DELETE";
-export const CHAT_MESSAGE_EDIT = "CHAT_MESSAGE_EDIT";
-export const CHAT_MESSAGE_REPLY = "CHAT_MESSAGE_REPLY";
-export type CHAT_MESSAGE_ACTIONS = "CHAT_MESSAGE_ADD"
-																 | "CHAT_MESSAGE_DELETE"
-																 | "CHAT_MESSAGE_EDIT"
-																 | "CHAT_MESSAGE_REPLY";
+export const USER_LOGIN = "USER_LOGIN";
+export const USER_DISCONNECT = "USER_DISCONNECT";
+export const USER_TEST = "USER_TEST";
+export const USER_CONNECTION_EVT = "USER_CONNECTION_EVT";
+export const AUTH_CREATED = "AUTH_CREATED";
+export const AUTH_EXPIRED = "AUTH_EXPIRED";
+export type LOGIN_ACTIONS = "USER_LOGIN"
+													| "USER_DISCONNECT"
+													| "USER_TEST"
+													| "USER_CONNECTION_EVT"
+													| "AUTH_CREATED"
+													| "AUTH_EXPIRED";
+
 export interface ActiveState {
 	isActive: boolean
 }
@@ -97,7 +95,8 @@ export type SignUp = UserLogin & {
 export interface LoginAction {
 	type: LOGIN_ACTIONS,
 	username: string,
-	connected?: Set<string>
+	connected?: string[],
+	auth2: any | null
 }
 
 export interface LoginFormAction {
@@ -110,9 +109,18 @@ export interface Connected {
 }
 
 export interface LoginReducerState {
-	connected: Set<string>,
-	loggedIn: boolean
+	connected: string[],
+	loggedIn: boolean,
+	username: string,
+	auth2: any | null
 }
+
+export const makeLoginArgs = ( props: LoginReducerState)
+														 : [string[], string, any] => {
+	let { connected, username, auth2 } = props;
+	return [connected, username, auth2]
+}
+
 export interface ChatMessage {
 	sender: string,
 	recipient?: string,
@@ -140,15 +148,6 @@ export interface WebcamAction {
 }
 
 /// This is the typescript equivalent of the message::MessageEvent from rust
-type MessageEvent = "Connect" | "Disconnect" | "Message" | "Data";
-
-/// This is the typescript equivalent of the message::Message type
-export interface WsMessage<T> {
-	sender: string,
-	recipients: string[],
-	body: T
-	event_type: MessageEvent
-}
 
 export interface WebSocketState {
 	socket: WebSocket | null
@@ -161,21 +160,13 @@ export interface WebSocketAction {
 	type: WEBSOCKET_ACTIONS,
 	socket: WebSocketState
 }
-
-export interface ChatMessageState {
-	sender: string,
-	recipients: string[],
-	time: string,
-	body: string
-	replies?: ChatMessageState
+export interface AuthState {
+	auth2: any | null
 }
 
-/**
- * Actions for chat messages
- */
-export interface ChatMessageAction {
-	type: CHAT_MESSAGE_ACTIONS
-	message: ChatMessageState
+export interface AuthAction {
+	type: LOGIN_ACTIONS,
+	auth2: AuthState
 }
 
 /**
