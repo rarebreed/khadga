@@ -7,7 +7,7 @@ use std::{collections::HashMap,
 
 use futures::{FutureExt,
               StreamExt};
-use log::{info, error, debug};
+use log::{info, error};
 use serde_json;
 use tokio::sync::{mpsc,
                   Mutex};
@@ -148,11 +148,11 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
         return;
     };
 
-    // let _mesg: message::Message<String> = serde_json::from_str(msg).expect("Unable to parse");
+    let _mesg: message::Message<String> = serde_json::from_str(msg).expect("Unable to parse");
 
-    let new_msg = format!("<User#{}>: {}", my_id, msg);
+    let new_msg = format!("{}", msg);
 
-    info!("Got message {}", new_msg);
+    info!("From {} got message {}", my_id, new_msg);
 
     // New message from this user, send it to everyone else (except same uid)...
     // FIXME: Send only to the recipients in _mesg.
@@ -167,22 +167,19 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
 
 async fn get_users(users: &Users) -> Vec<String> {
     let mut user_list: Vec<String> = vec![];
-    let users2 = users.clone();
-    {
-        info!("Acquiring lock");
-        let list = users2.lock().await;
-        info!("Connected Users:");
+    info!("Acquiring lock");
+    let list = users.lock().await;
+    info!("Connected Users:");
 
-        for (key, _) in list.iter() {
-            info!("{}", key);
-            user_list.push(key.clone());
-        }
-
-        let mut _user_str = user_list.iter().fold("".into(), |mut acc: String, next| {
-            acc = acc + &next + "\n";
-            acc
-        });
+    for (key, _) in list.iter() {
+        info!("{}", key);
+        user_list.push(key.clone());
     }
+
+    let mut _user_str = user_list.iter().fold("".into(), |mut acc: String, next| {
+        acc = acc + &next + "\n";
+        acc
+    });
     info!("Returning list of connected users");
     user_list
 }
@@ -190,19 +187,23 @@ async fn get_users(users: &Users) -> Vec<String> {
 async fn user_disconnected(my_id: String, users: &Users) {
     error!("good bye user: {}", my_id);
 
-    // Stream closed up, so remove from the user list
-    let mut list = users.lock().await;
+    {
+        // We scope the lock on users here.  If we don't, the call to get_users will block
+        let mut list = users.lock().await;
+        list.remove(&my_id);
+    }
 
     // Send message to all other users that user has disconnected
     // Send back a list of connected users.  Remember that tx is connected to rx.  Earlier
     // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
     // by rx, and therefore will be sent over to user_tx and then over the websocket
-    let user_list = get_users(&users).await;
+    let user_list = get_users(&users).await;  // users.lock acquired and released here
+
     let conn_list = ConnectionMsg::new(user_list);
     let connect_msg =
         message::Message::new(my_id.clone(), vec![], MessageEvent::Disconnect, conn_list);
 
-    for (user, tx) in list.iter() {
+    for (user, tx) in users.lock().await.iter() {
         if my_id != *user {
             info!("Sending connection event to {}", user);
             let connect_msg_str: String =
@@ -211,7 +212,4 @@ async fn user_disconnected(my_id: String, users: &Users) {
                 .expect("Failed to send to tx");
         }
     }
-
-    // If we only have one user, we have to remove at the end, otherwise, we block on the await
-    list.remove(&my_id);
 }
