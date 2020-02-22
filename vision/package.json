@@ -9,7 +9,7 @@
     "build": "webpack",
     "serve": "webpack-dev-server",
     "clean": "rimraf dist/* .cache",
-    "test": "ava"
+    "test": "jest"
   },
   "keywords": [],
   "author": "Sean Toner",

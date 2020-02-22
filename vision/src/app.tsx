@@ -7,7 +7,6 @@ import { reducers } from "./state/store";
 import NavBar from "./components/navbar";
 import ChatContainer from "./components/chat/chat-container";
 
-const logger = console;
 import * as noesis from "@khadga/noesis";
 const store = createStore(reducers);
 
@@ -18,7 +17,7 @@ interface ContainerStyle {
 class App extends React.Component {
   render() {
     return (
-      <div className="is-flex vision-container" id="main-container">
+      <div className="app" id="main-container">
         <NavBar />
         <ChatContainer />
       </div>

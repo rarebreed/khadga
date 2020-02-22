@@ -12,6 +12,8 @@ two primary learning tasks:
 - NLP to do text classification or semantic analysis
 - Video image recognition and object tracking (facial recognition)
 
+![Screen Shot](https://drive.google.com/open?id=1OB6o7vfcOuDr5doMalf3DnbjXd6VAnky)
+
 ## Components
 
 To implement this, there are 4 main components:

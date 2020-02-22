@@ -1,13 +1,14 @@
-use khadga::{auth::{chat,
-                    login,
+use khadga::{auth::{login,
                     register},
+             chat::user_connected,
              config::Settings};
 use std::{collections::HashMap,
           net::SocketAddr,
-          sync::{Arc,
-                 Mutex}};
-use tokio::sync::mpsc;
+          sync::Arc};
+use tokio::sync::{mpsc,
+                  Mutex};
 use warp::{ws,
+           ws::Ws,
            Filter};
 
 /// This is a map of users to a tokio mpsc channel
@@ -34,7 +35,21 @@ async fn main() {
     std::env::set_var("RUST_LOG", &log_level);
     env_logger::init();
 
-    let connected_users: Users = Arc::new(Mutex::new(HashMap::new()));
+    let users: Users = Arc::new(Mutex::new(HashMap::new()));
+    let users2 = warp::any().map(move || users.clone());
+
+    let hello = warp::path!("test" / String).map(|name| format!("Hello, {}!", name));
+
+    // This is the main chat endpoint.  When the front end needs to perform chat, it will call
+    // this endpoint.
+    let chat = warp::path("chat")
+        .and(warp::ws())
+        .and(warp::path::param().map(|username: String| username))
+        .and(users2)
+        .map(|ws: Ws, username: String, users: Users| {
+            println!("User {} starting chat", username);
+            ws.on_upgrade(move |socket| user_connected(socket, users, username))
+        });
 
     // This is the main entry point to the application
     // Note the relative path.  The path is relative to where you are executing/launching khadga
@@ -46,8 +61,9 @@ async fn main() {
     let log = warp::log("khadga");
     let app = login()
         .or(register())
-        .or(chat(connected_users.clone()))
+        .or(chat)
         .or(start)
+        .or(hello)
         .with(log);
 
     let host: SocketAddr = khadga_addr

@@ -54,7 +54,6 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 				</div>
 				<div className="column">
 				  { showCam ? <VideoStream /> : null }
-		      
 					<ul>
 						{ this.makeChatMessage() }
 					</ul>

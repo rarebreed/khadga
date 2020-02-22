@@ -23,7 +23,8 @@ import * as noesis from "@khadga/noesis";
 
 interface INavBarItemProps {
   item: string,
-  href?: string
+  href?: string,
+  classStyle?: string,
   callback?: (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void
 }
 
@@ -172,7 +173,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     }
   }
 
-  render() {
+  render2() {
     return (
       <nav className="navbar vision-navbar" role="navigation" aria-label="main navigation">
         <div className="navbar-brand">
@@ -217,6 +218,18 @@ class NavBar extends React.Component<PropsFromRedux> {
       </nav>
     );
   }
+
+  render() {
+		return (
+			<nav className="navbar-grid-area">
+				<ul className="navbar">
+					<NavBarItem item="Chat" callback={ this.setupChat }/>
+          <NavBarItem item="Webcam" callback={ this.setupWebcam }/>
+					<NavBarItem classStyle="login button" item="Login with Google"/>
+				</ul>
+			</nav>
+		);
+	}
 }
 
 export default connector(NavBar);
