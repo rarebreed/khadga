@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div id="sidebar-scrollbox" class="sidebar-scrollbox">
-                <ol class="chapter"><li class="expanded "><a href="../chapter_1.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="../chapter2/chapter_2.html"><strong aria-hidden="true">2.</strong> Setup</a></li><li><ol class="section"><li class="expanded "><a href="../chapter2/chapter_2_1.html"><strong aria-hidden="true">2.1.</strong> Setting up the Project</a></li></ol></li><li class="expanded "><a href="../chapter3/chapter_3.html"><strong aria-hidden="true">3.</strong> Frontend Navbar</a></li><li><ol class="section"><li class="expanded "><a href="../chapter3/chapter_3_1.html"><strong aria-hidden="true">3.1.</strong> React and State management</a></li><li class="expanded "><a href="../chapter3/chapter_3_2.html"><strong aria-hidden="true">3.2.</strong> Navbar component</a></li><li class="expanded "><a href="../chapter3/chapter_3_3.html"><strong aria-hidden="true">3.3.</strong> Login component</a></li><li class="expanded "><a href="../chapter3/chapter_3_4.html"><strong aria-hidden="true">3.4.</strong> Registration component</a></li></ol></li><li class="expanded "><a href="../chapter4/chapter_4.html"><strong aria-hidden="true">4.</strong> Mongo Database</a></li><li><ol class="section"><li class="expanded "><a href="../chapter4/chapter_4_1.html"><strong aria-hidden="true">4.1.</strong> Using docker</a></li><li class="expanded "><a href="../chapter4/chapter_4_2_md.html"><strong aria-hidden="true">4.2.</strong> Docker copose</a></li><li class="expanded "><a href="../chapter4/chapter_4_3.html"><strong aria-hidden="true">4.3.</strong> Schemas</a></li><li class="expanded "><a href="../chapter4/chapter_4_4.html"><strong aria-hidden="true">4.4.</strong> Mongodb driver</a></li></ol></li><li class="expanded "><a href="../chapter_5.html"><strong aria-hidden="true">5.</strong> Security</a></li><li><ol class="section"><li class="expanded "><a href="../chapter5/chapter_5_1.html" class="active"><strong aria-hidden="true">5.1.</strong> Registering a user</a></li><li class="expanded "><a href="../chapter5/chapter_5_2.html"><strong aria-hidden="true">5.2.</strong> TLS Certs</a></li><li class="expanded "><a href="../chapter5/chapter_5_3.html"><strong aria-hidden="true">5.3.</strong> HTTPS in warp</a></li><li class="expanded "><a href="../chapter5/chapter_5_4.html"><strong aria-hidden="true">5.4.</strong> Authentication</a></li><li class="expanded "><a href="../chapter5/chapter_5_5.html"><strong aria-hidden="true">5.5.</strong> Authorization and JWTs</a></li></ol></li><li class="expanded "><a href="../chapter6/chapter_6.html"><strong aria-hidden="true">6.</strong> Backend Server</a></li><li class="expanded "><a href="../chapter7/chapter_7.html"><strong aria-hidden="true">7.</strong> Webassembly</a></li></ol>
+                <ol class="chapter"><li class="expanded "><a href="../chapter_1.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="../chapter2/chapter_2.html"><strong aria-hidden="true">2.</strong> Setup</a></li><li><ol class="section"><li class="expanded "><a href="../chapter2/chapter_2_1.html"><strong aria-hidden="true">2.1.</strong> Setting up the Project</a></li><li class="expanded "><a href="../chapter2/chapter_2_2.html"><strong aria-hidden="true">2.2.</strong> Intro to kubernetes</a></li><li class="expanded "><a href="../chapter2/chapter_2_3.html"><strong aria-hidden="true">2.3.</strong> Quickstart for minikube, kubectl and gcloud</a></li></ol></li><li class="expanded "><a href="../chapter3/chapter_3.html"><strong aria-hidden="true">3.</strong> Frontend Single Page App</a></li><li><ol class="section"><li class="expanded "><a href="../chapter3/chapter_3_1.html"><strong aria-hidden="true">3.1.</strong> React and State management</a></li><li class="expanded "><a href="../chapter3/chapter_3_2.html"><strong aria-hidden="true">3.2.</strong> Navbar component</a></li><li class="expanded "><a href="../chapter3/chapter_3_3.html"><strong aria-hidden="true">3.3.</strong> Login component</a></li></ol></li><li class="expanded "><a href="../chapter4/chapter_4.html"><strong aria-hidden="true">4.</strong> Mongo Database</a></li><li><ol class="section"><li class="expanded "><a href="../chapter4/chapter_4_1.html"><strong aria-hidden="true">4.1.</strong> Using docker</a></li><li class="expanded "><a href="../chapter4/chapter_4_2_md.html"><strong aria-hidden="true">4.2.</strong> Docker copose</a></li><li class="expanded "><a href="../chapter4/chapter_4_3.html"><strong aria-hidden="true">4.3.</strong> Schemas</a></li><li class="expanded "><a href="../chapter4/chapter_4_4.html"><strong aria-hidden="true">4.4.</strong> Mongodb driver</a></li></ol></li><li class="expanded "><a href="../chapter_5.html"><strong aria-hidden="true">5.</strong> Security</a></li><li><ol class="section"><li class="expanded "><a href="../chapter5/chapter_5_1.html" class="active"><strong aria-hidden="true">5.1.</strong> Registering a user</a></li><li class="expanded "><a href="../chapter5/chapter_5_2.html"><strong aria-hidden="true">5.2.</strong> TLS Certs</a></li><li class="expanded "><a href="../chapter5/chapter_5_3.html"><strong aria-hidden="true">5.3.</strong> HTTPS in warp</a></li><li class="expanded "><a href="../chapter5/chapter_5_4.html"><strong aria-hidden="true">5.4.</strong> Authentication</a></li><li class="expanded "><a href="../chapter5/chapter_5_5.html"><strong aria-hidden="true">5.5.</strong> Authorization and JWTs</a></li></ol></li><li class="expanded "><a href="../chapter6/chapter_6.html"><strong aria-hidden="true">6.</strong> Backend Server</a></li><li class="expanded "><a href="../chapter7/chapter_7.html"><strong aria-hidden="true">7.</strong> Webassembly</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -148,7 +148,73 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#registering-a-user" id="registering-a-user">Registering a user</a></h1>
+                        <h1><a class="header" href="#authenticating-a-user" id="authenticating-a-user">Authenticating a user</a></h1>
+<p>For khadga, we will be using the Google OAuth mechanism.</p>
+<h2><a class="header" href="#setting-things-up" id="setting-things-up">Setting things up</a></h2>
+<p>There are actually 2 parts to this:</p>
+<ul>
+<li>Setting up a google account with OAuth Credentials</li>
+<li>The front end client</li>
+</ul>
+<h2><a class="header" href="#setting-up-google-account-for-oauth" id="setting-up-google-account-for-oauth">Setting up google account for OAuth</a></h2>
+<p>The first thing we will need to do is to set up a google account.  Go to
+<a href="https://console.developers.google.com">console.developers.google.com</a> and select or create a project.  Since the UI is always
+changing, it's hard to say what to look for, but currently, in the left hand sidebar, there is a
+link that says <code>Credentials</code>.</p>
+<p>If you click on <code>Credentials</code>, a new layout appears that shows your current credentials for your
+project:</p>
+<ul>
+<li>API Keys</li>
+<li>OAuth2 credentials</li>
+<li>Service Accounts</li>
+</ul>
+<p>At the top, there is a button to <code>+ Create Credentials</code>.  In the drop down that appears, select the
+OAuth client ID option.  In the next screen, you can select <code>Web Option</code>.  A new section appears and
+you can optionally give it a name.</p>
+<p>There will also be a field that specifies authorized javascript origins.  For demo purposes, we can
+put in <code>http://localhost:7001</code> which is where our khadga backend, and therefore where our web page's
+<code>window.location</code> will be.</p>
+<h2><a class="header" href="#setting-up-the-front-end-client" id="setting-up-the-front-end-client">Setting up the front end client</a></h2>
+<p>The first thing we need to do is load the javascript.  Unfortunately, google does not release an npm
+package, so we need to load this in a <code>&lt;script&gt;</code> tag in our index.html.</p>
+<pre><code class="language-html">  &lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot; name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+    &lt;title&gt;Grid test web app!&lt;/title&gt;
+    &lt;script defer src=&quot;https://use.fontawesome.com/releases/v5.3.1/js/all.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://apis.google.com/js/api.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;./styles.css&quot;&gt;&lt;link&gt;
+  &lt;/head&gt;
+</code></pre>
+<p>Once we do this, we will have access to the <code>gapi</code> object from our window.navigator.  Since we are
+using typescript, adding objects to the global <code>window</code> object is a bit hacky.  We will do a simple
+approach which is not type-safe, and then improve on it later.</p>
+<pre><code class="language-javascript">function latestName(conn, user) {
+	let baseName = user;
+	let re = new RegExp(`${baseName}-(\\d+)`);
+	let index = 0;
+	for (let name of conn) {
+		if (name === baseName) {
+      console.log(`${name} in list matches current of ${baseName}`)
+			let matched = name.match(re);
+			if (matched) {
+				index = parseInt(matched[1]) + 1;
+				console.log(matched);
+				console.log(`Got match, index is ${index}`);
+				baseName = baseName.replace(/\d+/, `${index}`);
+			} else {
+				index += 1;
+				baseName = `${baseName}-${index}`;
+			}
+		} else {
+      console.log(`${name} does not equal ${baseName}`)
+		}
+		console.log(`baseName is now ${baseName}`)
+	}
+	return baseName;
+}
+
+latestName([&quot;sean&quot;, &quot;sean-1&quot;, &quot;sean-2&quot;], &quot;sean&quot;)
+</code></pre>
 
                     </main>
 

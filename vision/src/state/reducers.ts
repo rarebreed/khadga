@@ -16,7 +16,7 @@ import { ModalState
 			 , LoginAction
 			 , LoginFormAction
 			 , USER_LOGIN
-			 , USER_DISCONNECT
+			 , USER_LOGOUT
 			 , ChatMessage
 			 , MessageAction
 			 , MESSAGE_ADD
@@ -166,28 +166,28 @@ const defaultLoginState: LoginReducerState = {
 // Makes sure if we have a duplicate user in conn, that it will get a unique name
 const latestName = (conn: string[], user: string) => {
 	let baseName = user;
-	let re = new RegExp(`${baseName}-(\\d+)`);
+	const re = new RegExp(`${baseName}-(\\d+)`);
 	let index = 0;
-	for (let name of conn) {
+	for (const name of conn) {
 		if (name === baseName) {
-      console.log(`${name} in list matches current of ${baseName}`)
-			let matched = name.match(re);
+      logger.log(`${name} in list matches current of ${baseName}`);
+			const matched = name.match(re);
 			if (matched) {
-				index = parseInt(matched[1]) + 1;
-				console.log(matched);
-				console.log(`Got match, index is ${index}`);
+				index = parseInt(matched[1], 10) + 1;
+				logger.log(matched);
+				logger.log(`Got match, index is ${index}`);
 				baseName = baseName.replace(/\d+/, `${index}`);
 			} else {
 				index += 1;
 				baseName = `${baseName}-${index}`;
 			}
 		} else {
-      console.log(`${name} does not equal ${baseName}`)
+      logger.log(`${name} does not equal ${baseName}`);
 		}
-		console.log(`baseName is now ${baseName}`)
+		logger.log(`baseName is now ${baseName}`);
 	}
 	return baseName;
-}
+};
 
 /**
  * Sets state for connected users
@@ -206,38 +206,38 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 		case USER_LOGIN:  // Comes from front end
 			if (action.username === "") {
 				logger.error("action.username was empty");
-				return previous
+				return previous;
 			}
 			// the connected field is only for when the Chat button is clicked
 			// newstate.connected.push(action.username);
 			newstate.loggedIn = true;
 			newstate.username = action.username;
 			break;
-		case USER_DISCONNECT:  // Comes from front end
+		case USER_LOGOUT:  // Comes from front end
 			newstate.connected = [];
 			newstate.loggedIn = false;
-			newstate.username = ""
+			newstate.username = "";
 			break;
 		case USER_CONNECTION_EVT:  // Come from the server
 			if (!action.connected) {
+				logger.log("Empty action.connected", action.connected);
+				return previous;
+			} else if (!previous.loggedIn) {
+				logger.log("User not logged in yet, ignoring connection event");
 				return previous;
 			} else {
 				// Only connect users who aren't already connected
-				action.connected
-					.map(user => {
-						return latestName(newstate.connected, newstate.username);
-					})
-				  .forEach(user => {
-						newstate.connected.push(user);
-					});
+				newstate.connected = action.connected || [];
+				logger.log("Using action.connected", newstate.connected);
 			}
+			logger.log(`newstate.connected now `, newstate.connected);
 			break;
 		case AUTH_CREATED:
 			newstate.auth2 = action.auth2;
 			break;
 		case AUTH_EXPIRED:
 			if (action.auth2 !== null) {
-				console.error("The action was set to AUTH_EXPIRED, but action.auth2 is not null")
+				logger.error("The action was set to AUTH_EXPIRED, but action.auth2 is not null");
 			}
 			newstate.auth2 = action.auth2;
 			break;

@@ -1,6 +1,4 @@
-use khadga::{auth::{login,
-                    register},
-             chat::user_connected,
+use khadga::{chat::user_connected,
              config::Settings};
 use std::{collections::HashMap,
           net::SocketAddr,
@@ -35,10 +33,11 @@ async fn main() {
     std::env::set_var("RUST_LOG", &log_level);
     env_logger::init();
 
+    // simple health check
+    let hello = warp::path!("health" / String).map(|name| format!("Alive!, {}!", name));
+
     let users: Users = Arc::new(Mutex::new(HashMap::new()));
     let users2 = warp::any().map(move || users.clone());
-
-    let hello = warp::path!("test" / String).map(|name| format!("Hello, {}!", name));
 
     // This is the main chat endpoint.  When the front end needs to perform chat, it will call
     // this endpoint.
@@ -59,9 +58,8 @@ async fn main() {
     let start = warp::fs::dir("../vision/dist");
 
     let log = warp::log("khadga");
-    let app = login()
-        .or(register())
-        .or(chat)
+    
+    let app = chat
         .or(start)
         .or(hello)
         .with(log);

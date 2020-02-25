@@ -7,9 +7,6 @@ resources:
 - khadga-deployment.yaml
 - khadga-service.yaml
 - khadga-claim0-persistentvolumeclaim.yaml
-- mongodb-deployment.yaml
-- mongodb-service.yaml
-- mongodata-persistentvolumeclaim.yaml
 
 # namespace to deploy all Resources to
 namespace: default

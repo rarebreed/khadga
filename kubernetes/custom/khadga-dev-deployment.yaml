@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  selector:
+    matchLabels:
+      component: khadga
+  template:
+    metadata:
+      labels:
+        component: khadga
+    spec:
+      containers:
+      - name: khadga
+        image: rarebreed/khadga:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 7001

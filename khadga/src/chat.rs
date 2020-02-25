@@ -7,7 +7,7 @@ use std::{collections::HashMap,
 
 use futures::{FutureExt,
               StreamExt};
-use log::{info, error};
+use log::{info, error, debug};
 use serde_json;
 use tokio::sync::{mpsc,
                   Mutex};
@@ -38,12 +38,19 @@ pub async fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
     chat.boxed()
 }
 
+/// Return a `Future` that is basically a state machine managing this specific user's connection.
+///
+/// This function handles the websocket connection for a connected user.  As a user connects, they
+/// will be added to the users shared Mutex. A connection event will be sent to all other users to
+/// notify them that a new user is connected. As long as the websocket stays open, a spawned async 
+/// task will handle messages coming from the client's websocket.  When the client disconnects, that
+/// client/user will be removed from the shared map and a disconnect event will be sent.
 pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     info!("new chat user: {}", username);
 
     // Split the socket into a sender and receive of messages.
     let (user_ws_tx, mut user_ws_rx) = ws.split();
-    info!("{}: Split the websocket", username);
+    debug!("{}: Split the websocket", username);
 
     // Use an unbounded channel to handle buffering and flushing of messages
 	// to the websocket
@@ -51,12 +58,12 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
 	// issues.  Might need to do some profiling, but since rust's async uses a polling method
 	// we automatically get backpressure support.
     let (tx, rx) = mpsc::unbounded_channel();
-    info!("{}: Created the mpsc channels", username);
+    debug!("{}: Created the mpsc channels", username);
 
     // Create an async task that handles the messages streaming from rx by forwarding them
 	// to user_tx.  This will drive the Stream backed by rx to send values to user_tx until
     // rx is exhausted.  This is how we send messages from khadga to the client
-    info!("{}: Setting up async task to forward rx to user_ws_tx", username);
+    debug!("{}: Setting up async task to forward rx to user_ws_tx", username);
     tokio::task::spawn(rx.forward(user_ws_tx).map(|result| {
         if let Err(e) = result {
             error!("websocket send error: {}", e);
@@ -66,27 +73,15 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     }));
 
     let copy_uname = username.clone();
+    // Make sure we have a unique name
+
     // Save the sender in our list of connected users.
-    users.lock().await.insert(copy_uname, tx);
-
-    info!("{}: Creating connected user list", username);
-    let mut user_list: Vec<String> = vec![];
-    let users2 = users.clone();
-    {
-        let list = users2.lock().await;
-        info!("Connected Users:");
-
-        for (key, _) in list.iter() {
-            info!("{}", key);
-            user_list.push(key.clone());
-        }
-
-        let mut _user_str = user_list.iter().fold("".into(), |mut acc: String, next| {
-            acc = acc + &next + "\n";
-            acc
-        });
+    // We created a nested scope here so that we release the lock.  If we don't, the call to
+    // get_users will deadlock waiting for the lock here to release.
+    { 
+        users.lock().await.insert(copy_uname, tx);
     }
-    info!("{}: Done creating connected user list", username);
+    let user_list = get_users(&users).await;
 
     // Send back a list of connected users.  Remember that tx is connected to rx.  Earlier
     // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
@@ -97,22 +92,19 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
 
     // Send a connection event to each connected user
     // FIXME:  I think we can put this in the loop above.  No need to clone again
-    info!("{}: Sending connected event to all connected users", username);
+    debug!("{}: Sending connected event to all connected users", username);
     let event_users = users.clone();
     {
         let list = event_users.lock().await;
         for (user, tx) in list.iter() {
-            info!("Sending connect event to {}", user);
+            debug!("Sending connect event to {}", user);
             let connect_msg_str: String =
                 serde_json::to_string(&connect_msg).expect("Unable to serialize to Message");
             tx.send(Ok(Message::text(connect_msg_str)))
                 .expect("Failed to send to tx");
         }
     }
-    info!("{}: Done sending connected event messages", username);
-
-    // Return a `Future` that is basically a state machine managing
-    // this specific user's connection.
+    debug!("{}: Done sending connected event messages", username);
 
     // Make an extra clone to give to our disconnection handler...
     let users2 = users.clone();
@@ -144,7 +136,7 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
     let msg = if let Ok(s) = msg.to_str() {
         s
     } else {
-        info!("Unable to process message");
+        debug!("Unable to process message");
         return;
     };
 
@@ -166,10 +158,11 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
 }
 
 async fn get_users(users: &Users) -> Vec<String> {
+    debug!("Creating connected user list");
     let mut user_list: Vec<String> = vec![];
-    info!("Acquiring lock");
+    debug!("Acquiring lock");
     let list = users.lock().await;
-    info!("Connected Users:");
+    debug!("Connected Users:");
 
     for (key, _) in list.iter() {
         info!("{}", key);
@@ -180,7 +173,7 @@ async fn get_users(users: &Users) -> Vec<String> {
         acc = acc + &next + "\n";
         acc
     });
-    info!("Returning list of connected users");
+    debug!("Returning list of connected users");
     user_list
 }
 
@@ -205,7 +198,7 @@ async fn user_disconnected(my_id: String, users: &Users) {
 
     for (user, tx) in users.lock().await.iter() {
         if my_id != *user {
-            info!("Sending connection event to {}", user);
+            debug!("Sending connection event to {}", user);
             let connect_msg_str: String =
                 serde_json::to_string(&connect_msg).expect("Unable to serialize to Message");
             tx.send(Ok(Message::text(connect_msg_str)))

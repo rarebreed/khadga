@@ -36,7 +36,7 @@ export const WEBSOCKET_CLOSE = "WEBSOCKET_CLOSE";
 export type WEBSOCKET_ACTIONS = "WEBSOCKET_CREATE" | "WEBSOCKET_CLOSE";
 
 export const USER_LOGIN = "USER_LOGIN";
-export const USER_DISCONNECT = "USER_DISCONNECT";
+export const USER_LOGOUT = "USER_DISCONNECT";
 export const USER_TEST = "USER_TEST";
 export const USER_CONNECTION_EVT = "USER_CONNECTION_EVT";
 export const AUTH_CREATED = "AUTH_CREATED";
@@ -117,9 +117,9 @@ export interface LoginReducerState {
 
 export const makeLoginArgs = ( props: LoginReducerState)
 														 : [string[], string, any] => {
-	let { connected, username, auth2 } = props;
-	return [connected, username, auth2]
-}
+	const { connected, username, auth2 } = props;
+	return [connected, username, auth2];
+};
 
 export interface ChatMessage {
 	sender: string,

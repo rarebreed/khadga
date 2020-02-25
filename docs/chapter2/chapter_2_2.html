@@ -1,0 +1,439 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Intro to kubernetes - Learn how to create a web app with rust and webassembly</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="../chapter_1.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="expanded "><a href="../chapter2/chapter_2.html"><strong aria-hidden="true">2.</strong> Setup</a></li><li><ol class="section"><li class="expanded "><a href="../chapter2/chapter_2_1.html"><strong aria-hidden="true">2.1.</strong> Setting up the Project</a></li><li class="expanded "><a href="../chapter2/chapter_2_2.html" class="active"><strong aria-hidden="true">2.2.</strong> Intro to kubernetes</a></li><li class="expanded "><a href="../chapter2/chapter_2_3.html"><strong aria-hidden="true">2.3.</strong> Quickstart for minikube, kubectl and gcloud</a></li></ol></li><li class="expanded "><a href="../chapter3/chapter_3.html"><strong aria-hidden="true">3.</strong> Frontend Single Page App</a></li><li><ol class="section"><li class="expanded "><a href="../chapter3/chapter_3_1.html"><strong aria-hidden="true">3.1.</strong> React and State management</a></li><li class="expanded "><a href="../chapter3/chapter_3_2.html"><strong aria-hidden="true">3.2.</strong> Navbar component</a></li><li class="expanded "><a href="../chapter3/chapter_3_3.html"><strong aria-hidden="true">3.3.</strong> Login component</a></li></ol></li><li class="expanded "><a href="../chapter4/chapter_4.html"><strong aria-hidden="true">4.</strong> Mongo Database</a></li><li><ol class="section"><li class="expanded "><a href="../chapter4/chapter_4_1.html"><strong aria-hidden="true">4.1.</strong> Using docker</a></li><li class="expanded "><a href="../chapter4/chapter_4_2_md.html"><strong aria-hidden="true">4.2.</strong> Docker copose</a></li><li class="expanded "><a href="../chapter4/chapter_4_3.html"><strong aria-hidden="true">4.3.</strong> Schemas</a></li><li class="expanded "><a href="../chapter4/chapter_4_4.html"><strong aria-hidden="true">4.4.</strong> Mongodb driver</a></li></ol></li><li class="expanded "><a href="../chapter_5.html"><strong aria-hidden="true">5.</strong> Security</a></li><li><ol class="section"><li class="expanded "><a href="../chapter5/chapter_5_1.html"><strong aria-hidden="true">5.1.</strong> Registering a user</a></li><li class="expanded "><a href="../chapter5/chapter_5_2.html"><strong aria-hidden="true">5.2.</strong> TLS Certs</a></li><li class="expanded "><a href="../chapter5/chapter_5_3.html"><strong aria-hidden="true">5.3.</strong> HTTPS in warp</a></li><li class="expanded "><a href="../chapter5/chapter_5_4.html"><strong aria-hidden="true">5.4.</strong> Authentication</a></li><li class="expanded "><a href="../chapter5/chapter_5_5.html"><strong aria-hidden="true">5.5.</strong> Authorization and JWTs</a></li></ol></li><li class="expanded "><a href="../chapter6/chapter_6.html"><strong aria-hidden="true">6.</strong> Backend Server</a></li><li class="expanded "><a href="../chapter7/chapter_7.html"><strong aria-hidden="true">7.</strong> Webassembly</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Learn how to create a web app with rust and webassembly</h1>
+
+                        <div class="right-buttons">
+                            <a href="../print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#using-kubernetes-for-testing-and-deployment" id="using-kubernetes-for-testing-and-deployment">Using kubernetes for testing and deployment</a></h1>
+<p>Ultimately we are creating a Google Cloud Product, and therefore we need to create a kubernetes
+project.  As we develop the project and have something to actually test and deploy, we will go into
+more detail.</p>
+<p>However, we can go over the actual build container.  At the beginning of the chapter, we went over
+how to setup all your local development dependencies.  However, we also need a reproducible way to
+build our project.  While installing local tools is nice, what we really want to do in a production
+environment are many things:</p>
+<ul>
+<li>Automate the process of building all the artifacts our project needs</li>
+<li>As the artifacts are built, unit test them</li>
+<li>Once all the artifacts have been built, run integration tests</li>
+<li>If all the unit and integration tests pass, create a docker image</li>
+<li>Build your Kubernetes Objects (deployments, services, etc) locally</li>
+<li>Run minikube and apply all your config files to run your app</li>
+<li>Run end to end tests against the app</li>
+<li>If the tests pass
+<ul>
+<li>Tag the build(s) of your image(s)</li>
+<li>push the image to a container repo like docker hub or GCR</li>
+</ul>
+</li>
+<li>Tell GCP to use the latest images and reploy</li>
+</ul>
+<p>Yes, that's a rather large set of things to do!!  This is called CD or continuous deployment.  This
+is slightly different from CI which stands for continuous integration.  The main difference is that
+the latter will actually push out the end application/project to a public release, whereas the
+former is more about building and testing the artifacts, but not necessarily pushing the artifact to
+deployment.</p>
+<p>Where does kubernetes fit in?</p>
+<h2><a class="header" href="#why-kubernetes" id="why-kubernetes">Why kubernetes?</a></h2>
+<p>We want a way to make reproducible builds.  In the olden days, developers would have their local
+build environments, which often was some configuration of an IDE.  When the developer was done with
+their feature or bug fix, they would click some button on their IDE to build the application, and
+maybe they might run some tests (yeah, this was before TDD, BDD, CI, etc).  Assuming it looked good,
+said developer of yore would make a CVS or perforce commit and announce to all the coworkers that
+new source code was ready.</p>
+<p>Very often, a coworker would checkout a copy of the new source code, and lo and behold, he couldn't
+even get the project to build!  What trickery was this?  Were gremlins sabotaging code in the
+ancient CVS revision control system?  The fastidious engineer might have compared the source code to
+make sure it was indeed correct and identical to what the developer who originally built it
+successfully had on his or her system.</p>
+<p>Well, the problem was often that one developer's configuration of his build tools was a little bit
+different.  Or perhaps the build required configuration files to be present in a particular
+location, and in a particular state.  It was also highly likely that the local dependencies on one
+developers workstation was different from another.  For you youngsters who have only been
+programming a few years, you may have wondered where the terms DLL Hell, Classpath Hell, npm hell
+(pre yarn or package-lock.json days) etc all came from.  Well, one of the symptoms of the above
+problems is when either your program has some kind of dependency conflict (package A requires
+package B of version 1.0, while package C requires package B at version 2.0), or it could also mean
+that the dependencies on your system are missing or the incorrect version.</p>
+<p>Whole dependency management systems were written to try to tackle this problem.  For example,
+pkg-config for C(++) shared libraries/object, ant/maven/gradle/ivy for Java dependency loading and
+classpath/modulepath configuration, etc etc.</p>
+<p>When I first started learning docker, I first struggled with the concept until I realized it was
+just a kind of abstraction around a process which carried around a file system with it.  But I also
+tended to think of it in terms of running applications.  Afterall, one of the selling points was
+that an image was self-contained: it had all the dependencies and runtimes needed to run the
+application.  Ever built a python, java, javascript, etc app at work or school, and wanted to have
+other people use it?  Well, first, you had to tell them &quot;oh yeah, before you run my application, you
+need to install python.  How do you do that?  Well, first you have to....&quot;.  Now imagine some of
+your dependency libraries are tucked away in a private repository.  Like maybe you have JFrog
+serving up a private npm, maven, pypi etc repo.  Now you have to tell your users how to access the
+private repo.</p>
+<p>Ughhh, what a pain.</p>
+<p>So that's the first thing that containers solved.  Of course, it's also why we are seeing a
+resurgence of &quot;build to native&quot; languages, like rust, go, nim, crystal and even haskell.  To be
+honest, I always felt like docker containers were a bit of a hack to get around the popularity of
+interpreted languages (and yes, I am looking at you java, your bytecode still needs to be fed into a
+JVM to spit out the actual machine code).  But containers still have their uses even with &quot;build to
+native&quot; languages.</p>
+<p>There are 2 other use cases that come to mind:</p>
+<ul>
+<li>Creating a container that handles building a project</li>
+<li>Applications that require more than just a binary</li>
+</ul>
+<h3><a class="header" href="#your-build-environment-as-a-container" id="your-build-environment-as-a-container">Your build environment as a container</a></h3>
+<p>In order to build a rust project, what do you need?</p>
+<ul>
+<li>The rustc compiler</li>
+<li>Tools like cargo</li>
+</ul>
+<p>You may think, ha! That's all I need.  But is it?  Some rust libraries link to native libraries.
+The most notable example of this is the openssl crate which leverages the system openssl.lib.  Some
+crates will also attempt to link or build C code.  In that case, you now need a C(++) compiler and
+set of tools like make, autoconf, pkg-config, ld, nm, ar, etc.</p>
+<p>Or, what if you have a webassembly project?  Now you need to install wasm-pack (well, technically
+you don't, but good luck setting it up manually).  If you have a webassembly project, you will need
+npm installed too.  Oops, to install npm, I need node.</p>
+<p>Maybe you're getting the picture.  There's a lot of stuff that you have to install and get right.
+We can automate this process by creating a Dockerfile that builds our...well, build environment.</p>
+<p>Let's do that now by creating a Dockerfile, but we're going to put it somewhere special:</p>
+<pre><code class="language-Dockerfile">FROM fedora:31 as builder
+
+RUN dnf update -y \
+    &amp;&amp; dnf upgrade -y \
+    &amp;&amp; dnf install -y curl openssl-devel \
+    &amp;&amp; dnf groupinstall -y &quot;Development Tools&quot; \
+    &amp;&amp; dnf groupinstall -y &quot;C Development Tools and Libraries&quot; \
+    &amp;&amp; dnf clean all -y \
+    &amp;&amp; mkdir -p /apps/vision
+
+# TODO: create a khadga user and run as that user.  We don't need to run as root
+
+# Install rust tools
+# Strictly speaking this isn't necessary for runtime.  Adding these will create 
+# a container that lets us build khadga
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs &gt; rustup.sh \
+    &amp;&amp; sh rustup.sh -y \
+    &amp;&amp; source ~/.cargo/env \
+    &amp;&amp; rustup update \
+    &amp;&amp; cargo install wasm-pack
+
+# Install node tools
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash
+RUN source ~/.bashrc \
+    &amp;&amp; nvm install 13 \
+    &amp;&amp; nvm use 13 \
+    &amp;&amp; mkdir -p /apps/bundle \
+    &amp;&amp; mkdir -p /src
+
+# TODO: either clone the remote repo, or copy the entire khadga project over.
+# In the &quot;build locally&quot; version, we assume that we've built khadga on our dev machine
+# but we could also build it in the docker container itself.  Instead of doing a COPY
+# we could do a MOUNT
+COPY ./khadga /src/khadga
+COPY ./vision /src/vision
+COPY ./noesis /src/noesis
+COPY ./build-docker.sh /src
+WORKDIR /src
+
+# TODO: If we need to publish a new noesis library, we need to 
+
+RUN source ~/.bashrc \
+    &amp;&amp; source ~/.cargo/env \
+    &amp;&amp; ./build-docker.sh \
+    &amp;&amp; ls -al
+
+RUN rm -rf /src
+
+FROM fedora:31
+
+RUN mkdir -p /apps/vision
+
+COPY --from=builder /apps/vision /apps/vision
+
+WORKDIR /apps/vision
+
+CMD [ &quot;./khadga&quot; ]
+</code></pre>
+<p>We want to put this Dockerfile in a <code>dockers/build</code> folder.  So your folder should look something like
+this:</p>
+<pre><code class="language-text">khadga/
+- docker/
+	- build/
+		- Dockerfile
+- khadga/
+- noesis/
+- vision/
+</code></pre>
+<p>We don't actually have any source code yet so we can't run this yet.  But I'll show you how to run
+this.</p>
+<pre><code class="language-bash">cd /path/to/top-level/khadga
+sudo docker build -f ./docker/builder/Dockerfile -t stoner/khadga .
+</code></pre>
+<p>So for example, if my khadga is in <code>/home/stoner/Projects/khadga</code>, I would do:</p>
+<pre><code>cd /home/stoner/Projects/khadga
+sudo docker build -f ./docker/builder/Dockerfile -t stoner/khadga .
+</code></pre>
+<p>Running this command will tell docker to use the special Dockerfile we just created and to tag it
+with stoner/khadga.  If you don't use the -f option, docker will look in the current directory for a
+Dockerfile.  Since we are going to have another Dockerfile in the root khadga directory, that's why
+we created and saved this Dockerfile somewhere special.</p>
+<h3><a class="header" href="#what-does-it-do" id="what-does-it-do">What does it do?</a></h3>
+<p>Basically the above Dockerfile will create a Fedora31 base image, update it with the latest goodies,
+and then install our tooling needed to build all the khadga subprojects (including the khadga
+backend, the noesis webrtc wasm library, and the vision front end).</p>
+<p>Of note is that we use the <code>FROM &lt;base-image&gt; as &lt;phase-name&gt;</code>.  Usually, when you see the <code>FROM</code>
+command in a Dockerfile, you don't see the <code>as</code> part.  We use this when we have a multiphase build.
+Notice that further down almost at the bottom, we say again <code>FROM fedora:31</code>.  This means that at this
+point docker can throw away the preceeding layers and start with the resulting image as a base
+image.  However, docker still &quot;remembers&quot; the old image.  That's why you later see the command:</p>
+<pre><code class="language-dockerfile">COPY --from=builder /apps/vision /apps/vision
+</code></pre>
+<p>The <code>--from=builder</code> part says, &quot;from our previous phase called builder, copy the /apps/vision
+directory to our current image's /apps/vision directory.  If we didn't use this phased approach, the
+resulting image would have been about 2.6GB in size.  But by using the phased approach, the size was
+less than 1/10th the size at 203MB.</p>
+<p>The other thing to note is the <code>build-docker.sh</code> script that gets called.  This is what actually
+builds the subprojects.  It will look like this:</p>
+<pre><code class="language-bash">ls -al
+cd noesis
+wasm-pack build
+if [ &quot;${PUBLISH}&quot; = &quot;true&quot; ]; then
+  wasm-pack test --firefox
+	echo &quot;Deploying noesis to npm&quot;
+	npm login
+	wasm-pack publish
+fi
+
+cd ../vision
+rm -rf node_modules
+npm install
+npm run clean
+npm run build
+npx jest
+
+cd ../khadga
+cargo build --release
+# KHADGA_DEV=true cargo test
+
+# Copy all the artifacts
+cd ..
+echo &quot;Now in ${PWD}&quot;
+ls -al khadga
+cp -r vision/dist /apps/vision/dist
+cp -r khadga/config /apps/vision/config
+cp -r khadga/target/release/khadga /apps/vision
+</code></pre>
+<p>As we build up our code, we will go into more detail on what's happening here.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../chapter2/chapter_2_1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../chapter2/chapter_2_3.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../chapter2/chapter_2_1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="../chapter2/chapter_2_3.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
