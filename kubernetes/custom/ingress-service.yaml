@@ -2,25 +2,12 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: basic-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: khadga-app
+    networking.gke.io/managed-certificates: khadga-certificate
+    kubernetes.io/ingress.allow-http: "false"
 spec:
   backend: 
     serviceName: khadga-cluster-ip-service 
     servicePort: 7001
-
-#apiVersion: extensions/v1beta1
-#kind: Ingress
-#metadata:
-#  name: ingress-service
-#  annotations:
-#    kubernetes.io/ingress.class: nginx
-#    nginx.ingress.kubernetes.io/rewrite-target: /
-#    nginx.org/server-snippet: "proxy_ssl_verify off;"
-#spec:
-#  rules:
-#    - http:
-#        paths:
-#          - path: /?(.*)
-#            backend: 
-#              serviceName: khadga-cluster-ip-service 
-#              servicePort: 7001
   

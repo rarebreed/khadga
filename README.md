@@ -1,5 +1,7 @@
 # What is khadga?
 
+Visit [khadga.app](https://khadga.app)
+
 Also, [read the book][-book] [In Progress!]
 
 khadga is a tool to experiment with NLP and computer vision.  It offers a chat message based service
@@ -12,15 +14,13 @@ two primary learning tasks:
 - NLP to do text classification or semantic analysis
 - Video image recognition and object tracking (facial recognition)
 
-![Screen Shot](https://drive.google.com/open?id=1OB6o7vfcOuDr5doMalf3DnbjXd6VAnky)
-
 ## Components
 
 To implement this, there are 4 main components:
 
 - A backend, comprised of a rust warp server that handles the connection for WebRTC and websockets
 - A frontend, which is a react based SPA that will contain the UI for the session
-- A mongodb database to store chats, documents and (public) keys
+- A cloud firestore database to store chats, documents and (public) keys
 - A webassembly library to assist tensorflow using wasm-bindgen
 
 ### Backend: khadga
@@ -39,9 +39,9 @@ another mqtt client that IoT devices can send data to.
 The front is a react + typescript based project that will act as the primary means for a human agent
 to interact with.
 
-### mongodb
+### Firestore
 
-Mongodb will be used to store data for scenarios where we need to persist data as not all data might
+Firestore will be used to store data for scenarios where we need to persist data as not all data might
 be consumed and used in real time.
 
 It will also be used for things like user accounts and logins.
@@ -128,7 +128,7 @@ From there, you can play around with the application as it develops.
 
 ## Using kubernetes
 
-
-
+Ultimately, khadga will be deployed as a GKE app, thus, it makes sense to do testing and deployment
+from kubernetes.
 
 [-book]: https://rarebreed.github.io/khadga/
