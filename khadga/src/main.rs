@@ -1,6 +1,4 @@
-use khadga::{auth::{login,
-                    register},
-             chat::user_connected,
+use khadga::{chat::user_connected,
              config::Settings};
 use std::{collections::HashMap,
           net::SocketAddr,
@@ -61,9 +59,7 @@ async fn main() {
 
     let log = warp::log("khadga");
     
-    let app = login()
-        .or(register())
-        .or(chat)
+    let app = chat
         .or(start)
         .or(hello)
         .with(log);

@@ -73,8 +73,9 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     }));
 
     let copy_uname = username.clone();
+    // Make sure we have a unique name
+
     // Save the sender in our list of connected users.
-    
     // We created a nested scope here so that we release the lock.  If we don't, the call to
     // get_users will deadlock waiting for the lock here to release.
     { 

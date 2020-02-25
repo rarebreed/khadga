@@ -25,7 +25,7 @@ spec:
         io.kompose.service: khadga
     spec:
       containers:
-      - image: gcr.io/khadga-dev/khadga:0.1.1
+      - image: gcr.io/khadga-dev/khadga:0.1.2
         name: khadga
         ports:
         - containerPort: 7001

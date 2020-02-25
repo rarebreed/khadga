@@ -8,7 +8,7 @@ import { SET_SIGNUP_ACTIVE
        , SET_SIGNUP_PASSWORD
 	     , SET_SIGNUP_USERNAME
 	     , USER_LOGIN
-			 , USER_DISCONNECT
+			 , USER_LOGOUT
 			 , SET_LOGIN_PASSWORD
 			 , SET_LOGIN_USERNAME
 			 , USER_CONNECTION_EVT
@@ -18,6 +18,7 @@ import { websocketAction
 			 , createLoginAction
 			 , webcamCamAction
 			 } from "../state/action-creators";
+import { stat } from "fs";
 
 test("Tests the store", () => {
 	const stateStore = createStore(store.reducers);
@@ -88,33 +89,40 @@ test("Tests adding user to connectedUsers", () => {
 	let stateNow = stateStore.getState();
 
 	logger.log(stateNow);
-	expect(stateNow.connectState.connected.includes("SeanToner")).toBeTruthy();
-	expect(stateNow.connectState.connected.includes("toner")).toBeTruthy();
+	expect(stateNow.connectState.connected.length).toEqual(0);
 	expect(stateNow.connectState.loggedIn).toBeTruthy();
+	expect(stateNow.connectState.username).toEqual("toner");
 
-	action = createLoginAction([], "sean", null, USER_DISCONNECT);
+	action = createLoginAction([], "", null, USER_LOGOUT);
 	stateStore.dispatch(action);
 
 	stateNow = stateStore.getState();
-	logger.log("Called USER_DISCONNECT with sean");
+	logger.log("Called USER_DISCONNECT");
 	logger.log(stateNow);
-	expect(stateNow.connectState.connected.includes("sean")).toBeFalsy();
+	expect(stateNow.connectState.connected.includes("toner")).toBeFalsy();
 	expect(stateNow.connectState.loggedIn).toBeFalsy();
+});
 
+test("User connection event inserts into connected only if user logged in", () => {
+	const stateStore = createStore(store.reducers);
+	let stateNow = stateStore.getState();
 	const now = Array.from(stateNow.connectState.connected);
-	now.push("henry")
 
-	action = createLoginAction(now, "", null, USER_CONNECTION_EVT);
+	let action = createLoginAction(now, "henry", null, USER_CONNECTION_EVT);
 	stateStore.dispatch(action);
 
 	stateNow = stateStore.getState();
-	logger.log(stateNow);
-	expect(stateNow.connectState.connected.includes("henry")).toBeTruthy();
+	expect(stateNow.connectState.connected.length).toEqual(0);
 
 	action = createLoginAction(stateNow.connectState.connected, "toner", null, USER_LOGIN);
 	stateStore.dispatch(action);
 	stateNow = stateStore.getState();
-	logger.log(stateNow);
+
+	action = createLoginAction(now, "toner", null, USER_CONNECTION_EVT);
+	stateStore.dispatch(action);
+	stateNow = stateStore.getState();
+	expect(stateNow.connectState.connected.includes("toner")).toBeTruthy();
+
 });
 
 test("Test loginFormReducer", () => {
@@ -154,19 +162,20 @@ test("Test loginFormReducer", () => {
 	expect(stateNow.login.username).toBe("johndoe");
 });
 
-test("Tests that user signs in, clicks Chat, then logs out", async () => {
+// FIXME: Create a test fixture that starts up a mock server for websocket testing
+test.skip("Tests that user signs in, clicks Chat, then logs out", async () => {
 	// First sign in
 	const stateStore = createStore(store.reducers);
-	let action = createLoginAction([], "SeanToner", null, USER_LOGIN);
+	const action = createLoginAction([], "SeanToner", null, USER_LOGIN);
 	stateStore.dispatch(action);
 
 	// Simulate clicking chat
-	let sock = new WebSocket("ws://localhost:7001/chat/SeanToner");
+	const sock = new WebSocket("ws://localhost:7001/chat/SeanToner");
 	sock.on("close", (code, reason) => {
-		console.log(`Closed from server: ${code}, ${reason}`)
+		logger.log(`Closed from server: ${code}, ${reason}`);
 	});
 
-	let prom = new Promise((resolve, reject) => {
+	const prom = new Promise((resolve, reject) => {
 		sock.on("open", () => {
 			sock.send(JSON.stringify({
 				sender: "SeanToner",
@@ -174,58 +183,58 @@ test("Tests that user signs in, clicks Chat, then logs out", async () => {
 				body: "Hello Sean!!",
 				event_type: "MESSAGE"
 			}));
-			resolve()
+			resolve();
 		});
 
 		sock.on("error", (err) => {
 			reject(err);
-		})
+		});
 	});
 
 	await prom;
 
-	let sockaction = websocketAction(sock);
+	const sockaction = websocketAction(sock);
 	stateStore.dispatch(sockaction);
 
 	let stateNow = stateStore.getState();
-	console.log(`State is now: `, stateNow);
+	logger.log(`State is now: `, stateNow);
 
 	// Now log out
-	let signoutAction = createLoginAction( 
-		[], 
+	const signoutAction = createLoginAction(
+		[],
 		"SeanToner",
 		null,
-		USER_DISCONNECT
+		USER_LOGOUT
 	);
 
 	stateStore.dispatch(signoutAction);
-	console.log("After USER_DISCONNECT action");
+	logger.log("After USER_DISCONNECT action");
 	stateNow = stateStore.getState();
-	console.log(stateNow.connectState);
+	logger.log(stateNow.connectState);
 
 	// Disconnect the websocket and webcam.  This is what the GoogleAuth client does
-	// Unfortunately, it can take longer to establish the connection handshake than by the 
+	// Unfortunately, it can take longer to establish the connection handshake than by the
 	// time we get here.
 	if (sock) {
 		try {
-			sock.close()
+			sock.close();
 		} catch (ex) {
-			console.log(ex)
+			logger.log(ex);
 		}
 	}
-	let sockAction = websocketAction(null);
+	const sockAction = websocketAction(null);
 	stateStore.dispatch(sockAction);
 
-	console.log("After WEBSOCKET_DISABLE action");
+	logger.log("After WEBSOCKET_DISABLE action");
 	stateNow = stateStore.getState();
-	console.log(stateNow);
+	logger.log(stateNow);
 
-	let webcamAction = webcamCamAction({ active: false }, WEBCAM_DISABLE);
+	const webcamAction = webcamCamAction({ active: false }, WEBCAM_DISABLE);
 	stateStore.dispatch(webcamAction);
 
-	console.log("After WEBCAM_DISABLE action");
+	logger.log("After WEBCAM_DISABLE action");
 	stateNow = stateStore.getState();
-	console.log(stateNow);
+	logger.log(stateNow);
 });
 
 // TODO: Add enzyme to do component level testing

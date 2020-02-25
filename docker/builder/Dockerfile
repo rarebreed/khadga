@@ -41,16 +41,19 @@ WORKDIR /src
 
 RUN source ~/.bashrc \
     && source ~/.cargo/env \
-    && ./build-docker.sh
+    && ./build-docker.sh \
+    && ls -al
 
-COPY vision/dist /apps/vision/dist
-COPY khadga/config /apps/vision/config
-COPY target/debug/khadga /apps/vision
-
-# TODO: Clean up any unneeded artifacts and source
+# COPY vision/dist /apps/vision/dist
+# COPY khadga/config /apps/vision/config
+# COPY target/release/khadga /apps/vision
 RUN rm -rf /src
 
-FROM builder
+FROM fedora:31
+
+RUN mkdir -p /apps/vision
+
+COPY --from=builder /apps/vision /apps/vision
 
 WORKDIR /apps/vision
 

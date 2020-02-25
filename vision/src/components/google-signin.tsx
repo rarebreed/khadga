@@ -9,7 +9,7 @@ import { createLoginAction
 			 , webcamCamAction
 			 } from "../state/action-creators";
 import { USER_LOGIN
-			 , USER_DISCONNECT
+			 , USER_LOGOUT
 			 , AUTH_CREATED
 			 , makeLoginArgs,
 			 WEBCAM_DISABLE
@@ -79,7 +79,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		}
 
 		// Otherwise, we need to set our new state
-		const action = newState ? USER_LOGIN : USER_DISCONNECT;
+		const action = newState ? USER_LOGIN : USER_LOGOUT;
 		const alreadyConnected = this.props.connectState.connected;
 		this.props.setConnectedUsers( alreadyConnected
 																, this.props.connectState.username
@@ -102,11 +102,12 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		logger.debug(`Name: ${username}\nEmail: ${email}\nId: ${id}\nURL: ${url}`);
 		const alreadyConnected = this.props.connectState.connected;
 
-		// FIXME: Need to sanitize the username, in case there are non-alphanumberic characters
-		// since the username will be passed to /chat/<username>
-		logger.log(`Calling USER_LOGIN action with username ${username.replace(/\s+/, "")}`);
+
+		let user = email.split("@")[0];
+		user = user.replace(/[\.+]/, "_");
+		logger.log(`Calling USER_LOGIN action with username ${user}`);
 		this.props.setConnectedUsers( alreadyConnected
-																, username.replace(/\s+/, "")
+																, user.replace(/\s+/, "")
 																, this.props.connectState.auth2
 																, USER_LOGIN);
 	}
@@ -134,7 +135,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 						[],
 						this.props.connectState.username,
 						this.props.connectState.auth2,
-						USER_DISCONNECT
+						USER_LOGOUT
 					);
 
 					// Disconnect the websocket and webcam.  We have to do cleanup here, because the reducer
