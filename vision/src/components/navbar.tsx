@@ -124,7 +124,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     }
 
     const origin = window.location.host;
-    const url = `ws://${origin}/chat/${this.props.user}`;
+    const url = `wss://${origin}/chat/${this.props.user}`;
     logger.log(`Connecting to ${url}`);
     const sock: WebSocketState = {
       socket: null

@@ -36,13 +36,13 @@ export const WEBSOCKET_CLOSE = "WEBSOCKET_CLOSE";
 export type WEBSOCKET_ACTIONS = "WEBSOCKET_CREATE" | "WEBSOCKET_CLOSE";
 
 export const USER_LOGIN = "USER_LOGIN";
-export const USER_LOGOUT = "USER_DISCONNECT";
+export const USER_LOGOUT = "USER_LOGOUT";
 export const USER_TEST = "USER_TEST";
 export const USER_CONNECTION_EVT = "USER_CONNECTION_EVT";
 export const AUTH_CREATED = "AUTH_CREATED";
 export const AUTH_EXPIRED = "AUTH_EXPIRED";
 export type LOGIN_ACTIONS = "USER_LOGIN"
-													| "USER_DISCONNECT"
+													| "USER_LOGOUT"
 													| "USER_TEST"
 													| "USER_CONNECTION_EVT"
 													| "AUTH_CREATED"
