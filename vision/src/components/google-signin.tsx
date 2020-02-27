@@ -154,7 +154,6 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 			<NavBarItem classStyle="login button"
 								  data-onsuccess={ this.onSignIn }
 									callback={ this.signIn }>
-				<i className="google icon" />
 			  Sign in with Google
 			</NavBarItem>
 	);
@@ -162,7 +161,6 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 	signOutButton = (
 		<NavBarItem classStyle="login button"
 								callback={ this.signOut }>
-				<i className="google icon" />
 			  Logout
 		</NavBarItem>
 	);
