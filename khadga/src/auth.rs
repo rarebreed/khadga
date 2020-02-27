@@ -1,37 +1,40 @@
 //! # AuthN and authZ for site
 //!
-//! We are not getting fancy here...yet.  Ideally we should use something like keycloak + 2fa
-//! For now, we are going to be less user friendly, and use simple password for authentication.
+//! We are not getting fancy here...yet.  We are using Google's single sign on OAuth for
+//! authentication but we still need a way to protect some endpoints.
 //!
-//! ## Registration
+//! ## Signing in
 //!
-//! When the user first registers, they will supply their email and a username/password pair.
-//! The username must be unique, so we will check the database if this username exists.  If not,
-//! then we will map the username, password and email to a document in the database.  An email will
-//! be generated and sent to the user's email address confirming registration.
+//! When the user clicks the Sign in with Google button, the google api.js library will reach out
+//! and provide a confirmation window.  When the user accepts, the user's profile information will
+//! be returned, including user_id and email along with the real User name.
 //!
 //! ### User types
 //!
 //! Currently, there will only be one user type.  In the future, there may other user types.  For
-//! example, there may be a free tier and a premium tier.
+//! example, there may be a free tier and a premium tier.  To make a distinction between these
+//! types, we will need something additional to mark the user as being of a different kind.
+//! Eventually we can use Firestore or rethinkdb to hold this extra information.
 //!
-//! ## Logging in
-//!
-//! When a user has registered successfully, they can then log in with their username and password.
-//! When the form is submitted, we simply look up the username in the database.  We allow only 3
-//! failed attempts.  The user must then wait 1 hour, or change password via email.
-//!
-//! This means we must keep track of login attempts.  In the future, we may also track the IP
-//! address and/or user agent as a means to further secure.
+//! ## AuthZ tokens
 //!
 //! Once authenticated, a JWT will be created.  This token will expire in 15 minutes.  All requests
-//! from the agent (the user is using) will pass this JWT token around.
+//! from the agent (the user is using) will pass this JWT token around.  The token will only be
+//! stored in memory and not in a cookie to reduce the chance that a token can be hijacked from the
+//! user's system.
 
-//use super::message::Message;
 use crate::{data::User,
             db::{add_user,
                  get_user,
                  validate_user_pw}};
+use jsonwebtoken::{decode,
+                   encode,
+                   errors::ErrorKind,
+                   Algorithm,
+                   DecodingKey,
+                   EncodingKey,
+                   Header,
+                   Validation};
 use log::error;
 use serde::{Deserialize,
             Serialize};
@@ -40,6 +43,13 @@ use warp::{filters::BoxedFilter,
                   StatusCode},
            Filter,
            Reply};
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,
+    user: String,
+    exp: usize,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LoginParams {
@@ -54,6 +64,8 @@ pub struct RegisterParams {
     email: String,
 }
 
+/// FIXME: This method is now deprecated, but might return once we have a freemium/premium model
+///
 pub fn register() -> BoxedFilter<(impl Reply,)> {
     let route = warp::post()
         .and(warp::path("register"))
@@ -70,7 +82,7 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
                         .body("User already exists")
                 }
                 Some((coll, users)) if users.is_empty() => {
-                    // Add user to db
+                    // FIXME: This code will change for Firestore or rethinkdb
                     let user = User::new(reg_params.uname, reg_params.psw, reg_params.email);
 
                     match add_user(&coll, user) {
@@ -118,3 +130,5 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
         });
     login.boxed()
 }
+
+pub fn create_jwt(user: &str) {}

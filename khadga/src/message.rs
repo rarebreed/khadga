@@ -41,7 +41,12 @@ impl<T> Message<T> {
     }
 
     pub fn from<R>(&self, body: R) -> Message<R> {
-        Message::new(self.sender.clone(), self.recipients.clone(), self.event_type.clone(), body)
+        Message::new(
+            self.sender.clone(),
+            self.recipients.clone(),
+            self.event_type.clone(),
+            body,
+        )
     }
 }
 
@@ -71,7 +76,7 @@ impl ConnectionMsg {
 #[derive(Serialize, Deserialize)]
 pub enum CommandTypes {
     Ping,
-    Pong
+    Pong,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -83,11 +88,7 @@ pub struct Command {
 
 impl Command {
     pub fn new(op: CommandTypes, ack: bool, id: String) -> Self {
-        Command {
-            op,
-            ack,
-            id
-        }
+        Command { op, ack, id }
     }
 }
 
@@ -96,7 +97,7 @@ impl Default for Command {
         Command {
             op: CommandTypes::Ping,
             ack: true,
-            id: "".into()
+            id: "".into(),
         }
     }
 }
@@ -104,14 +105,14 @@ impl Default for Command {
 #[derive(Serialize, Deserialize)]
 pub struct CommandRequestMsg<T> {
     pub cmd: Command,
-    pub args: T
+    pub args: T,
 }
 
 impl<T> CommandRequestMsg<T> {
     pub fn new(op: CommandTypes, ack: bool, id: String, args: T) -> Self {
         CommandRequestMsg {
             cmd: Command::new(op, ack, id),
-            args
+            args,
         }
     }
 }
@@ -120,7 +121,7 @@ impl Default for CommandRequestMsg<Vec<String>> {
     fn default() -> Self {
         CommandRequestMsg {
             cmd: Command::default(),
-            args: vec![]
+            args: vec![],
         }
     }
 }
@@ -128,14 +129,14 @@ impl Default for CommandRequestMsg<Vec<String>> {
 #[derive(Serialize, Deserialize)]
 pub struct CommandReplyMsg<T> {
     pub cmd: Command,
-    pub response: T
+    pub response: T,
 }
 
 impl<T> CommandReplyMsg<T> {
     pub fn new(op: CommandTypes, ack: bool, id: String, response: T) -> Self {
         CommandReplyMsg {
             cmd: Command::new(op, ack, id),
-            response
+            response,
         }
     }
 }

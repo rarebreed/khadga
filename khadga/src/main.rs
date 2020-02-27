@@ -1,15 +1,15 @@
-use khadga::{chat::{user_connected, Users},
+use khadga::{chat::{user_connected,
+                    Users},
              config::Settings};
+use log::info;
 use std::{collections::HashMap,
           net::SocketAddr,
           sync::Arc};
-use tokio::sync::{Mutex};
-use warp::{ws::Ws,
-           Filter,
-           http::{Response,
-                  StatusCode}};
-use log::{info};
-
+use tokio::sync::Mutex;
+use warp::{http::{Response,
+                  StatusCode},
+           ws::Ws,
+           Filter};
 
 #[tokio::main]
 async fn main() {
@@ -27,13 +27,11 @@ async fn main() {
     env_logger::init();
 
     // simple health check
-    let health = warp::get()
-        .and(warp::path("health"))
-        .map(|| {
-            // TODO: Make this more robust and informational
-            let builder = Response::builder();
-            builder.status(StatusCode::OK).body("")
-        });
+    let health = warp::get().and(warp::path("health")).map(|| {
+        // TODO: Make this more robust and informational
+        let builder = Response::builder();
+        builder.status(StatusCode::OK).body("")
+    });
 
     let users: Users = Arc::new(Mutex::new(HashMap::new()));
     let users2 = warp::any().map(move || users.clone());
@@ -57,11 +55,8 @@ async fn main() {
     let start = warp::fs::dir("../vision/dist");
 
     let log = warp::log("khadga");
-    
-    let app = chat
-        .or(health)
-        .or(start)
-        .with(log);
+
+    let app = chat.or(health).or(start).with(log);
 
     let host: SocketAddr = khadga_addr
         .parse()
@@ -84,6 +79,6 @@ async fn main() {
     } else {
         warp_server.run(host).await;
     }
-    
+
     info!("Ended service");
 }

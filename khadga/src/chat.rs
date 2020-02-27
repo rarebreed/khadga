@@ -1,20 +1,22 @@
 // #![deny(warnings)]
 use crate::message::{self,
-                     ConnectionMsg,
                      CommandRequestMsg,
-                     /* CommandTypes, */
+                     ConnectionMsg,
                      Message as KMessage,
-                     MessageEvent::{CommandRequest, self}};
+                     MessageEvent::{self,
+                                    CommandRequest}};
 use std::{collections::HashMap,
           sync::Arc};
 
 use futures::{FutureExt,
               StreamExt};
-use log::{info, error, debug};
+use log::{debug,
+          error,
+          info};
 use serde_json;
-use tokio::time::{Duration};
-use tokio::sync::{mpsc,
-                  Mutex};
+use tokio::{sync::{mpsc,
+                   Mutex},
+            time::Duration};
 use warp::{filters::BoxedFilter,
            ws::{Message,
                 WebSocket,
@@ -46,7 +48,7 @@ pub async fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
 ///
 /// This function handles the websocket connection for a connected user.  As a user connects, they
 /// will be added to the users shared Mutex. A connection event will be sent to all other users to
-/// notify them that a new user is connected. As long as the websocket stays open, a spawned async 
+/// notify them that a new user is connected. As long as the websocket stays open, a spawned async
 /// task will handle messages coming from the client's websocket.  When the client disconnects, that
 /// client/user will be removed from the shared map and a disconnect event will be sent.
 pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
@@ -57,17 +59,20 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     debug!("{}: Split the websocket", username);
 
     // Use an unbounded channel to handle buffering and flushing of messages
-	// to the websocket
-	// FIXME:  I dont think we should use an unbounded channel or we can run into memory pressure
-	// issues.  Might need to do some profiling, but since rust's async uses a polling method
-	// we automatically get backpressure support.
+    // to the websocket
+    // FIXME:  I dont think we should use an unbounded channel or we can run into memory pressure
+    // issues.  Might need to do some profiling, but since rust's async uses a polling method
+    // we automatically get backpressure support.
     let (tx, rx) = mpsc::unbounded_channel();
     debug!("{}: Created the mpsc channels", username);
 
     // Create an async task that handles the messages streaming from rx by forwarding them
-	// to user_tx.  This will drive the Stream backed by rx to send values to user_tx until
+    // to user_tx.  This will drive the Stream backed by rx to send values to user_tx until
     // rx is exhausted.  This is how we send messages from khadga to the client
-    debug!("{}: Setting up async task to forward rx to user_ws_tx", username);
+    debug!(
+        "{}: Setting up async task to forward rx to user_ws_tx",
+        username
+    );
     tokio::task::spawn(rx.forward(user_ws_tx).map(|result| {
         if let Err(e) = result {
             error!("websocket send error: {}", e);
@@ -90,17 +95,16 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
             interval.tick().await;
             if let Some(user_tx) = loop_users.lock().await.get(&loop_uname) {
                 let mut msg = CommandRequestMsg::default();
-                msg.cmd.id = "khadga-1".into();  // FIXME: append timestamp
-                let cmsg = KMessage::new("khadga".into(), vec![], MessageEvent::CommandRequest, msg);
+                msg.cmd.id = "khadga-1".into(); // FIXME: append timestamp
+                let cmsg =
+                    KMessage::new("khadga".into(), vec![], MessageEvent::CommandRequest, msg);
                 let cmsg = serde_json::to_string(&cmsg).expect("Could not parse to CommandMsg");
                 match user_tx.send(Ok(Message::text(cmsg))) {
-                    Ok(_) => { },
-                    _ => {
-                        error!("Unable to send ping message")
-                    }
+                    Ok(_) => {}
+                    _ => error!("Unable to send ping message"),
                 };
             } else {
-                break
+                break;
             }
         }
     });
@@ -110,7 +114,7 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     // Save the sender in our list of connected users.
     // We created a nested scope here so that we release the lock.  If we don't, the call to
     // get_users will deadlock waiting for the lock here to release.
-    { 
+    {
         users.lock().await.insert(copy_uname, tx);
     }
     let user_list = get_users(&users).await;
@@ -123,7 +127,10 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
 
     // Send a connection event to each connected user
     // FIXME:  I think we can put this in the loop above.  No need to clone again
-    debug!("{}: Sending connected event to all connected users", username);
+    debug!(
+        "{}: Sending connected event to all connected users",
+        username
+    );
     let event_users = users.clone();
     {
         let list = event_users.lock().await;
@@ -159,7 +166,7 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     // user_ws_rx stream will keep processing as long as the user stays
     // connected. Once they disconnect, then...
     let copy_name = username.clone();
-    
+
     // Make an extra clone to give to our disconnection handler...
     let users2 = users.clone();
     user_disconnected(copy_name, &users2).await;
@@ -177,8 +184,8 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
     let mesg: message::Message<String> = serde_json::from_str(msg).expect("Unable to parse");
     let message: String = match mesg.event_type {
         CommandRequest => {
-            let cmd_body: CommandRequestMsg<String> = serde_json::from_str(&mesg.body)
-              .expect("Unable to deserialize");
+            let cmd_body: CommandRequestMsg<String> =
+                serde_json::from_str(&mesg.body).expect("Unable to deserialize");
             // TODO: Do something with the request and send back CommandReply
             if cmd_body.cmd.ack {
                 info!("Got args {}", cmd_body.args);
@@ -188,11 +195,9 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
 
             let cmd_msg = mesg.from(cmd_body);
             serde_json::to_string(&cmd_msg).expect("Unable to serialize to string")
-        },
-        // TODO: match on other event_types
-        _ => {
-            format!("{}", msg)
         }
+        // TODO: match on other event_types
+        _ => format!("{}", msg),
     };
 
     info!("From {} got message {}", my_id, message);
@@ -207,7 +212,6 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
                 // another task, nothing more to do here.
             }
         }
-        
     }
 }
 
@@ -244,7 +248,7 @@ async fn user_disconnected(my_id: String, users: &Users) {
     // Send back a list of connected users.  Remember that tx is connected to rx.  Earlier
     // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
     // by rx, and therefore will be sent over to user_tx and then over the websocket
-    let user_list = get_users(&users).await;  // users.lock acquired and released here
+    let user_list = get_users(&users).await; // users.lock acquired and released here
 
     let conn_list = ConnectionMsg::new(user_list);
     let connect_msg =
