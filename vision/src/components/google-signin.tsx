@@ -60,7 +60,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 
 				const args = makeLoginArgs(this.props.connectState);
 				this.props.setConnectedUsers(args[0], args[1], auth2, AUTH_CREATED);
-			})
+			});
 		}
 	}
 

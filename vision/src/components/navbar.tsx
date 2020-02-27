@@ -87,19 +87,20 @@ class NavBar extends React.Component<PropsFromRedux> {
     socket.onmessage = (evt: MessageEvent) => {
       // TODO: use the data in the event to update the user list.
       const msg: WsMessage<any> = JSON.parse(evt.data);
-      logger.log("Got websocket event", msg);
       const auth = this.props.auth;
 
       switch(msg.event_type) {
         case "Disconnect":
         case "Connect":
+          logger.log("Got websocket event", msg);
           const { connected_users } = msg.body as ConnectionEvent;
           this.props.connection(connected_users, "", auth, USER_CONNECTION_EVT);
           break;
         case "Data":
-          logger.log(msg);
+          logger.log("Got websocket event", msg);
           break;
         case "Message":
+          logger.log("Got websocket event", msg);
           this.props.chatMessage(makeChatMessage(msg), CHAT_MESSAGE_ADD);
           break;
         case "CommandRequest":

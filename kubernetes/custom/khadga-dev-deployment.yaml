@@ -20,3 +20,7 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 7001
+        readinessProbe:
+            httpGet:
+              path: /health
+              port: 7001

@@ -5,7 +5,9 @@ use std::{collections::HashMap,
           sync::Arc};
 use tokio::sync::{Mutex};
 use warp::{ws::Ws,
-           Filter};
+           Filter,
+           http::{Response,
+                  StatusCode}};
 use log::{info};
 
 
@@ -25,7 +27,13 @@ async fn main() {
     env_logger::init();
 
     // simple health check
-    let hello = warp::path!("health" / String).map(|name| format!("Alive!, {}!", name));
+    let health = warp::get()
+        .and(warp::path("health"))
+        .map(|| {
+            // TODO: Make this more robust and informational
+            let builder = Response::builder();
+            builder.status(StatusCode::OK).body("")
+        });
 
     let users: Users = Arc::new(Mutex::new(HashMap::new()));
     let users2 = warp::any().map(move || users.clone());
@@ -51,8 +59,8 @@ async fn main() {
     let log = warp::log("khadga");
     
     let app = chat
+        .or(health)
         .or(start)
-        .or(hello)
         .with(log);
 
     let host: SocketAddr = khadga_addr

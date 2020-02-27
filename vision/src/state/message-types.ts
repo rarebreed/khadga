@@ -60,4 +60,4 @@ export const makeChatMessage = (msg: WsMessage<string>): ChatMessageState => {
 		body: msg.body,
 		time: new Date().toUTCString()
 	};
-}
+};
