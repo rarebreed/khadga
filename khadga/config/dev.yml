@@ -7,3 +7,7 @@ services:
     port: 7001
 logging:
   level: Debug
+tls:
+  set: false
+  ca_path: ""
+  key_path: ""

@@ -2,13 +2,18 @@ body {
   font-family: "Roboto";
 }
 
+nav {
+  margin: 0;
+  padding: 0;
+}
+
 .navbar {
   list-style-type: none;
   margin: 0;
   padding: 0;
   overflow: hidden;
   background-color: rgb(238, 203, 88);
-  width: 100%;
+  /* width: 100%; */
 }
 
 .login {
@@ -20,7 +25,7 @@ body {
 }
 
 .navbar li a {
-  display: block;
+  display: inline-block;
   color: rgb(0, 0, 0);
   text-align: center;
   padding: 10px;
@@ -32,8 +37,41 @@ body {
 
 /* Change the link color to #111 (black) on hover */
 .navbar li a:hover {
-  color: rgb(113, 47, 218);
+  background-color: rgb(113, 47, 218);
   cursor: pointer;
+}
+
+li.dropdown {
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-item {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none; /* Don't underline*/
+  display: block;  /*<a> is inline by default.  We want it as a block to show vertically*/
+  text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #e7d998;
+}
+
+
+/* When we hover over the dropdown element, or its content, we will set display from 
+   none to block so that it appears
+ */
+.dropdown:hover .dropdown-content {
+  display: block;
 }
 
 head {

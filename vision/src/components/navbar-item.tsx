@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 export interface INavBarItemProps {
 	href?: string,
@@ -18,3 +18,22 @@ export class NavBarItem extends React.Component<INavBarItemProps> {
     );
   }
 }
+
+interface Dropdown {
+	value: string,
+	children?: React.ReactNode
+}
+
+/**
+ * Functional component
+ */
+export const NavBarDropDown = (props: Dropdown) => {
+	return(
+		<li className="dropdown">
+			<a href="javascript:void(0)" className="dropbtn">{ props.value }</a>
+			<div className="dropdown-content">
+				{ props.children }
+			</div>
+  </li>
+	);
+};

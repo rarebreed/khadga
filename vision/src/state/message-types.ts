@@ -1,4 +1,9 @@
-export type MessageEvent = "Connect" | "Disconnect" | "Message" | "Data" | "Command";
+export type MessageEvent = "Connect"
+												 | "Disconnect"
+												 | "Message"
+												 | "Data"
+												 | "CommandRequest"
+												 | "CommandReply";
 
 export const CHAT_MESSAGE_ADD = "CHAT_MESSAGE_ADD";
 export const CHAT_MESSAGE_DELETE = "CHAT_MESSAGE_DELETE";
@@ -17,8 +22,18 @@ export interface UserConnectionEventMessage {
 export interface WsMessage<T> {
 	sender: string,
 	recipients: string[],
-	body: T
+	body: T,
 	event_type: MessageEvent
+}
+
+export type WsCommandTypes = "ping" | "pong";
+
+// FIXME: The args should be generic
+// We might also want fixed op types.
+export interface WsCommand<T> {
+	op: WsCommandTypes,
+	args: T,
+	ack: boolean
 }
 
 export interface ChatMessageState {

@@ -7,3 +7,7 @@ services:
     port: 7001
 logging:
   level: Debug
+tls:
+  set: true
+  ca_path: "config/khadga-test.crt"
+  key_path: "config/khadga-test-pvt.key"

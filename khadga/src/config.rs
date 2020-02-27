@@ -59,9 +59,16 @@ pub struct LogCfg {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct Settings {
-    pub services: Services,
-    pub logging: LogCfg,
+pub struct TLS {
+    pub set: bool,
+    pub ca_path: String,
+    pub key_path: String
+}
+
+impl fmt::Display for TLS {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "set: {}\nca_path: {}\nkey_path: {}", self.set, self.ca_path, self.key_path)
+    }
 }
 
 impl fmt::Display for MongoCfg {
@@ -85,6 +92,13 @@ impl fmt::Display for KhadgaCfg {
     }
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct Settings {
+    pub services: Services,
+    pub logging: LogCfg,
+    pub tls: TLS
+}
+
 impl fmt::Display for Settings {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -95,18 +109,19 @@ impl fmt::Display for Settings {
     }
 }
 
+/// When we create a Settings object, we will use the Config crate to merge the yaml settings to
+/// actually generate the object.
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let mut config = Config::default();
-        config.merge(File::with_name("config/dev.yml"))?;
 
         match std::env::var("KHADGA_DEV") {
-            Ok(val) => {
-                if val == "true" || val == "TRUE" || val == "True" {
-                    config.merge(File::with_name("config/khadga-dev.yml"))?;
-                }
+            Ok(val) if val.to_lowercase() == "true" => {
+                config.merge(File::with_name("config/khadga-dev.yml"))?;
             }
-            _ => {}
+            _ => {
+                config.merge(File::with_name("config/dev.yml"))?;
+            }
         }
 
         config.try_into()
@@ -119,6 +134,7 @@ mod tests {
 
     #[test]
     fn test_settings() -> Result<(), Box<dyn std::error::Error>> {
+        std::env::set_var("KHADGA_DEV", "true");
         let settings = Settings::new()?;
         println!("{}", settings);
 
@@ -133,6 +149,12 @@ mod tests {
         assert_eq!("7001", settings.services.khadga.port);
         assert_eq!(mongod_host, settings.services.mongod.host);
         assert_eq!("debug", settings.logging.level.repr());
+
+        assert_eq!(true, settings.tls.set);
+
+        std::env::remove_var("KHADGA_DEV");
+        let settings = Settings::new()?;
+        assert_eq!(false, settings.tls.set);
 
         Ok(())
     }

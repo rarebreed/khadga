@@ -15,10 +15,11 @@ import { USER_CONNECTION_EVT
        } from "../state/types";
 import { WsMessage
        , makeChatMessage
-       , CHAT_MESSAGE_ADD
+       , CHAT_MESSAGE_ADD,
+       WsCommand
        } from "../state/message-types";
 import * as noesis from "@khadga/noesis";
-import { NavBarItem } from "./navbar-item";
+import { NavBarItem, NavBarDropDown } from "./navbar-item";
 import GoogleAuth from "./google-signin";
 
 const logger = console;
@@ -101,8 +102,25 @@ class NavBar extends React.Component<PropsFromRedux> {
         case "Message":
           this.props.chatMessage(makeChatMessage(msg), CHAT_MESSAGE_ADD);
           break;
-        case "Command":
-          logger.log(`Got command message`, msg);
+        case "CommandRequest":
+          const cmd = msg.body as WsCommand<any>;
+          if (cmd.op === "ping") {
+            const args = cmd.args as string[];
+            const replyMsg: WsMessage<WsCommand<string[]>> = {
+              sender: msg.sender,
+              recipients: msg.recipients,
+              event_type: "CommandReply",
+              body: {
+                op: "pong",
+                ack: false,
+                args
+              }
+            };
+            socket.send(JSON.stringify(replyMsg));
+          } else {
+            logger.log(`Got non-ping command message`, msg);
+          }
+
           break;
         default:
           logger.log("Unknown message type");
@@ -145,8 +163,14 @@ class NavBar extends React.Component<PropsFromRedux> {
 		return (
 			<nav className="navbar-grid-area">
 				<ul className="navbar">
+          <NavBarItem >khadga</NavBarItem>
 					<NavBarItem callback={ this.setupChat }>Chat</NavBarItem>
           <NavBarItem callback={ this.setupWebcam }>Webcam</NavBarItem>
+{/*           <NavBarDropDown value="Menu">
+            <a className="dropdown-item" href="#">Link 1</a>
+            <a className="dropdown-item" href="#">Link 2</a>
+            <a className="dropdown-item" href="#">Link 3</a>
+          </NavBarDropDown> */}
 					<GoogleAuth />
 				</ul>
 			</nav>

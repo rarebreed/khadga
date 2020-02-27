@@ -26,7 +26,7 @@ import { ListItem } from "./user";
 class SideBar extends React.Component<PropsFromRedux>  {
 	render() {
 		const connected = Array.from(this.props.connectState.connected);
-	
+
 		const listItems = connected
 		  .filter(user => user !== "")
 		  .map(user => {

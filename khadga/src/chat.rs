@@ -1,7 +1,10 @@
 // #![deny(warnings)]
 use crate::message::{self,
                      ConnectionMsg,
-                     MessageEvent};
+                     CommandRequestMsg,
+                     /* CommandTypes, */
+                     Message as KMessage,
+                     MessageEvent::{CommandRequest, self}};
 use std::{collections::HashMap,
           sync::Arc};
 
@@ -9,6 +12,7 @@ use futures::{FutureExt,
               StreamExt};
 use log::{info, error, debug};
 use serde_json;
+use tokio::time::{Duration};
 use tokio::sync::{mpsc,
                   Mutex};
 use warp::{filters::BoxedFilter,
@@ -22,7 +26,7 @@ use warp::{filters::BoxedFilter,
 ///
 /// - Key is their id
 /// - Value is a sender of `warp::ws::Message`
-type Users = Arc<Mutex<HashMap<String, mpsc::UnboundedSender<Result<Message, warp::Error>>>>>;
+pub type Users = Arc<Mutex<HashMap<String, mpsc::UnboundedSender<Result<Message, warp::Error>>>>>;
 
 pub async fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
     let users2 = warp::any().map(move || users.clone());
@@ -72,8 +76,36 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
         }
     }));
 
+    // Send a ping message every 10 seconds.  If user has disconnected, they wont be in the shared
+    // map, and the while loop will break
+    let mut interval = tokio::time::interval(Duration::from_millis(5000));
+    let loop_users = users.clone();
+    let loop_uname = username.clone();
+
+    // We avoid acquiring the lock too long in the loop by grabbing it and then at the end of the
+    // if/else, we release the lock.  This does mean that if tx has a lot to send, the lock will be
+    // acquired and might slow down others.
+    tokio::task::spawn(async move {
+        loop {
+            interval.tick().await;
+            if let Some(user_tx) = loop_users.lock().await.get(&loop_uname) {
+                let mut msg = CommandRequestMsg::default();
+                msg.cmd.id = "khadga-1".into();  // FIXME: append timestamp
+                let cmsg = KMessage::new("khadga".into(), vec![], MessageEvent::CommandRequest, msg);
+                let cmsg = serde_json::to_string(&cmsg).expect("Could not parse to CommandMsg");
+                match user_tx.send(Ok(Message::text(cmsg))) {
+                    Ok(_) => { },
+                    _ => {
+                        error!("Unable to send ping message")
+                    }
+                };
+            } else {
+                break
+            }
+        }
+    });
+
     let copy_uname = username.clone();
-    // Make sure we have a unique name
 
     // Save the sender in our list of connected users.
     // We created a nested scope here so that we release the lock.  If we don't, the call to
@@ -87,8 +119,7 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     // we forwarded rx channel to user_tx.  So anything we send via tx2 will also be received
     // by rx, and therefore will be sent over to user_tx and then over the websocket
     let conn_list = ConnectionMsg::new(user_list);
-    let connect_msg =
-        message::Message::new(username.clone(), vec![], MessageEvent::Connect, conn_list);
+    let connect_msg = KMessage::new(username.clone(), vec![], MessageEvent::Connect, conn_list);
 
     // Send a connection event to each connected user
     // FIXME:  I think we can put this in the loop above.  No need to clone again
@@ -98,18 +129,18 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
         let list = event_users.lock().await;
         for (user, tx) in list.iter() {
             debug!("Sending connect event to {}", user);
-            let connect_msg_str: String =
+            let conn_msg_str =
                 serde_json::to_string(&connect_msg).expect("Unable to serialize to Message");
-            tx.send(Ok(Message::text(connect_msg_str)))
+            tx.send(Ok(Message::text(conn_msg_str)))
                 .expect("Failed to send to tx");
         }
     }
     debug!("{}: Done sending connected event messages", username);
 
-    // Make an extra clone to give to our disconnection handler...
-    let users2 = users.clone();
-
-    // Every time the user sends a message send it out
+    // Every time the user sends a message send it out.  Note that since we are calling .await here
+    // and we are not in a tokio task, this will block here.  We won't proceed to the
+    // user_disconnected until the our connection breaks, which will cause the let Some(result) to
+    // not be true, thus breaking out of the loop
     info!("{}: listening for messages", username);
     while let Some(result) = user_ws_rx.next().await {
         let copy_name = username.clone();
@@ -128,6 +159,9 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     // user_ws_rx stream will keep processing as long as the user stays
     // connected. Once they disconnect, then...
     let copy_name = username.clone();
+    
+    // Make an extra clone to give to our disconnection handler...
+    let users2 = users.clone();
     user_disconnected(copy_name, &users2).await;
 }
 
@@ -140,20 +174,40 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
         return;
     };
 
-    let _mesg: message::Message<String> = serde_json::from_str(msg).expect("Unable to parse");
+    let mesg: message::Message<String> = serde_json::from_str(msg).expect("Unable to parse");
+    let message: String = match mesg.event_type {
+        CommandRequest => {
+            let cmd_body: CommandRequestMsg<String> = serde_json::from_str(&mesg.body)
+              .expect("Unable to deserialize");
+            // TODO: Do something with the request and send back CommandReply
+            if cmd_body.cmd.ack {
+                info!("Got args {}", cmd_body.args);
+            } else {
+                return;
+            }
 
-    let new_msg = format!("{}", msg);
+            let cmd_msg = mesg.from(cmd_body);
+            serde_json::to_string(&cmd_msg).expect("Unable to serialize to string")
+        },
+        // TODO: match on other event_types
+        _ => {
+            format!("{}", msg)
+        }
+    };
 
-    info!("From {} got message {}", my_id, new_msg);
+    info!("From {} got message {}", my_id, message);
 
     // New message from this user, send it to everyone else (except same uid)...
     // FIXME: Send only to the recipients in _mesg.
-    for (_, tx) in users.lock().await.iter_mut() {
-        if let Err(_disconnected) = tx.send(Ok(Message::text(new_msg.clone()))) {
-            // The tx is disconnected, our `user_disconnected` code
-            // should be happening in another task, nothing more to
-            // do here.
+    for (usr, tx) in users.lock().await.iter_mut() {
+        if mesg.recipients.contains(usr) {
+            info!("Sending message to {}", usr);
+            if let Err(_disconnected) = tx.send(Ok(Message::text(message.clone()))) {
+                // The tx is disconnected, our `user_disconnected` code should be happening in
+                // another task, nothing more to do here.
+            }
         }
+        
     }
 }
 

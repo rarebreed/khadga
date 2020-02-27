@@ -1,22 +1,13 @@
-use khadga::{chat::user_connected,
+use khadga::{chat::{user_connected, Users},
              config::Settings};
 use std::{collections::HashMap,
           net::SocketAddr,
           sync::Arc};
-use tokio::sync::{mpsc,
-                  Mutex};
-use warp::{ws,
-           ws::Ws,
+use tokio::sync::{Mutex};
+use warp::{ws::Ws,
            Filter};
+use log::{info};
 
-/// This is a map of users to a tokio mpsc channel
-///
-/// It is wrapped in an Arc so that we can share it across different runtime executors which might
-/// happen since we are using tokio.  The Mutex makes that only one Executor thread can access the
-/// HashMap storing the data at a time.
-///
-/// The mpsc  
-type Users = Arc<Mutex<HashMap<String, mpsc::UnboundedSender<Result<ws::Message, warp::Error>>>>>;
 
 #[tokio::main]
 async fn main() {
@@ -46,7 +37,7 @@ async fn main() {
         .and(warp::path::param().map(|username: String| username))
         .and(users2)
         .map(|ws: Ws, username: String, users: Users| {
-            println!("User {} starting chat", username);
+            info!("User {} starting chat", username);
             ws.on_upgrade(move |socket| user_connected(socket, users, username))
         });
 
@@ -67,7 +58,24 @@ async fn main() {
     let host: SocketAddr = khadga_addr
         .parse()
         .expect(&format!("Could not parse {}", khadga_addr));
-    println!("Starting up on {}", host);
-    warp::serve(app).run(host).await;
-    println!("Ended service");
+    info!("Starting up on {}", host);
+    let warp_server = warp::serve(app);
+
+    // Check to see if we need to use TLS
+    if config.tls.set {
+        let ca_path = config.tls.ca_path;
+        let key_path = config.tls.key_path;
+        info!("Using TLS.  ca_path={}, key_path={}", ca_path, key_path);
+
+        warp_server
+            .tls()
+            .cert_path(ca_path)
+            .key_path(key_path)
+            .run(host)
+            .await;
+    } else {
+        warp_server.run(host).await;
+    }
+    
+    info!("Ended service");
 }
