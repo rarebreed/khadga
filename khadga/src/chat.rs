@@ -68,7 +68,8 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
 
     // Create an async task that handles the messages streaming from rx by forwarding them
     // to user_tx.  This will drive the Stream backed by rx to send values to user_tx until
-    // rx is exhausted.  This is how we send messages from khadga to the client
+    // rx is exhausted.  This is how we send messages from khadga to the client (eg it goes
+    // tx -> rx -> user_ws_tx)
     debug!(
         "{}: Setting up async task to forward rx to user_ws_tx",
         username
@@ -83,7 +84,7 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
 
     // Send a ping message every 10 seconds.  If user has disconnected, they wont be in the shared
     // map, and the while loop will break
-    let mut interval = tokio::time::interval(Duration::from_millis(5000));
+    let mut interval = tokio::time::interval(Duration::from_millis(10000));
     let loop_users = users.clone();
     let loop_uname = username.clone();
 
@@ -144,9 +145,9 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
     }
     debug!("{}: Done sending connected event messages", username);
 
-    // Every time the user sends a message send it out.  Note that since we are calling .await here
+    // Every time the user sends a message handle it.  Note that since we are calling .await here
     // and we are not in a tokio task, this will block here.  We won't proceed to the
-    // user_disconnected until the our connection breaks, which will cause the let Some(result) to
+    // user_disconnected until the connection breaks, which will cause the let Some(result) to
     // not be true, thus breaking out of the loop
     info!("{}: listening for messages", username);
     while let Some(result) = user_ws_rx.next().await {
@@ -155,19 +156,17 @@ pub async fn user_connected(ws: WebSocket, users: Users, username: String) {
             Ok(msg) => msg,
             Err(e) => {
                 error!("websocket error(uid={}): {}", copy_name, e);
-                break;
+                continue;
             }
         };
-        // FIXME: Each message will have encoded within it, a list of recipients
         user_message(copy_name, msg, &users).await;
     }
     info!("{} has disconnected", username);
 
     // user_ws_rx stream will keep processing as long as the user stays
     // connected. Once they disconnect, then...
-    let copy_name = username.clone();
-
     // Make an extra clone to give to our disconnection handler...
+    let copy_name = username.clone();
     let users2 = users.clone();
     user_disconnected(copy_name, &users2).await;
 }

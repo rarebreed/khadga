@@ -24,18 +24,7 @@
 //! user's system.
 
 use crate::{data::User,
-            db::{add_user,
-                 get_user,
-                 validate_user_pw}};
-use jsonwebtoken::{decode,
-                   encode,
-                   errors::ErrorKind,
-                   Algorithm,
-                   DecodingKey,
-                   EncodingKey,
-                   Header,
-                   Validation};
-use log::error;
+            jwt::jwt::{create_jwt}};
 use serde::{Deserialize,
             Serialize};
 use warp::{filters::BoxedFilter,
@@ -54,7 +43,7 @@ struct Claims {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct LoginParams {
     uname: String,
-    psw: String,
+    email: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -65,7 +54,7 @@ pub struct RegisterParams {
 }
 
 /// FIXME: This method is now deprecated, but might return once we have a freemium/premium model
-///
+/*
 pub fn register() -> BoxedFilter<(impl Reply,)> {
     let route = warp::post()
         .and(warp::path("register"))
@@ -101,10 +90,15 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
         });
     route.boxed()
 }
+*/
 
-/// FIXME: This should be in a different module
-///
-/// This is the handler for when the user clicks the Login button on the app.
+/// This is the handler for when the user clicks the Sign in with Google button on the app.
+/// 
+/// Once the user authorizes us with Google, the client will hit this endpoint and provide some
+/// information.  We will store some user information in the database and then return back a JWT
+/// that the client will save in memory.  Eventually we will provide a means for the user to submit
+/// a public key which we will store.  We can then use a custom header for the JWT token and sign it
+/// with the public key.  We can then allow the client to store the JWT in a cookie
 pub fn login() -> BoxedFilter<(impl Reply,)> {
     let login = warp::post()
         .and(warp::path("login"))
@@ -115,20 +109,20 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
             // When a user logs in, they will be given an auth token which can be used
             // to hain access to chat and video for as long as the session maintains activity
             let builder = Response::builder();
-            let user = User::new(login_params.uname, login_params.psw, "".into());
-            match validate_user_pw("khadga", &user) {
-                Ok((_, true)) => {
-                    // TODO: Provide a JWT token we can use for other endpoints like `chat`
-                    builder.status(StatusCode::OK).body("User authenticated")
-                }
-                _ => {
+            let user = User::new(login_params.uname, login_params.email);
+            
+            // Generate JWT
+            match create_jwt(&user.user_name, &user.email) {
+                Ok(jwt) => {
+                    builder.status(StatusCode::OK).body(jwt)
+                },
+                Err(e) => {
                     builder
                         .status(StatusCode::from_u16(403).unwrap())
-                        .body("Unable to retrieve data from database")
+                        .body(String::from("Unable to generate JWT token"))
                 }
             }
         });
     login.boxed()
 }
 
-pub fn create_jwt(user: &str) {}

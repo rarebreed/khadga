@@ -31,9 +31,12 @@ export type WsCommandTypes = "ping" | "pong";
 // FIXME: The args should be generic
 // We might also want fixed op types.
 export interface WsCommand<T> {
-	op: WsCommandTypes,
-	args: T,
-	ack: boolean
+	cmd: {
+		op: WsCommandTypes,
+		id: string,
+		ack: boolean
+	},
+	args: T
 }
 
 export interface ChatMessageState {

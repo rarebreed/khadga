@@ -22,6 +22,8 @@ struct Claims {
     iat: DateTime<Utc>,
 }
 
+/// By default, jsonwebtoken expects the exp field to be a usize.  It is however more convenient to
+/// work with DateTime and Duration than raw usize (in millis since Epoch).  This is how we
 mod jwt_numeric_date {
     use chrono::{DateTime, TimeZone, Utc};
     use serde::{self, Deserialize, Deserializer, Serializer};
@@ -46,13 +48,11 @@ mod jwt_numeric_date {
     }
 }
 
-
+/// FIXME: This will eventually be some kind of secret key that will be stored in a Docker secret
 pub static SECRET: &[u8;9] = b"secretkey";
 
-
+/// Generates a JSON web token using defaults
 pub fn create_jwt(user: &str, email: &str) -> Result<String, JWTError> {
-    // FIXME: We need some way to create this secret key and store it both in source, and for
-    // deployment
     let my_claims = Claims {
         sub: user.to_owned(),
         email: email.to_owned(),
@@ -74,11 +74,13 @@ pub fn create_jwt(user: &str, email: &str) -> Result<String, JWTError> {
     token
 }
 
+/// Validator for a given user and supplied token
 pub fn validate_jwt(user: &str, token: &str) {
     let validation = Validation {
         sub: Some(user.to_string()),
         ..Validation::default()
     };
+
     let token_data = match decode::<Claims>(&token, &DecodingKey::from_secret(SECRET), &validation) {
         Ok(c) => c,
         Err(err) => {
@@ -91,8 +93,9 @@ pub fn validate_jwt(user: &str, token: &str) {
                 },
                 ErrorKind::ExpiredSignature => {
                     // For example, expired token.  In this case, we should check to see if user is
-                    // still logged in and last message sent.  If so, automatically create a new 
-                    // token for the user and send it back.
+                    // still logged in and last message sent.
+                    // TODO: If the above is true, automatically create a new token for the user
+                    // and send the jwt back to the user
                     panic!("Expired token")
                 },
                 _ => {

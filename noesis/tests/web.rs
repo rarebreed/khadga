@@ -17,6 +17,7 @@ fn pass() {
 async fn test_list_media_devices() {
     let stream = utils::list_media_devices().await.expect("No media stream");
 
+    
     assert!(true);
 }
 

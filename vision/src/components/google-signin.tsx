@@ -22,6 +22,15 @@ interface GAPI {
 
 type WindowGABI = Window & GAPI;
 
+interface GoogleProfile {
+	profile: string,  // = googleUser.getBasicProfile();
+	username: string, // = profile.getName();
+	email: string,    // = profile.getEmail();
+	id: string,       // = profile.getId();
+	url: string       // = profile.getImageUrl();
+	login_time: Date
+}
+
 interface LoggedInState {
 	username: string,
 	auth2: any | null
@@ -47,6 +56,9 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 	componentDidMount() {
+		// TODO: Read the cookie and make a call to our database.  Check when last user logout time was
+		// if it's within 15min, allow user to sign back in automatically.
+
 		const wg: WindowGABI = window;
 		if (wg.gapi) {
 			logger.debug(`gapi is`, wg.gapi);
@@ -98,10 +110,13 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		const email: string = profile.getEmail();
 		const id = profile.getId();
 		const url: string = profile.getImageUrl();
+		const userProfile: GoogleProfile = {
+			profile, username, email, id, url,
+			login_time: new Date(Date.now())
+		};
 
 		logger.debug(`Name: ${username}\nEmail: ${email}\nId: ${id}\nURL: ${url}`);
 		const alreadyConnected = this.props.connectState.connected;
-
 
 		let user = email.split("@")[0];
 		user = user.replace(/[\.+]/, "_");
@@ -110,6 +125,12 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 																, user.replace(/\s+/, "")
 																, this.props.connectState.auth2
 																, USER_LOGIN);
+
+		// TODO: We should look at the existing cookie, and modify what's needed. Eventually, if we use
+		// custom headers for JWT, we can sign the header with the user's public key and safely store
+		// the JWT token in the cookie. If an attacker somehow sniffed or stole the JWT, they would
+		// also need access to the private key (which if they have, all bets are off anyway)
+		document.cookie = JSON.stringify(userProfile);
 	}
 
 	signIn = () => {

@@ -13,18 +13,16 @@ use std::fmt::{self,
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct User {
     pub user_name: String,
-    pub psw: String,
     pub email: String,
     pub created: String,
     role: Role,
 }
 
 impl User {
-    pub fn new(uname: String, psw: String, email: String) -> Self {
+    pub fn new(uname: String, email: String) -> Self {
         let user_name = uname.clone();
         User {
             user_name: uname,
-            psw,
             email,
             created: String::from(""),
             role: Role::User(user_name),
