@@ -118,6 +118,14 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		logger.debug(`Name: ${username}\nEmail: ${email}\nId: ${id}\nURL: ${url}`);
 		const alreadyConnected = this.props.connectState.connected;
 
+		logger.log("Getting auth response");
+		try {
+			const authResp = googleUser.getAuthResponse();
+			logger.log("auth: ", authResp);
+		} catch (ex) {
+			logger.error(ex);
+		}
+
 		let user = email.split("@")[0];
 		user = user.replace(/[\.+]/, "_");
 		logger.log(`Calling USER_LOGIN action with username ${user}`);
@@ -172,15 +180,20 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 	}
 
 	signInButton = (
-			<NavBarItem classStyle="login button"
-								  data-onsuccess={ this.onSignIn }
-									callback={ this.signIn }>
+		<a className="button"
+		   data-onsuccess={ this.onSignIn }
+			 onClick={ this.signIn }>
+			{/* <NavBarItem classStyle="navbar-item button"
+								  >
 			  Sign in with Google
-			</NavBarItem>
+			</NavBarItem> */}
+			Sign in with Google
+		</a>
+
 	);
 
 	signOutButton = (
-		<NavBarItem classStyle="login button"
+		<NavBarItem classStyle="navbar-item button"
 								callback={ this.signOut }>
 			  Logout
 		</NavBarItem>

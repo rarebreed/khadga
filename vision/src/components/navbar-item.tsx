@@ -10,11 +10,11 @@ export class NavBarItem extends React.Component<INavBarItemProps> {
   render() {
 		const style = this.props.classStyle ? this.props.classStyle : "navbar-item";
     return (
-			<li>
+			<div>
 				<a className={ style } href={ this.props.href } onClick={ this.props.callback }>
 					{ this.props.children }
 				</a>
-			</li>
+			</div>
     );
   }
 }
@@ -29,11 +29,11 @@ interface Dropdown {
  */
 export const NavBarDropDown = (props: Dropdown) => {
 	return(
-		<li className="dropdown">
+		<div className="dropdown">
 			<a href="javascript:void(0)" className="dropbtn">{ props.value }</a>
 			<div className="dropdown-content">
 				{ props.children }
 			</div>
-  </li>
+  	</div>
 	);
 };

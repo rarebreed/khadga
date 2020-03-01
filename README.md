@@ -21,7 +21,7 @@ To implement this, there are 4 main components:
 - A backend, comprised of a rust warp server that handles the connection for WebRTC and websockets
 - A frontend, which is a react based SPA that will contain the UI for the session
 - A cloud firestore database to store chats, documents and (public) keys
-- A webassembly library to assist tensorflow using wasm-bindgen
+- A webassembly library to assist geting data for tensorflow using wasm-bindgen
 
 ### Backend: khadga
 

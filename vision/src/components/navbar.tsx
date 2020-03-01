@@ -170,17 +170,27 @@ class NavBar extends React.Component<PropsFromRedux> {
 	render() {
 		return (
 			<nav className="navbar-grid-area">
-				<ul className="navbar">
-          <NavBarItem >khadga</NavBarItem>
-					<NavBarItem callback={ this.setupChat }>Chat</NavBarItem>
-          <NavBarItem callback={ this.setupWebcam }>Webcam</NavBarItem>
-            {/* <NavBarDropDown value="Menu">
-              <a className="dropdown-item" href="#">Link 1</a>
-              <a className="dropdown-item" href="#">Link 2</a>
-              <a className="dropdown-item" href="#">Link 3</a>
-            </NavBarDropDown> */}
-					<GoogleAuth />
-				</ul>
+        <div className="navbar">
+          <div className="navsection">
+            <img src="khadga-logo-cropped.png"
+                 alt="khadga"
+                 height="42px"
+                 className="fit" />
+            <NavBarItem href="https://rarebreed.github.com">About</NavBarItem>
+            <NavBarDropDown value="Menu">
+              <a className="dropdown-item"
+                  href="#"
+                  onClick={ this.setupChat }>Chat</a>
+              <a className="dropdown-item"
+                  href="#"
+                  onClick={ this.setupWebcam }>Webcam</a>
+            </NavBarDropDown>
+          </div>
+          <div className="navsection justify-right">
+            <GoogleAuth />
+          </div>
+        </div>
+
 			</nav>
 		);
 	}
