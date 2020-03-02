@@ -10,5 +10,7 @@ WORKDIR /apps/mimir
 RUN npm install
 
 COPY ./mimir .
+RUN ls -al
+RUN npm run build
 
-CMD [ "npm", "run", "start" ]
+CMD [ "npm", "run", "start:prod" ]

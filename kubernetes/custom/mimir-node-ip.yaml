@@ -3,10 +3,9 @@ kind: Service
 metadata:
   name: mimir-node-ip-service
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     component: mimir
   ports:
     - port: 3000
       targetPort: 3000
-      protocol: TCP

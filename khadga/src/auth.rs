@@ -109,10 +109,17 @@ pub async fn make_verify_request(
 ) -> Result<impl Reply, Infallible> {
     let (params, user) = args;
 
+    // Get the mimir host and port from the kube env vars
+    let mimir_host = std::env::var("MIMIR_NODE_IP_SERVICE_SERVICE_HOST")
+        .expect("Please startup mimir-node-ip-service");
+    let mimir_port = std::env::var("MIMIR_NODE_IP_SERVICE_SERVICE_PORT")
+        .expect("Please startup mimir-node-ip-service");
+    let mimir = format!("http://{}:{}/auth", mimir_host, mimir_port);
+
     let builder = Response::builder();
     let post_data = AuthPost { token: params.token };
     let response = reqwest::Client::new()
-        .post("http://localhost:3000/auth")
+        .post(&mimir)
         .json(&post_data)
         .send()
         .await;
