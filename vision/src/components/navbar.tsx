@@ -67,8 +67,7 @@ class NavBar extends React.Component<PropsFromRedux> {
 	 * webcam video stream, not another user's webcam stream
 	 */
 	setupWebcam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    const mediaDevs = noesis.list_media_devices();
-    logger.log(JSON.stringify(mediaDevs));
+    // logger.log(JSON.stringify(mediaDevs));
     const webcamState = {
       active: true
     };
@@ -89,6 +88,8 @@ class NavBar extends React.Component<PropsFromRedux> {
       const msg: WsMessage<any> = JSON.parse(evt.data);
       const auth = this.props.auth;
 
+      logger.log(`Got message: `, msg);
+
       switch(msg.event_type) {
         case "Disconnect":
         case "Connect":
@@ -105,21 +106,27 @@ class NavBar extends React.Component<PropsFromRedux> {
           break;
         case "CommandRequest":
           const cmd = msg.body as WsCommand<any>;
-          if (cmd.op === "ping") {
+          logger.log(`command is =`, cmd);
+
+          if (cmd.cmd.op.toLowerCase() === "ping") {
             const args = cmd.args as string[];
-            const replyMsg: WsMessage<WsCommand<string[]>> = {
+            const replyMsg: WsMessage<string> = {
               sender: msg.sender,
               recipients: msg.recipients,
               event_type: "CommandReply",
-              body: {
-                op: "pong",
-                ack: false,
+              body: JSON.stringify({
+                cmd: {
+                  op: "pong",
+                  ack: false,
+                  id: this.props.user
+                },
                 args
-              }
+              })
             };
             socket.send(JSON.stringify(replyMsg));
+            logger.log(`Sent reply: `, replyMsg);
           } else {
-            logger.log(`Got non-ping command message`, msg);
+            // logger.log(`Got non-ping command message`, msg);
           }
 
           break;
@@ -163,17 +170,27 @@ class NavBar extends React.Component<PropsFromRedux> {
 	render() {
 		return (
 			<nav className="navbar-grid-area">
-				<ul className="navbar">
-          <NavBarItem >khadga</NavBarItem>
-					<NavBarItem callback={ this.setupChat }>Chat</NavBarItem>
-          <NavBarItem callback={ this.setupWebcam }>Webcam</NavBarItem>
-{/*           <NavBarDropDown value="Menu">
-            <a className="dropdown-item" href="#">Link 1</a>
-            <a className="dropdown-item" href="#">Link 2</a>
-            <a className="dropdown-item" href="#">Link 3</a>
-          </NavBarDropDown> */}
-					<GoogleAuth />
-				</ul>
+        <div className="navbar">
+          <div className="navsection">
+            <img src="khadga-logo-cropped.png"
+                 alt="khadga"
+                 height="42px"
+                 className="fit" />
+            <NavBarItem href="https://rarebreed.github.com">About</NavBarItem>
+            <NavBarDropDown value="Menu">
+              <a className="dropdown-item"
+                  href="#"
+                  onClick={ this.setupChat }>Chat</a>
+              <a className="dropdown-item"
+                  href="#"
+                  onClick={ this.setupWebcam }>Webcam</a>
+            </NavBarDropDown>
+          </div>
+          <div className="navsection justify-right">
+            <GoogleAuth />
+          </div>
+        </div>
+
 			</nav>
 		);
 	}

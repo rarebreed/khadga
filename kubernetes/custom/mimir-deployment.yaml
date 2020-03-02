@@ -1,26 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: mimir-deployment
 spec:
+  replicas: 1
   selector:
     matchLabels:
-      component: khadga
+      component: mimir
   template:
     metadata:
       labels:
-        component: khadga
+        component: mimir
     spec:
       containers:
-      - name: khadga
-        image: rarebreed/khadga:latest
+      - name: mimir
+        image: rarebreed/mimir:latest
         resources:
           limits:
             memory: "128Mi"
-            cpu: "250m"
+            cpu: "200m"
         ports:
-        - containerPort: 7001
+        - containerPort: 3000
         readinessProbe:
             httpGet:
               path: /health
-              port: 7001
+              port: 3000

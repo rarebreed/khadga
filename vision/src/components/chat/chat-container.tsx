@@ -2,7 +2,7 @@ import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
 import { ChatMessage } from "./message";
-import { VideoStream } from "../webrtc/webcam";
+import VideoStream from "../webrtc/webcam";
 import { State } from "../../state/store";
 import { logger } from "../../logger";
 

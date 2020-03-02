@@ -78,9 +78,14 @@ pub async fn list_media_devices() -> Result<js_sys::Array, JsValue> {
     let navigator = get_navigator();
     let media_devs = navigator.media_devices()?;
 
+    // Unfortunately this is all a little bit of magic.  enumerate_devices() returns a Promise of an
+    // array of MediaDevice.  However, all rust knows is that it is a Promise, but not for example
+    // that is is a Promise<Array<MediaDeviceInfo>>
     let devices = js_sys::Array::new();
     match media_devs.enumerate_devices() {
         Ok(devs) => {
+            // devs is a Promise<Array<MediaDeviceInfo>>, so we use rust's async await to wait on
+            // the js Promise
             let media_device_info_arr = JsFuture::from(devs).await?;
 
             let iterator = js_sys::try_iter(&media_device_info_arr)?

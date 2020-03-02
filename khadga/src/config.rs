@@ -62,12 +62,16 @@ pub struct LogCfg {
 pub struct TLS {
     pub set: bool,
     pub ca_path: String,
-    pub key_path: String
+    pub key_path: String,
 }
 
 impl fmt::Display for TLS {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "set: {}\nca_path: {}\nkey_path: {}", self.set, self.ca_path, self.key_path)
+        write!(
+            f,
+            "set: {}\nca_path: {}\nkey_path: {}",
+            self.set, self.ca_path, self.key_path
+        )
     }
 }
 
@@ -96,7 +100,7 @@ impl fmt::Display for KhadgaCfg {
 pub struct Settings {
     pub services: Services,
     pub logging: LogCfg,
-    pub tls: TLS
+    pub tls: TLS,
 }
 
 impl fmt::Display for Settings {

@@ -1,4 +1,8 @@
 //! Contains the mongodb connection, collections, and other helpers
+//! FIXME: This code is basically dead for now, since we are no longer using mongodb
+//! However, we will eventually need code to store stuff in either Firestore or rethinkdb and I
+//! think that a lot of the code skeleton will essentially be the same.  An abstraction over a
+//! database would be nice, but rust's `diesel` only works for SQL databases.
 
 use super::{config::Settings,
             data::User};

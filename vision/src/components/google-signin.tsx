@@ -22,6 +22,21 @@ interface GAPI {
 
 type WindowGABI = Window & GAPI;
 
+interface GoogleProfile {
+	profile: string,  // = googleUser.getBasicProfile();
+	username: string, // = profile.getName();
+	email: string,    // = profile.getEmail();
+	id: string,       // = profile.getId();
+	url: string       // = profile.getImageUrl();
+	login_time: Date
+}
+
+interface LoginParams {
+	uname: string,
+	email: string,
+	token: string
+}
+
 interface LoggedInState {
 	username: string,
 	auth2: any | null
@@ -47,6 +62,11 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 	componentDidMount() {
+		// TODO: Read the cookie and check the expiration time
+		if (document.cookie) {
+			logger.log("Cookie is: ", document.cookie.split(";"));
+		}
+
 		const wg: WindowGABI = window;
 		if (wg.gapi) {
 			logger.debug(`gapi is`, wg.gapi);
@@ -98,10 +118,29 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		const email: string = profile.getEmail();
 		const id = profile.getId();
 		const url: string = profile.getImageUrl();
+		const userProfile: GoogleProfile = {
+			profile, username, email, id, url,
+			login_time: new Date(Date.now())
+		};
 
 		logger.debug(`Name: ${username}\nEmail: ${email}\nId: ${id}\nURL: ${url}`);
 		const alreadyConnected = this.props.connectState.connected;
 
+		logger.log("Getting auth response");
+		try {
+			const authResp = googleUser.getAuthResponse();
+			logger.log("auth: ", authResp);
+			this.getJWT({
+				uname: username,
+				email,
+				token: authResp.id_token
+			}).then(jwt => {
+				const cookie = `jwt=${jwt}; secure; samesite=strict;`;
+				document.cookie = cookie;
+			}).catch(ex => logger.error(ex));
+		} catch (ex) {
+			logger.error(ex);
+		}
 
 		let user = email.split("@")[0];
 		user = user.replace(/[\.+]/, "_");
@@ -110,6 +149,50 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 																, user.replace(/\s+/, "")
 																, this.props.connectState.auth2
 																, USER_LOGIN);
+
+		// TODO: We should look at the existing cookie, and modify what's needed. Eventually, if we use
+		// custom headers for JWT, we can sign the header with the user's public key and safely store
+		// the JWT token in the cookie. If an attacker somehow sniffed or stole the JWT, they would
+		// also need access to the private key (which if they have, all bets are off anyway)
+	}
+
+	/**
+	 * Takes the id_token from our Google Auth and passes it to khadga to get a JWT
+	 *
+	 * Note that we are **not** using the id_token from Google.  The reason is to avoid overhead with
+	 * passing between khadga and mimir to do validation on every request.
+	 *
+	 * @param googleToken
+	 */
+	async getJWT(login: LoginParams): Promise<string> {
+		const origin = window.location.host;
+		const { uname, email, token } = login;
+
+		logger.log(`origin is: https://${origin}/login`);
+		const resp = await fetch(`https://${origin}/login`, {
+			method: "POST",
+			cache: "default",
+			credentials: "omit",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			redirect: "follow",
+			// Same as LoginParams in khadga code
+			body: JSON.stringify({
+				uname,
+				email,
+				token
+			})
+		});
+
+		// Should have the JWT now if credentials now
+		if (resp.status !== 200) {
+			throw new Error("Could not get JWT token");
+		}
+
+		const jwt = await resp.text();
+		logger.log("jwt = ", jwt);
+		return jwt;
 	}
 
 	signIn = () => {
@@ -151,15 +234,20 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 	}
 
 	signInButton = (
-			<NavBarItem classStyle="login button"
-								  data-onsuccess={ this.onSignIn }
-									callback={ this.signIn }>
+		<a className="button"
+		   data-onsuccess={ this.onSignIn }
+			 onClick={ this.signIn }>
+			{/* <NavBarItem classStyle="navbar-item button"
+								  >
 			  Sign in with Google
-			</NavBarItem>
+			</NavBarItem> */}
+			Sign in with Google
+		</a>
+
 	);
 
 	signOutButton = (
-		<NavBarItem classStyle="login button"
+		<NavBarItem classStyle="navbar-item button"
 								callback={ this.signOut }>
 			  Logout
 		</NavBarItem>

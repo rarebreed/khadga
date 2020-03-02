@@ -5,15 +5,33 @@
  */
 
 import React from "react";
+import { connect, ConnectedProps } from "react-redux";
+
 import * as noesis from "@khadga/noesis";
+import { State } from "../../state/store";
+import { webcamCamAction } from "../../state/action-creators";
+import { WEBCAM_DISABLE } from "../../state/types";
 
 const logger = console;
 
-export class VideoStream extends React.Component {
+const mapStateToProps = (state: State) => {
+	return {
+		webcamActive: state.webcam.active
+	};
+};
+
+const mapPropsToDispatch = {
+	setWebcam: webcamCamAction
+};
+
+const connector = connect(mapStateToProps, mapPropsToDispatch);
+type PropsFromRedux = ConnectedProps<typeof connector>;
+
+class VideoStream extends React.Component<PropsFromRedux> {
 	myRef: React.RefObject<HTMLDivElement>;
 	videoRef: React.RefObject<HTMLVideoElement>;
 
-	constructor(props: {}) {
+	constructor(props: PropsFromRedux) {
 		super(props);
 		this.myRef = React.createRef();
 		this.videoRef = React.createRef();
@@ -33,6 +51,11 @@ export class VideoStream extends React.Component {
 			const camProm = noesis.get_media_stream() as Promise<MediaStream>;
 			const cam = await camProm;
 			const video = this.videoRef.current;
+
+			// TODO: Present a list of options for the user
+			const mediaDevs = noesis.list_media_devices();
+			logger.log(mediaDevs);
+
 			video.srcObject = cam;
 			video.play();
 		} else {
@@ -48,7 +71,7 @@ export class VideoStream extends React.Component {
 			video.remove();
 		}
 
-		alert("TODO: Send action to set webcam state to disabled");
+		this.props.setWebcam({ active: false }, WEBCAM_DISABLE);
 	}
 
 	render() {
@@ -66,6 +89,8 @@ export class VideoStream extends React.Component {
 		);
 	}
 }
+
+export default connector(VideoStream);
 
 // Make the DIV element draggable:
 // dragElement(document.getElementById("mydiv"));
