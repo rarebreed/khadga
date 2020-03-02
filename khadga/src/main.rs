@@ -1,4 +1,5 @@
-use khadga::{chat::{user_connected,
+use khadga::{auth::login,
+             chat::{user_connected,
                     Users},
              config::Settings};
 use log::info;
@@ -56,7 +57,11 @@ async fn main() {
 
     let log = warp::log("khadga");
 
-    let app = chat.or(health).or(start).with(log);
+    let app = chat
+        .or(health)
+        .or(start)
+        .or(login())
+        .with(log);
 
     let host: SocketAddr = khadga_addr
         .parse()

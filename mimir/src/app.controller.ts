@@ -1,4 +1,9 @@
-import { Controller, Post, Body, Header } from '@nestjs/common';
+import { Controller
+       , Post
+       , Get
+       , Body
+       , Header 
+       } from '@nestjs/common';
 import { AppService } from './app.service';
 
 interface GoogleToken {
@@ -16,5 +21,14 @@ export class AppController {
 
     // TODO: Look up user in the database
     return `UserID is ${userid}`
+  }
+}
+
+
+@Controller("/health")
+export class HealthController {
+  @Get()
+  health() {
+    return "Healthy"
   }
 }

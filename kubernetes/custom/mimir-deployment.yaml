@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimir-deployment
+spec:
+  selector:
+    matchLabels:
+      component: mimir
+  template:
+    metadata:
+      labels:
+        component: mimir
+    spec:
+      containers:
+      - name: mimir
+        image: rarebreed/mimir:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000

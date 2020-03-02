@@ -15,15 +15,17 @@ pub struct User {
     pub user_name: String,
     pub email: String,
     pub created: String,
+    pub token: String,
     role: Role,
 }
 
 impl User {
-    pub fn new(uname: String, email: String) -> Self {
+    pub fn new(uname: String, email: String, token: String) -> Self {
         let user_name = uname.clone();
         User {
             user_name: uname,
             email,
+            token,
             created: String::from(""),
             role: Role::User(user_name),
         }

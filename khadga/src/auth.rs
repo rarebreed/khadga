@@ -27,6 +27,7 @@ use crate::{data::User,
             jwt::jwt::{create_jwt}};
 use serde::{Deserialize,
             Serialize};
+use std::convert::Infallible;
 use warp::{filters::BoxedFilter,
            http::{Response,
                   StatusCode},
@@ -40,10 +41,11 @@ struct Claims {
     exp: usize,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LoginParams {
     uname: String,
     email: String,
+    token: String,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -51,6 +53,11 @@ pub struct RegisterParams {
     uname: String,
     psw: String,
     email: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct AuthPost {
+    token: String
 }
 
 /// FIXME: This method is now deprecated, but might return once we have a freemium/premium model
@@ -92,6 +99,55 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
 }
 */
 
+/// Will perform a verification request from the mimir service
+/// 
+/// Note: If you try to make this return Result<impl Reply, warp::http::Error> you will get an error
+/// from the type that some traits are not accepted.  By making this infallible, and only ever
+/// returning a Reply (which itself holds the error) we can make this work
+pub async fn make_verify_request(
+    args: (LoginParams, User)
+) -> Result<impl Reply, Infallible> {
+    let (params, user) = args;
+
+    let builder = Response::builder();
+    let post_data = AuthPost { token: params.token };
+    let response = reqwest::Client::new()
+        .post("http://localhost:3000/auth")
+        .json(&post_data)
+        .send()
+        .await;
+    
+    let resp = match response {
+        Ok(resp) => {
+            if resp.status() != 201 {
+                builder
+                    .status(resp.status())
+                    .body(format!("Unable to generate JWT token"))
+            } else {                      // Generate JWT
+                match create_jwt(&user.user_name, &user.email) {
+                    Ok(jwt) => {
+                        builder
+                            .status(StatusCode::OK)
+                            .body(jwt)
+                    },
+                    Err(e) => {
+                        builder
+                            .status(StatusCode::from_u16(403).unwrap())
+                            .body(format!("Unable to generate JWT token: {}", e))
+                    }
+                }
+            }
+        },
+        Err(err) => {
+            builder
+                .status(StatusCode::from_u16(500).unwrap())
+                .body(format!("Failed getting response: {}", err))
+        }
+    };
+    
+    Ok(resp.expect("Could not build response"))
+}
+
 /// This is the handler for when the user clicks the Sign in with Google button on the app.
 /// 
 /// Once the user authorizes us with Google, the client will hit this endpoint and provide some
@@ -104,25 +160,18 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
         .and(warp::path("login"))
         .and(warp::body::json())
         .map(|login_params: LoginParams| {
-            println!("{:#?}", login_params);
             // TODO: Need a login handler and a websocket endpoint
             // When a user logs in, they will be given an auth token which can be used
             // to hain access to chat and video for as long as the session maintains activity
-            let builder = Response::builder();
-            let user = User::new(login_params.uname, login_params.email);
-            
-            // Generate JWT
-            match create_jwt(&user.user_name, &user.email) {
-                Ok(jwt) => {
-                    builder.status(StatusCode::OK).body(jwt)
-                },
-                Err(e) => {
-                    builder
-                        .status(StatusCode::from_u16(403).unwrap())
-                        .body(String::from("Unable to generate JWT token"))
-                }
-            }
-        });
+            let params_copy = login_params.clone();
+            let user = User::new(
+                login_params.uname,
+                login_params.email,
+                login_params.token
+            );
+            (params_copy, user)
+        })
+        .and_then(make_verify_request);
     login.boxed()
 }
 

@@ -1,9 +1,9 @@
 {
   "name": "mimir",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "license": "MIT",
+  "version": "0.1.0",
+  "description": "Firestore service for khadga app",
+  "author": "Sean Toner",
+  "license": "Apache-2.0",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",

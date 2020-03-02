@@ -31,6 +31,12 @@ interface GoogleProfile {
 	login_time: Date
 }
 
+interface LoginParams {
+	uname: string,
+	email: string,
+	token: string
+}
+
 interface LoggedInState {
 	username: string,
 	auth2: any | null
@@ -56,8 +62,10 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 	componentDidMount() {
-		// TODO: Read the cookie and make a call to our database.  Check when last user logout time was
-		// if it's within 15min, allow user to sign back in automatically.
+		// TODO: Read the cookie and check the expiration time
+		if (document.cookie) {
+			logger.log("Cookie is: ", document.cookie.split(";"));
+		}
 
 		const wg: WindowGABI = window;
 		if (wg.gapi) {
@@ -122,6 +130,14 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		try {
 			const authResp = googleUser.getAuthResponse();
 			logger.log("auth: ", authResp);
+			this.getJWT({
+				uname: username,
+				email,
+				token: authResp.id_token
+			}).then(jwt => {
+				const cookie = `jwt=${jwt}; secure; samesite=strict;`;
+				document.cookie = cookie;
+			}).catch(ex => logger.error(ex));
 		} catch (ex) {
 			logger.error(ex);
 		}
@@ -138,7 +154,45 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		// custom headers for JWT, we can sign the header with the user's public key and safely store
 		// the JWT token in the cookie. If an attacker somehow sniffed or stole the JWT, they would
 		// also need access to the private key (which if they have, all bets are off anyway)
-		document.cookie = JSON.stringify(userProfile);
+	}
+
+	/**
+	 * Takes the id_token from our Google Auth and passes it to khadga to get a JWT
+	 *
+	 * Note that we are **not** using the id_token from Google.  The reason is to avoid overhead with
+	 * passing between khadga and mimir to do validation on every request.
+	 *
+	 * @param googleToken
+	 */
+	async getJWT(login: LoginParams): Promise<string> {
+		const origin = window.location.host;
+		const { uname, email, token } = login;
+
+		logger.log(`origin is: https://${origin}/login`);
+		const resp = await fetch(`https://${origin}/login`, {
+			method: "POST",
+			cache: "default",
+			credentials: "omit",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			redirect: "follow",
+			// Same as LoginParams in khadga code
+			body: JSON.stringify({
+				uname,
+				email,
+				token
+			})
+		});
+
+		// Should have the JWT now if credentials now
+		if (resp.status !== 200) {
+			throw new Error("Could not get JWT token");
+		}
+
+		const jwt = await resp.text();
+		logger.log("jwt = ", jwt);
+		return jwt;
 	}
 
 	signIn = () => {

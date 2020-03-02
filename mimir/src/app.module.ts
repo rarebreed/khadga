@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
+import { AppController, HealthController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from "@nestjs/config";
 
@@ -12,7 +12,7 @@ if (process.env["NODE_ENV"] && process.env["NODE_ENV"] === "dev") {
   imports: [ConfigModule.forRoot({
     envFilePath: dotFile
   })],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService],
 })
 export class AppModule {}
