@@ -1,7 +1,4 @@
 services:
-  mongod: 
-    host: 127.0.0.1
-    database: users
   khadga:
     host: 127.0.0.1
     port: 7001
@@ -11,3 +8,6 @@ tls:
   set: true
   ca_path: "config/khadga-test.crt"
   key_path: "config/khadga-test-pvt.key"
+# FIXME: Need to rename the service in kubernetes.  These are mimir settings
+# host: 127.0.0.1
+# port: 3000

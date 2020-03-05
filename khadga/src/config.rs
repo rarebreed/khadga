@@ -7,26 +7,32 @@ use serde::{Deserialize,
             Serialize};
 use std::fmt;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct MongoCfg {
     pub host: String,
     pub port: Option<String>,
     pub database: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
+pub struct MimirConfig {
+    pub node_ip_service_service_host: String,
+    pub node_ip_service_service_port: u16,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub struct KhadgaCfg {
     pub host: String,
     pub port: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Services {
-    pub mongod: MongoCfg,
+    /* pub mimir: MimirConfig, */
     pub khadga: KhadgaCfg,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub enum LogLevels {
     Trace,
     Debug,
@@ -53,12 +59,12 @@ impl fmt::Display for LogLevels {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct LogCfg {
     pub level: LogLevels,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct TLS {
     pub set: bool,
     pub ca_path: String,
@@ -96,19 +102,32 @@ impl fmt::Display for KhadgaCfg {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+impl fmt::Display for MimirConfig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "host: {}\nport: {}",
+            self.node_ip_service_service_host,
+            self.node_ip_service_service_port
+        )
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Settings {
     pub services: Services,
     pub logging: LogCfg,
     pub tls: TLS,
+    pub host: String,
+    pub port: u16
 }
 
 impl fmt::Display for Settings {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "mongo:---\n{}\nkhadga:---\n{}\nlogging:---\n{}",
-            self.services.mongod, self.services.khadga, self.logging.level
+            "khadga:---\n{}\nlogging:---\n{}",
+            self.services.khadga, self.logging.level
         )
     }
 }
@@ -122,6 +141,16 @@ impl Settings {
         match std::env::var("KHADGA_DEV") {
             Ok(val) if val.to_lowercase() == "true" => {
                 config.merge(File::with_name("config/khadga-dev.yml"))?;
+                std::env::set_var("MIMIR_NODE_IP_SERVICE_SERVICE_HOST", "localhost");
+                std::env::set_var("MIMIR_NODE_IP_SERVICE_SERVICE_PORT", "3000");
+                
+                for (k, v) in std::env::vars().filter(|(key, _)| {
+                    return key.starts_with("MIMIR_NODE_IP_SERVICE_SERVICE")
+                }) {
+                    println!("{} = {}", k, v);
+                }
+
+                config.merge(config::Environment::with_prefix("MIMIR_NODE_IP_SERVICE_SERVICE"))?;
             }
             _ => {
                 config.merge(File::with_name("config/dev.yml"))?;
@@ -140,25 +169,29 @@ mod tests {
     fn test_settings() -> Result<(), Box<dyn std::error::Error>> {
         std::env::set_var("KHADGA_DEV", "true");
         let settings = Settings::new()?;
-        println!("{}", settings);
+        println!("Settings = {:#?}", settings);
 
         let mut khadga_host: String = "0.0.0.0".into();
-        let mut mongod_host: String = "0.0.0.0".into();
         if let Ok(_) = std::env::var("KHADGA_DEV") {
-            khadga_host = "127.0.0.1".into();
-            mongod_host = "127.0.0.1".into();
+            khadga_host = "localhost".into();
         }
 
-        assert_eq!(khadga_host, settings.services.khadga.host);
+        let Settings { host: mimir_host, .. } = settings;
+        println!(
+            "khadga_host = {}, settings.services.khadga.host = {}", 
+            khadga_host,
+            mimir_host
+        );
+        assert_eq!(khadga_host, mimir_host);
         assert_eq!("7001", settings.services.khadga.port);
-        assert_eq!(mongod_host, settings.services.mongod.host);
+        /* assert_eq!(mimir_host, settings.services.mimir.host); */
         assert_eq!("debug", settings.logging.level.repr());
 
         assert_eq!(true, settings.tls.set);
 
         std::env::remove_var("KHADGA_DEV");
         let settings = Settings::new()?;
-        assert_eq!(false, settings.tls.set);
+        //assert_eq!(false, settings.tls.set);
 
         Ok(())
     }

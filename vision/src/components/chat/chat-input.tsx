@@ -9,7 +9,7 @@ const logger = console;
 
 interface TextState {
 	message: string,
-	target: React.RefObject<HTMLInputElement>
+	target: React.RefObject<HTMLTextAreaElement>,
 }
 
 const mapPropsToState = (store: State) => {
@@ -17,7 +17,8 @@ const mapPropsToState = (store: State) => {
 		socket: store.websocket.socket,
 		loggedIn: store.connectState.loggedIn,
 		connected: store.connectState.connected,
-		username: store.connectState.username
+		username: store.connectState.username,
+		selectedUsers: store.selectedUsers
 	};
 };
 
@@ -30,28 +31,69 @@ type PropsFromReduxLogin = ConnectedProps<typeof textInputConnector>;
 
 class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 	message: string;
-	target: React.RefObject<HTMLInputElement>;
+	target: React.RefObject<HTMLTextAreaElement>;
+	ctlKeyDown: boolean;
 
   constructor(props: PropsFromReduxLogin) {
 		super(props);
 		this.message = "";
 		this.target = React.createRef();
+		this.ctlKeyDown = false;
 
 		this.state = {
 			message: this.message,
-			target: this.target
+			target: this.target,
 		};
 	}
 
-	dataHandler = (evt: React.ChangeEvent<HTMLInputElement>) => {
+	dataHandler = (evt: React.ChangeEvent<HTMLTextAreaElement>) => {
 		this.setState({
 			message: evt.target.value
 		});
+
+		if (evt.target.value.includes("\n")) {
+			this.sendMessage();
+		}
 	}
 
-	send = (evt: React.MouseEvent<HTMLButtonElement>) => {
+	onDown = (evt: React.KeyboardEvent) => {
+		if (evt.key === "Control") {
+			this.ctlKeyDown = true;
+		}
+
+		if (evt.key === "Enter" && this.ctlKeyDown) {
+			this.sendMessage();
+		}
+	}
+
+	onUp = (evt: React.KeyboardEvent) => {
+		if (evt.key === "Control") {
+			this.ctlKeyDown = false;
+		}
+	}
+
+	private sendMessage = () => {
+		// check to see if we are addressing individual member
+		let recipients: string[] = Array.from(this.props.connected);
+		if (this.props.selectedUsers.length > 0) {
+			recipients = this.props.selectedUsers;
+			// Always include ourself in the recipients list
+			if (!this.props.selectedUsers.includes(this.props.username)) {
+				recipients.push(this.props.username);
+			}
+		}
+
+		if (this.state.message.startsWith("[")) {
+			let results = this.state.message.split(/\[(.+)\]/);
+			results = results.filter(r => r !== "");
+			if (results.length === 0) {
+				alert("error parsing message.  Format is:\n[@user1,@user2] message");
+				return;
+			}
+			recipients = results[0].split(",").map(user => user.replace("@", ""));
+		}
 		const msg = this.makeMessage(this.state.message);
-    msg.recipients = Array.from(this.props.connected);
+    msg.recipients = recipients;
 
 		logger.log(`sending`, msg);
 		if (this.props.socket) {
@@ -68,10 +110,10 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 		this.setState({
 			message: ""
 		});
+	}
 
-		// Even though we could send a message directly to the chat-container, we will wait for the
-		// back end to send it back.
-		// this.props.sendMessage(this.makeChatMessage(msg), CHAT_MESSAGE_ADD);
+	send = (evt: React.MouseEvent<HTMLButtonElement>) => {
+		this.sendMessage();
 	}
 
 	makeMessage = (body: string, recipients: string[] = []): WsMessage<string> => {
@@ -94,7 +136,7 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 			sender: msg.sender,
 			recipients: msg.recipients,
 			body: msg.body,
-			time: new Date().toUTCString()
+			time: new Date().toLocaleTimeString()
 		};
 	}
 
@@ -102,9 +144,13 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 		return(
 			<div className="chat-input">
 				<div className="field-group">
-					<input type="text"
-					       ref={ this.target }
-								 onInput={ this.dataHandler } />
+					<textarea className="chat-text"
+						cols={ 1 }
+						wrap={ "hard" }
+						ref={ this.target }
+						onKeyDown={ this.onDown }
+						onKeyUp={ this.onUp }
+						onInput={ this.dataHandler } />
 					<button onClick={ this.send }>
 						Send
 					</button>

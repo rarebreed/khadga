@@ -21,7 +21,7 @@ const mapPropsToDispatch = {
 const connector = connect(mapPropsToState, mapPropsToDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
-import { ListItem } from "./user";
+import ListItem from "./user";
 
 class SideBar extends React.Component<PropsFromRedux>  {
 	render() {
@@ -31,7 +31,7 @@ class SideBar extends React.Component<PropsFromRedux>  {
 		  .filter(user => user !== "")
 		  .map(user => {
 			// const item = <li key={user}>{user}</li>;
-			const item2 = <ListItem classStyle="username" name={ user } />
+			const item2 = <ListItem classStyle="username" name={ user } />;
 			return item2;
 		});
 

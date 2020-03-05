@@ -5,7 +5,8 @@ import { modalReducer
 			 , loginFormReducer
 			 , webcamReducer
 			 , websocketReducer
-			 , chatMessageReducer
+			 , chatMessageReducer,
+			 selectedUsersReducer
 			 } from "./reducers";
 import { ModalState
 			 , SignUp
@@ -23,7 +24,8 @@ export interface State {
 	connectState: LoginReducerState,
 	webcam: WebcamState
 	websocket: WebSocketState,
-	messages: ChatMessageState[]
+	messages: ChatMessageState[],
+	selectedUsers: string[]
 }
 
 /**
@@ -36,7 +38,8 @@ export const reducers = combineReducers({
 	connectState: loginReducer,
 	webcam: webcamReducer,
 	websocket: websocketReducer,
-	messages: chatMessageReducer
+	messages: chatMessageReducer,
+	selectedUsers: selectedUsersReducer
 });
 
 export default {

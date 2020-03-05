@@ -1,7 +1,4 @@
 services:
-  mongod: 
-    host: mongodb   # Name of the service in docker-compose
-    database: users
   khadga:
     host: 0.0.0.0
     port: 7001
@@ -11,3 +8,6 @@ tls:
   set: false
   ca_path: ""
   key_path: ""
+# FIXME: Need to rename the service in kubernetes.  These are mimir settings
+host: localhost
+port: 3000

@@ -11,6 +11,8 @@ import { ModalAction
 			 , WebcamAction
 			 , WebcamState
 			 , WEBCAM_ACTIONS
+			 , SELECT_USERS_ACTION
+			 , SelectUsersAction
 			 } from "./types";
 import { ChatMessageState, CHAT_MESSAGE_ACTIONS} from "./message-types";
 
@@ -77,9 +79,16 @@ export const websocketAction = ( ws: WebSocket | any | null)
 	};
 };
 
-export const chatMessageAction = ( message: ChatMessageState, action: CHAT_MESSAGE_ACTIONS) => {
+export const chatMessageAction = (message: ChatMessageState, action: CHAT_MESSAGE_ACTIONS) => {
 	return {
 		type: action,
 		message
+	};
+};
+
+export const selectUserAction = (user: string, action: SELECT_USERS_ACTION): SelectUsersAction => {
+	return {
+		type: action,
+		user
 	};
 };

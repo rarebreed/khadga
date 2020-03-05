@@ -17,8 +17,8 @@ import { SET_SIGNUP_ACTIVE
 import { websocketAction
 			 , createLoginAction
 			 , webcamCamAction
+			 , selectUserAction
 			 } from "../state/action-creators";
-import { stat } from "fs";
 
 test("Tests the store", () => {
 	const stateStore = createStore(store.reducers);
@@ -108,19 +108,22 @@ test("User connection event inserts into connected only if user logged in", () =
 	let stateNow = stateStore.getState();
 	const now = Array.from(stateNow.connectState.connected);
 
+	// First, we add henry
 	let action = createLoginAction(now, "henry", null, USER_CONNECTION_EVT);
 	stateStore.dispatch(action);
-
 	stateNow = stateStore.getState();
+	logger.log("Adding henry with USER_CONNECTION_EVENT: ", stateNow);
 	expect(stateNow.connectState.connected.length).toEqual(0);
 
 	action = createLoginAction(stateNow.connectState.connected, "toner", null, USER_LOGIN);
 	stateStore.dispatch(action);
 	stateNow = stateStore.getState();
+	logger.log("Adding toner with USER_LOGIN: ", stateNow);
 
-	action = createLoginAction(now, "toner", null, USER_CONNECTION_EVT);
+	action = createLoginAction(["toner"], "toner", null, USER_CONNECTION_EVT);
 	stateStore.dispatch(action);
 	stateNow = stateStore.getState();
+	logger.log("After USER_CONNECTION_EVENT: ", stateNow);
 	expect(stateNow.connectState.connected.includes("toner")).toBeTruthy();
 
 });
@@ -170,7 +173,7 @@ test.skip("Tests that user signs in, clicks Chat, then logs out", async () => {
 	stateStore.dispatch(action);
 
 	// Simulate clicking chat
-	const sock = new WebSocket("ws://localhost:7001/chat/SeanToner");
+	const sock = new WebSocket("wss://localhost:7001/chat/SeanToner");
 	sock.on("close", (code, reason) => {
 		logger.log(`Closed from server: ${code}, ${reason}`);
 	});
@@ -235,6 +238,25 @@ test.skip("Tests that user signs in, clicks Chat, then logs out", async () => {
 	logger.log("After WEBCAM_DISABLE action");
 	stateNow = stateStore.getState();
 	logger.log(stateNow);
+});
+
+test("Tests the selected users", () => {
+	const stateStore = createStore(store.reducers);
+	let action = selectUserAction("SeanToner", "ADD_USER");
+	stateStore.dispatch(action);
+
+	let stateNow = stateStore.getState();
+	expect(stateNow.selectedUsers.includes("SeanToner")).toBeTruthy();
+
+	action = selectUserAction("foobar", "ADD_USER");
+	stateStore.dispatch(action);
+	stateNow = stateStore.getState();
+	expect(stateNow.selectedUsers.includes("foobar")).toBeTruthy();
+
+	action = selectUserAction("SeanToner", "REMOVE_USER");
+	stateStore.dispatch(action);
+	stateNow = stateStore.getState();
+	expect(stateNow.selectedUsers.includes("SeanToner")).toBeFalsy();
 });
 
 // TODO: Add enzyme to do component level testing

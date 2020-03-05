@@ -137,7 +137,11 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 			}).then(jwt => {
 				const cookie = `jwt=${jwt}; secure; samesite=strict;`;
 				document.cookie = cookie;
-			}).catch(ex => logger.error(ex));
+			}).catch(ex => {
+				logger.error(ex);
+				// TODO: Send action to logout.  If we don't get a JWT there's not much a user can do
+				this.signOut();
+			});
 		} catch (ex) {
 			logger.error(ex);
 		}

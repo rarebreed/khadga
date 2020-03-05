@@ -88,7 +88,7 @@ class NavBar extends React.Component<PropsFromRedux> {
       const msg: WsMessage<any> = JSON.parse(evt.data);
       const auth = this.props.auth;
 
-      logger.log(`Got message: `, msg);
+      logger.debug(`Got message: `, msg);
 
       switch(msg.event_type) {
         case "Disconnect":
@@ -106,7 +106,7 @@ class NavBar extends React.Component<PropsFromRedux> {
           break;
         case "CommandRequest":
           const cmd = msg.body as WsCommand<any>;
-          logger.log(`command is =`, cmd);
+          logger.debug(`command is =`, cmd);
 
           if (cmd.cmd.op.toLowerCase() === "ping") {
             const args = cmd.args as string[];
@@ -124,11 +124,10 @@ class NavBar extends React.Component<PropsFromRedux> {
               })
             };
             socket.send(JSON.stringify(replyMsg));
-            logger.log(`Sent reply: `, replyMsg);
+            logger.debug(`Sent reply: `, replyMsg);
           } else {
-            // logger.log(`Got non-ping command message`, msg);
+            logger.debug(`Got non-ping command message`, msg);
           }
-
           break;
         default:
           logger.log("Unknown message type");

@@ -37,6 +37,8 @@ import { ModalState
 			 , AUTH_EXPIRED
 			 , WEBSOCKET_CLOSE
 			 , WEBSOCKET_CREATE
+			 , SelectUsersAction
+			 , SelectedUsersState
 			 } from "./types";
 import { ChatMessageState
 	     , ChatMessageAction
@@ -219,7 +221,7 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 			newstate.username = "";
 			break;
 		case USER_CONNECTION_EVT:  // Come from the server
-			if (!action.connected) {
+			if (!action.connected || action.connected.length === 0) {
 				logger.log("Empty action.connected", action.connected);
 				return previous;
 			} else if (!previous.loggedIn) {
@@ -366,6 +368,22 @@ export const chatMessageReducer = ( previous: ChatMessageState[] = []
 		case CHAT_MESSAGE_REPLY:
 			logger.error("Needs to be implemented");
 			break;
+		default:
+			return previous;
+	}
+};
+
+export const selectedUsersReducer = ( previous: string[] = []
+	                                  , action: SelectUsersAction) => {
+  switch(action.type) {
+		case "ADD_USER":
+			const newState = Array.from(previous);
+			newState.push(action.user);
+			return newState;
+		case "REMOVE_USER":
+			return previous.filter(name => name !== action.user);
+		case "CLEAR_ALL":
+			return [];
 		default:
 			return previous;
 	}

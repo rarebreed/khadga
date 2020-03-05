@@ -199,7 +199,7 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
         _ => format!("{}", msg),
     };
 
-    info!("From {} got message {}", my_id, message);
+    debug!("From {} got message {}", my_id, message);
 
     // New message from this user, send it to everyone else (except same uid)...
     // FIXME: Send only to the recipients in _mesg.

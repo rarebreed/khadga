@@ -47,6 +47,7 @@ export type LOGIN_ACTIONS = "USER_LOGIN"
 													| "USER_CONNECTION_EVT"
 													| "AUTH_CREATED"
 													| "AUTH_EXPIRED";
+export type SELECT_USERS_ACTION = "ADD_USER" | "REMOVE_USER" | "CLEAR_ALL";
 
 export interface ActiveState {
 	isActive: boolean
@@ -180,3 +181,16 @@ export interface StateStore {
 	connectedUsers: string[],
 	messages: ChatMessage[]
 }
+
+export interface SelectedUsersState {
+	selected: string[]
+}
+
+export interface SelectUsersAction {
+	type: "ADD_USER" | "REMOVE_USER" | "CLEAR_ALL",
+	user: string
+}
+
+export type ClickEvent<T extends HTMLElement> = React.MouseEvent<T, MouseEvent>;
+export type AnchorEvent = ClickEvent<HTMLAnchorElement>;
+export type InputEvent = ClickEvent<HTMLInputElement>;
