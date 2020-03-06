@@ -17,32 +17,14 @@ use serde_json;
 use tokio::{sync::{mpsc,
                    Mutex},
             time::Duration};
-use warp::{filters::BoxedFilter,
-           ws::{Message,
-                WebSocket,
-                Ws},
-           Filter,
-           Reply};
+use warp::{ws::{Message,
+                WebSocket}};
 
 /// Our state of currently connected users.
 ///
 /// - Key is their id
 /// - Value is a sender of `warp::ws::Message`
 pub type Users = Arc<Mutex<HashMap<String, mpsc::UnboundedSender<Result<Message, warp::Error>>>>>;
-
-pub async fn chat(users: Users) -> BoxedFilter<(impl Reply,)> {
-    let users2 = warp::any().map(move || users.clone());
-
-    let chat = warp::path("chat")
-        .and(warp::ws())
-        .and(warp::path::param().map(|username: String| username))
-        .and(users2)
-        .map(|ws: Ws, username: String, users: Users| {
-            info!("User {} starting chat", username);
-            ws.on_upgrade(move |socket| user_connected(socket, users, username))
-        });
-    chat.boxed()
-}
 
 /// Return a `Future` that is basically a state machine managing this specific user's connection.
 ///

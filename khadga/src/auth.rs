@@ -24,7 +24,8 @@
 //! user's system.
 
 use crate::{data::User,
-            jwt::jwt::{create_jwt}};
+            jwt::jwt::{create_jwt, JWTResponse}};
+use chrono::{Utc, Duration};
 use serde::{Deserialize,
             Serialize};
 use std::convert::Infallible;
@@ -33,6 +34,7 @@ use warp::{filters::BoxedFilter,
                   StatusCode},
            Filter,
            Reply};
+use log::{info};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
@@ -99,6 +101,26 @@ pub fn register() -> BoxedFilter<(impl Reply,)> {
 }
 */
 
+pub fn build_cookie(
+    key: &str,
+    val: &str,
+    expires: Option<Duration>,
+    flags: &[&str]
+) -> String {
+    let mut cookie = format!("{}={};", key, val);
+    if let Some(dur) = expires {
+        let expires_at = Utc::now() + dur;
+        cookie = cookie + &format!(" expires={}", expires_at.to_rfc2822())
+    }
+
+    let final_cookie = flags.into_iter()
+        .fold(cookie.clone(), |mut acc, next| {
+            acc = acc + "; " + &next;
+            return acc
+        });
+    final_cookie
+}
+
 /// Will perform a verification request from the mimir service
 /// 
 /// Note: If you try to make this return Result<impl Reply, warp::http::Error> you will get an error
@@ -133,9 +155,43 @@ pub async fn make_verify_request(
             } else {                      // Generate JWT
                 match create_jwt(&user.user_name, &user.email) {
                     Ok(jwt) => {
-                        builder
+                        let jwt_resp: JWTResponse = serde_json::from_str(&jwt).expect("Could not deserialize");
+
+                        let duration = Duration::minutes(15);
+                        let exp = Utc::now() + duration;
+                        let secure_flags = vec!["secure", "samesite=strict"];
+                        // This kind of sucks, but this is how you can concat slice/vecs
+                        let http_only_flags = [&["httpOnly"], &secure_flags[..]].concat();
+
+                        let cookie = build_cookie(
+                            "jwt",
+                            &jwt_resp.token,
+                            Some(duration),
+                            &http_only_flags
+                        );
+                        info!("jwt cookie: {}", cookie);
+
+                        let expires = build_cookie("expiry", &exp.to_rfc2822(), None, &vec![]);
+                        info!("expiry cookie: {}", expires);
+
+                        let username_s: Vec<&str> = user.email.split("@").collect();
+                        let username = username_s.get(0).expect("Could not determine username");
+                        let khadga_user = build_cookie(
+                            "khadga_user",
+                            &username,
+                            Some(duration),
+                            &secure_flags
+                        );
+                        info!("khadga_user cookie: {}", khadga_user);
+
+                        let resp = builder
                             .status(StatusCode::OK)
-                            .body(jwt)
+                            .header("Set-Cookie", cookie)
+                            .header("Set-Cookie", expires)
+                            .header("Set-Cookie", khadga_user);
+                        info!("{:?}", resp);
+
+                        resp.body(jwt)
                     },
                     Err(e) => {
                         builder

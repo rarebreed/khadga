@@ -22,6 +22,12 @@ struct Claims {
     iat: DateTime<Utc>,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct JWTResponse {
+    pub token: String,
+    pub expiry: i64
+}
+
 /// By default, jsonwebtoken expects the exp field to be a usize.  It is however more convenient to
 /// work with DateTime and Duration than raw usize (in millis since Epoch).  This is how we
 mod jwt_numeric_date {
@@ -53,19 +59,29 @@ pub static SECRET: &[u8;9] = b"secretkey";
 
 /// Generates a JSON web token using defaults
 pub fn create_jwt(user: &str, email: &str) -> Result<String, JWTError> {
+    let expiry = Utc::now() + chrono::Duration::minutes(15);
+    let exp = expiry.timestamp_millis();
     let my_claims = Claims {
         sub: user.to_owned(),
         email: email.to_owned(),
-        exp: Utc::now() + chrono::Duration::minutes(15),
+        exp: expiry,
         iat: Utc::now(),
     };
+
+    // TODO: Store information about the logged in user to the database
 
     let token = match encode(
         &Header::default(),
         &my_claims,
         &EncodingKey::from_secret(SECRET),
     ) {
-        Ok(t) => Ok(t),
+        Ok(t) => {
+            let resp = JWTResponse {
+                token: t,
+                expiry: exp
+            };
+            Ok(serde_json::to_string_pretty(&resp).expect("unable to decode"))
+        },
         Err(err) => {
             error!("Got error creating token: {}", err);
             Err(err)
@@ -75,7 +91,12 @@ pub fn create_jwt(user: &str, email: &str) -> Result<String, JWTError> {
 }
 
 /// Validator for a given user and supplied token
+/// 
+/// FIXME: This is always panicking.  We need a way to handle this gracefully and return a Result
 pub fn validate_jwt(user: &str, token: &str) {
+    let jwt: JWTResponse = serde_json::from_str(token).expect("unable to encode");
+    let token = jwt.token;
+
     let validation = Validation {
         sub: Some(user.to_string()),
         ..Validation::default()

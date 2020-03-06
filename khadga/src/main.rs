@@ -40,10 +40,12 @@ async fn main() {
     // This is the main chat endpoint.  When the front end needs to perform chat, it will call
     // this endpoint.
     let chat = warp::path("chat")
+        /* .and(warp::cookie("jwt")) */
         .and(warp::ws())
         .and(warp::path::param().map(|username: String| username))
         .and(users2)
-        .map(|ws: Ws, username: String, users: Users| {
+        .map(|/* cookie: String, */ ws: Ws, username: String, users: Users| {
+            /* info!("Cookie is: {}", cookie); */
             info!("User {} starting chat", username);
             ws.on_upgrade(move |socket| user_connected(socket, users, username))
         });

@@ -290,5 +290,6 @@ html, body {
 }
 
 .chat-text {
-  width: 100%
+  width: 100%;
+  font-size: large;
 }

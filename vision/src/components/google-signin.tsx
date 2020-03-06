@@ -15,6 +15,12 @@ import { USER_LOGIN
 			 WEBCAM_DISABLE
 			 } from "../state/types";
 
+interface JWTResponse {
+	token: string,
+	expiry: number,
+	body?: string
+}
+
 // Hack to get typescript to understand something injected into global window
 interface GAPI {
 	gapi?: any;
@@ -62,10 +68,9 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 	componentDidMount() {
-		// TODO: Read the cookie and check the expiration time
-		if (document.cookie) {
-			logger.log("Cookie is: ", document.cookie.split(";"));
-		}
+		// Read the cookie and check the expiration time.  The actual JWT is protected by a httpOnly
+		// flag so we can only read our expiration time
+		this.validateCookie();
 
 		const wg: WindowGABI = window;
 		if (wg.gapi) {
@@ -107,6 +112,48 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 																, action);
 	}
 
+	validateCookie = () => {
+		const expires = this.checkCookie("expiry");
+		let expDate = Date.now() - 1;
+		if (expires.length > 0) {
+			logger.log(`Cookie expires at ${expires[0]}`);
+			expDate = Date.parse(expires[0]);
+		}
+
+		const user = this.checkCookie("khadga_user");
+		let username = "";
+		if (user.length > 0) {
+			logger.log(`Cookie expires at ${expires[0]}`);
+			username = user[0];
+		}
+
+		if (expDate > Date.now()) {
+			logger.log(`Calling USER_LOGIN action with username ${username}`);
+			this.props.setConnectedUsers( this.props.connectState.connected
+																	, username.replace(/\s+/, "")
+																	, this.props.connectState.auth2
+																	, USER_LOGIN);
+			logger.log("Session validated with existing JWT");
+			return;
+		}
+	}
+
+	/**
+	 * Looks at our cookie and sees if our JWT is still valid
+	 */
+	checkCookie = (cname: string) => {
+		return document.cookie.split(";")
+			.map(c => c.trim())
+			.map(c => {
+				if (c === cname) {
+					logger.log(`cookie: `, c);
+				}
+				return c;
+			})
+			.filter(c => c.includes(cname))
+			.map(c => c.split("=")[1].trim());
+	}
+
 	/**
 	 * Handler for the login button'
 	 *
@@ -118,10 +165,9 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		const email: string = profile.getEmail();
 		const id = profile.getId();
 		const url: string = profile.getImageUrl();
-		const userProfile: GoogleProfile = {
-			profile, username, email, id, url,
-			login_time: new Date(Date.now())
-		};
+
+		let user = email.split("@")[0];
+		user = user.replace(/[\.+]/, "_");
 
 		logger.debug(`Name: ${username}\nEmail: ${email}\nId: ${id}\nURL: ${url}`);
 		const alreadyConnected = this.props.connectState.connected;
@@ -135,8 +181,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 				email,
 				token: authResp.id_token
 			}).then(jwt => {
-				const cookie = `jwt=${jwt}; secure; samesite=strict;`;
-				document.cookie = cookie;
+				this.checkCookie("expiry");
 			}).catch(ex => {
 				logger.error(ex);
 				// TODO: Send action to logout.  If we don't get a JWT there's not much a user can do
@@ -146,8 +191,6 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 			logger.error(ex);
 		}
 
-		let user = email.split("@")[0];
-		user = user.replace(/[\.+]/, "_");
 		logger.log(`Calling USER_LOGIN action with username ${user}`);
 		this.props.setConnectedUsers( alreadyConnected
 																, user.replace(/\s+/, "")
@@ -175,8 +218,8 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		logger.log(`origin is: https://${origin}/login`);
 		const resp = await fetch(`https://${origin}/login`, {
 			method: "POST",
-			cache: "default",
-			credentials: "omit",
+			cache: "no-cache",
+			credentials: "same-origin",  // Setting this to same-origin to allow cookies
 			headers: {
 				"Content-Type": "application/json"
 			},
@@ -194,8 +237,12 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 			throw new Error("Could not get JWT token");
 		}
 
+		logger.log("response from /login: ", resp);
+		resp.headers.forEach((v, k, p) => {
+			logger.log(`Header: ${k}=${v}`);
+			logger.log("parent", p);
+		});
 		const jwt = await resp.text();
-		logger.log("jwt = ", jwt);
 		return jwt;
 	}
 
@@ -211,7 +258,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 	}
 
 	signOut = () => {
-		logger.log("Signed out");
+		logger.log("Signing out.  cookies = ", document.cookie);
 		if (this.props.connectState.auth2) {
 			this.props.connectState.auth2.signOut()
 			  .then(() => {
@@ -235,6 +282,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 					this.props.setWebcam({ active: false }, WEBCAM_DISABLE);
 				});
 		}
+		logger.log("After signout, cookies = ", document.cookie);
 	}
 
 	signInButton = (
