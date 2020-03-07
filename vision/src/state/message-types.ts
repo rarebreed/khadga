@@ -23,10 +23,13 @@ export interface WsMessage<T> {
 	sender: string,
 	recipients: string[],
 	body: T,
-	event_type: MessageEvent
+	event_type: MessageEvent,
+	time: number  // milliseconds since epoch
 }
 
-export type WsCommandTypes = "ping" | "pong";
+export type WsCommandTypes = "Ping"
+													 | "Pong"
+													 | "IceCandidate";
 
 // FIXME: The args should be generic
 // We might also want fixed op types.
@@ -61,6 +64,6 @@ export const makeChatMessage = (msg: WsMessage<string>): ChatMessageState => {
 		sender: msg.sender,
 		recipients: msg.recipients,
 		body: msg.body,
-		time: new Date().toUTCString()
+		time: new Date(msg.time).toUTCString()
 	};
 };

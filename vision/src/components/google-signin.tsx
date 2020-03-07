@@ -45,7 +45,8 @@ interface LoginParams {
 
 interface LoggedInState {
 	username: string,
-	auth2: any | null
+	auth2: any | null,
+	timeout: number | null
 }
 
 const mapPropsToState = (state: State) => {
@@ -67,6 +68,16 @@ const connector = connect(mapPropsToState, mapPropsToDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
+	constructor(props: PropsFromRedux) {
+		super(props);
+
+		this.state = {
+			timeout: null,
+			auth2: null,
+			username: ""
+		};
+	}
+
 	componentDidMount() {
 		// Read the cookie and check the expiration time.  The actual JWT is protected by a httpOnly
 		// flag so we can only read our expiration time
@@ -128,6 +139,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		}
 
 		if (expDate > Date.now()) {
+			// TODO: make a call to /login to get a fresh JWT
 			logger.log(`Calling USER_LOGIN action with username ${username}`);
 			this.props.setConnectedUsers( this.props.connectState.connected
 																	, username.replace(/\s+/, "")
@@ -237,11 +249,6 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 			throw new Error("Could not get JWT token");
 		}
 
-		logger.log("response from /login: ", resp);
-		resp.headers.forEach((v, k, p) => {
-			logger.log(`Header: ${k}=${v}`);
-			logger.log("parent", p);
-		});
 		const jwt = await resp.text();
 		return jwt;
 	}
@@ -252,6 +259,16 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 		if (this.props.connectState.auth2 !== null) {
 			this.props.connectState.auth2.signIn()
 				.then(this.onSignIn);
+
+			if (!this.state.timeout) {
+				logger.log("Setting up jwt refresher");
+				const timeout = window.setInterval(() => {
+					logger.log("refreshing JWT");
+					this.signIn();
+				}, 1000 * 60 * 15);
+				this.setState({ timeout });
+			}
+
 		} else {
 			logger.log("No this.auth2 instance");
 		}
@@ -281,6 +298,9 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 
 					this.props.setWebcam({ active: false }, WEBCAM_DISABLE);
 				});
+		}
+		if (this.state.timeout !== null) {
+			window.clearInterval(this.state.timeout);
 		}
 		logger.log("After signout, cookies = ", document.cookie);
 	}

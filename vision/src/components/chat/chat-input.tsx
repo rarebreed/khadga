@@ -92,7 +92,7 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 			}
 			recipients = results[0].split(",").map(user => user.replace("@", ""));
 		}
-		const msg = this.makeMessage(this.state.message);
+		const msg = this.makeWSMessage(this.state.message);
     msg.recipients = recipients;
 
 		logger.log(`sending`, msg);
@@ -116,7 +116,7 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 		this.sendMessage();
 	}
 
-	makeMessage = (body: string, recipients: string[] = []): WsMessage<string> => {
+	makeWSMessage = (body: string, recipients: string[] = []): WsMessage<string> => {
 		if (recipients.length === 0) {
 			recipients = Array.from(this.props.connected);
 		}
@@ -125,19 +125,11 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 			sender: this.props.username,
 			recipients,
 			body,
-			event_type: "Message"
+			event_type: "Message",
+			time: Date.now()
 		};
 
 		return msg;
-	}
-
-	makeChatMessage = (msg: WsMessage<string>): ChatMessageState => {
-		return {
-			sender: msg.sender,
-			recipients: msg.recipients,
-			body: msg.body,
-			time: new Date().toLocaleTimeString()
-		};
 	}
 
 	render() {

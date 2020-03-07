@@ -2,7 +2,8 @@ import React from "react";
 
 interface MessageBody {
 	body: string,
-	sender: string
+	sender: string,
+	time: string
 }
 
 type MediaProps = MessageBody & {
@@ -11,14 +12,16 @@ type MediaProps = MessageBody & {
 
 export class ChatMessage extends React.Component<MediaProps> {
 	render() {
+		const dt = new Date();
+
 		return (
-			<article className="media">
+			<div className="message">
+				<strong>{ this.props.sender }</strong> <small>{ this.props.time }</small>
+				<br />
         <p>
-					<strong>{ this.props.sender }</strong> <small>{ Date.now() }</small>
-					<br />
 					{ this.props.body }
 				</p>
-			</article>
+			</div>
 		);
 	}
 }

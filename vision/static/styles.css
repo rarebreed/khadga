@@ -293,3 +293,24 @@ html, body {
   width: 100%;
   font-size: large;
 }
+
+.message {
+  border: 2px solid rgb(53, 56, 65);
+  border-radius: 8px;
+  text-align: justify;
+  margin: 8px;
+}
+
+.message strong,p {
+  margin: 8px;
+  padding: 8px;
+}
+
+.message strong {
+  text-decoration: underline;
+}
+
+.column ul {
+  margin: 8px;
+  padding: 0px;
+}

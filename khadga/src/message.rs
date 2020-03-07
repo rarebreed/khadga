@@ -1,5 +1,6 @@
 use serde::{Deserialize,
             Serialize};
+use chrono::{Utc};
 
 /// Message that is sent to/from websocket
 ///
@@ -28,6 +29,7 @@ pub struct Message<T> {
     pub recipients: Vec<String>,
     pub body: T,
     pub event_type: MessageEvent,
+    pub time: i64
 }
 
 impl<T> Message<T> {
@@ -37,6 +39,7 @@ impl<T> Message<T> {
             recipients,
             body,
             event_type: evt_type,
+            time: Utc::now().timestamp_millis()
         }
     }
 

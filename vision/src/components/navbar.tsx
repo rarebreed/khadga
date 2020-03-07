@@ -6,8 +6,8 @@ import { setActive
        , createLoginAction
        , setLoginFormAction
        , webcamCamAction
-       , websocketAction,
-       chatMessageAction
+       , websocketAction
+       , chatMessageAction
        } from "../state/action-creators";
 import { USER_CONNECTION_EVT
        , WEBCAM_ENABLE
@@ -15,12 +15,13 @@ import { USER_CONNECTION_EVT
        } from "../state/types";
 import { WsMessage
        , makeChatMessage
-       , CHAT_MESSAGE_ADD,
-       WsCommand
+       , CHAT_MESSAGE_ADD
+       , WsCommand
        } from "../state/message-types";
 import * as noesis from "@khadga/noesis";
 import { NavBarItem, NavBarDropDown } from "./navbar-item";
 import GoogleAuth from "./google-signin";
+import { socketSetup } from "./webrtc/websocket-handler";
 
 const logger = console;
 
@@ -76,67 +77,17 @@ class NavBar extends React.Component<PropsFromRedux> {
     return;
   }
 
+  /**
+   * Handles messages coming from the websocket
+   */
   messageHandler = (socket: WebSocket) => {
-    socket.onopen = (ev: Event) => {
-      logger.log("Now connected to khadga");
-      // Pass along our websocket so the Chat components can use it
-      this.props.websocket(socket);
-    };
-
-    socket.onmessage = (evt: MessageEvent) => {
-      // TODO: use the data in the event to update the user list.
-      const msg: WsMessage<any> = JSON.parse(evt.data);
-      const auth = this.props.auth;
-
-      logger.debug(`Got message: `, msg);
-
-      switch(msg.event_type) {
-        case "Disconnect":
-        case "Connect":
-          logger.log("Got websocket event", msg);
-          const { connected_users } = msg.body as ConnectionEvent;
-          this.props.connection(connected_users, "", auth, USER_CONNECTION_EVT);
-          break;
-        case "Data":
-          logger.log("Got websocket event", msg);
-          break;
-        case "Message":
-          logger.log("Got websocket event", msg);
-          this.props.chatMessage(makeChatMessage(msg), CHAT_MESSAGE_ADD);
-          break;
-        case "CommandRequest":
-          const cmd = msg.body as WsCommand<any>;
-          logger.debug(`command is =`, cmd);
-
-          if (cmd.cmd.op.toLowerCase() === "ping") {
-            const args = cmd.args as string[];
-            const replyMsg: WsMessage<string> = {
-              sender: msg.sender,
-              recipients: msg.recipients,
-              event_type: "CommandReply",
-              body: JSON.stringify({
-                cmd: {
-                  op: "pong",
-                  ack: false,
-                  id: this.props.user
-                },
-                args
-              })
-            };
-            socket.send(JSON.stringify(replyMsg));
-            logger.debug(`Sent reply: `, replyMsg);
-          } else {
-            logger.debug(`Got non-ping command message`, msg);
-          }
-          break;
-        default:
-          logger.log("Unknown message type");
-      }
-    };
-
-    socket.onclose = (ev: CloseEvent) => {
-      this.props.websocket(null);
-    };
+    socketSetup(socket, {
+      user: this.props.user,
+      auth: this.props.auth,
+      loginAction: this.props.connection,
+      chatAction: this.props.chatMessage,
+      setWebsocket: this.props.websocket
+    });
   }
 
 	/**

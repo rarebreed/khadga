@@ -29,7 +29,7 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 	makeChatMessage = () => {
 		return this.props.messages.map(msg => {
 			return (
-				<ChatMessage body={msg.body} sender={ msg.sender }/>
+				<ChatMessage body={msg.body} sender={ msg.sender } time={ msg.time }/>
 			);
 		});
 	}
