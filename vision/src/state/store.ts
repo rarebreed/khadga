@@ -1,12 +1,10 @@
 import { combineReducers } from "redux";
 import { modalReducer
-			 , signupReducer
 			 , loginReducer
-			 , loginFormReducer
 			 , webcamReducer
 			 , websocketReducer
-			 , chatMessageReducer,
-			 selectedUsersReducer
+       , chatMessageReducer
+       , selectedUsersReducer
 			 } from "./reducers";
 import { ModalState
 			 , SignUp
@@ -33,8 +31,6 @@ export interface State {
  */
 export const reducers = combineReducers({
 	modal: modalReducer,
-	signup: signupReducer,
-	login: loginFormReducer,
 	connectState: loginReducer,
 	webcam: webcamReducer,
 	websocket: websocketReducer,

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
 export interface INavBarItemProps {
-	href?: string,
-	classStyle?: string,
+  href?: string,
+  classStyle?: string,
   callback?: (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void
 }
 
@@ -21,7 +21,8 @@ export class NavBarItem extends React.Component<INavBarItemProps> {
 
 interface Dropdown {
 	value: string,
-	children?: React.ReactNode
+	children?: React.ReactNode,
+	classStyle?: string
 }
 
 /**
@@ -29,7 +30,7 @@ interface Dropdown {
  */
 export const NavBarDropDown = (props: Dropdown) => {
 	return(
-		<div className="dropdown">
+		<div className={ props.classStyle ? props.classStyle : "dropdown" }>
 			<a href="javascript:void(0)" className="dropbtn">{ props.value }</a>
 			<div className="dropdown-content">
 				{ props.children }
