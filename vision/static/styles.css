@@ -7,6 +7,24 @@ nav {
   padding: 0;
 }
 
+/* Useful in Flexbox container to line things up horizontally to left  */
+.justify-left {
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+/* Useful in Flexbox container to line things up horizontally to right */
+.justify-right {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+
+/*********************************************************************************************
+ * navbar styling
+ ********************************************************************************************/
+
+/* The main navbar styling */
 .navbar {
   display: flex;
   flex-direction: row;
@@ -20,15 +38,7 @@ nav {
   height: 2.5em;
 }
 
-.justify-left {
-  justify-content: flex-start;
-}
-
-.justify-right {
-  justify-content: flex-end;
-}
-
-
+/* Navbar split into sections horizontally */
 .navsection {
   display: flex;
   flex-direction: row;
@@ -59,8 +69,9 @@ nav {
   cursor: pointer;
 }
 
+/* Styling for a dropdown element */
 .dropdown {
-  display: flex;
+  display: block;
 }
 
 .dropdown-content {
@@ -96,8 +107,8 @@ nav {
    none to block so that it appears
  */
 .dropdown:hover .dropdown-content {
-  display: flex;
-  flex-direction: column;
+  display: block;
+ /*  flex-direction: column; */
 }
 
 head {
@@ -121,7 +132,7 @@ head {
  * +=================================================================================+ 1
  * |                          NavBar (.navbar-grid-area)                             |
  * +===============+==============================================+==================+ 2
- * | .user-sidebar |          .chat-messages                      | .extra-sidebar   |
+ * | .user-sidebar |          .main-body                   | .extra-sidebar   |
  * |               |                                              |                  |
  * |               |                                              |                  |
  * |               +==============================================+                  | 3
@@ -151,7 +162,7 @@ head {
   grid-row-start: 2;
   grid-row-end: -1;
   background-color: black;
-  overflow: auto;
+  position: sticky;
 }
 
 .user-header {
@@ -181,10 +192,9 @@ h2.user-header {
   border-left: 1px solid;
 }
 
-.chat-messages {
+.main-body {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
-  overflow: auto;
 }
 
 /* End grid layouyt
@@ -241,7 +251,6 @@ html, body {
   cursor: pointer;
   width: 15%;
 }
-
 
 .chat-input button:hover {
   background: #0bda3f;
@@ -313,4 +322,21 @@ html, body {
 .column ul {
   margin: 8px;
   padding: 0px;
+}
+
+.nested-menu {
+  display: None;
+  position: absolute;
+  margin: 12x;
+  padding: 8px;
+
+  background-color: #f9f9f9;
+  /* min-width: 160px; */
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
+  z-index: 2;
+  left: calc(100% + 0px)
+}
+
+.sub-menu:hover .nested-menu {
+  display: inline-block;
 }

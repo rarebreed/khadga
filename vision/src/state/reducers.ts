@@ -252,37 +252,6 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 	return newstate;
 };
 
-/**
- * Handles state for signup form
- *
- * @param previous
- * @param action
- */
-export const loginFormReducer = ( previous: UserLogin = initialUserLogin
-														    , action: LoginFormAction )
-														    : UserLogin => {
-	const newstate = Object.assign({}, previous);
-
-	switch (action.type) {
-		case SET_LOGIN_USERNAME:
-			newstate.username = action.form.value;
-			break;
-		case SET_LOGIN_PASSWORD:
-			newstate.password = action.form.value;
-			break;
-		case SET_LOGIN_CLEAR:
-			newstate.username = "";
-			newstate.password	= "";
-			break;
-		default:
-			return previous;
-	}
-
-	const disp = (arg: any) => JSON.stringify(arg, null, 2);
-	// logger.debug(`Called with ${disp(action)}`);
-	// logger.debug(`Previous=${disp(previous)}\ncurrent=${disp(newstate)}`);
-	return newstate;
-};
 
 /**
  * Sets new Message components in the chat container (the middle part)

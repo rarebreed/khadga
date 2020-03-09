@@ -11,6 +11,7 @@ import * as noesis from "@khadga/noesis";
 import { State } from "../../state/store";
 import { webcamCamAction } from "../../state/action-creators";
 import { WEBCAM_DISABLE } from "../../state/types";
+import dragElement from "../../utils/utils";
 
 const logger = console;
 
@@ -27,6 +28,9 @@ const mapPropsToDispatch = {
 const connector = connect(mapStateToProps, mapPropsToDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
+/**
+ * This component is for the local and remote webcam streams
+ */
 class VideoStream extends React.Component<PropsFromRedux> {
 	myRef: React.RefObject<HTMLDivElement>;
 	videoRef: React.RefObject<HTMLVideoElement>;
@@ -39,6 +43,9 @@ class VideoStream extends React.Component<PropsFromRedux> {
 		this.disableCam.bind(this);
 	}
 
+	/**
+	 * Once the component has mounted, we need to get the MediaDevice and attach to our <video> element
+	 */
 	async componentDidMount() {
 		if (this.myRef.current) {
 			dragElement(this.myRef.current);
@@ -63,6 +70,9 @@ class VideoStream extends React.Component<PropsFromRedux> {
 		}
 	}
 
+	/**
+	 * When user clicks the "Turn Off" button, remove the webcam and MediaStream
+	 */
 	disableCam = () => {
 		logger.log(this.videoRef);
 		if (this.videoRef  && this.videoRef.current !== null) {
@@ -91,51 +101,3 @@ class VideoStream extends React.Component<PropsFromRedux> {
 }
 
 export default connector(VideoStream);
-
-// Make the DIV element draggable:
-// dragElement(document.getElementById("mydiv"));
-
-export const dragElement = (elmnt: any) => {
-	let pos1 = 0;
-	let pos2 = 0;
-	let pos3 = 0;
-	let pos4 = 0;
-
-	const helem = document.getElementById(elmnt.id + "Header");
-  if (!helem) {
-		elmnt.onmousedown = dragMouseDown;
-	} else {
-		helem.onmousedown = dragMouseDown;
-	}
-
-  function dragMouseDown(e: any) {
-		logger.log(e);
-    e = e || window.event;
-    e.preventDefault();
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-  }
-
-  function elementDrag(e: any) {
-    e = e || window.event;
-    e.preventDefault();
-    // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-  }
-
-  function closeDragElement() {
-    // stop moving when mouse button is released:
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-};

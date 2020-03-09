@@ -23,6 +23,12 @@ interface ConnectionEvent {
   connected_users: string[]
 }
 
+/**
+ * Sets up websockets for use by the SPA
+ * 
+ * @param socket 
+ * @param props 
+ */
 export const socketSetup = (socket: WebSocket, props: WSSetup) => {
 	socket.onopen = (ev: Event) => {
 		logger.log("Now connected to khadga");
@@ -31,7 +37,6 @@ export const socketSetup = (socket: WebSocket, props: WSSetup) => {
 	};
 
 	socket.onmessage = (evt: MessageEvent) => {
-		// TODO: use the data in the event to update the user list.
 		const msg: WsMessage<any> = JSON.parse(evt.data);
 		const auth = props.auth;
 
@@ -65,6 +70,11 @@ export const socketSetup = (socket: WebSocket, props: WSSetup) => {
 	};
 };
 
+/**
+ * Handles a Ping type of WsCommand, used as a keep alive mechanism
+ * 
+ * @param socket 
+ */
 const pingRequestHandler = (socket: WebSocket) => (msg: WsMessage<any>, user: string) => {
 	const cmd = msg.body as WsCommand<any>;
 	const args = cmd.args as string[];
@@ -86,6 +96,12 @@ const pingRequestHandler = (socket: WebSocket) => (msg: WsMessage<any>, user: st
 	logger.debug(`Sent reply: `, replyMsg);
 };
 
+/**
+ * Handles any messages over the websocket with a event_type of CommandRequest
+ * 
+ * @param socket 
+ * @param props 
+ */
 const commandHandler = (socket: WebSocket, props: WSSetup) => (msg: WsMessage<any>) => {
 	const cmd = msg.body as WsCommand<any>;
 	logger.debug(`command is =`, cmd);

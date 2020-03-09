@@ -9,19 +9,13 @@ import { setActive
        , websocketAction
        , chatMessageAction
        } from "../state/action-creators";
-import { USER_CONNECTION_EVT
-       , WEBCAM_ENABLE
+import { WEBCAM_ENABLE
        , WebSocketState
        } from "../state/types";
-import { WsMessage
-       , makeChatMessage
-       , CHAT_MESSAGE_ADD
-       , WsCommand
-       } from "../state/message-types";
-import * as noesis from "@khadga/noesis";
 import { NavBarItem, NavBarDropDown } from "./navbar-item";
 import GoogleAuth from "./google-signin";
 import { socketSetup } from "./webrtc/websocket-handler";
+import WebCamSettings from "../components/webrtc/settings"
 
 const logger = console;
 
@@ -56,10 +50,6 @@ const mapDispatch = {
 const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
-interface ConnectionEvent {
-  connected_users: string[]
-}
-
 class NavBar extends React.Component<PropsFromRedux> {
 	/**
 	 * Sets up webcam
@@ -67,14 +57,20 @@ class NavBar extends React.Component<PropsFromRedux> {
 	 * Currently, this is not hooked up to the Signaling service at all.  This will only get the local
 	 * webcam video stream, not another user's webcam stream
 	 */
-	setupWebcam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    // logger.log(JSON.stringify(mediaDevs));
+	launchWebCam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     const webcamState = {
       active: true
     };
 
     this.props.webcam(webcamState, WEBCAM_ENABLE);
     return;
+  }
+
+  /**
+   * Launches a new menu to get webcam settings
+   */
+  setupWebcam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    
   }
 
   /**
@@ -133,7 +129,12 @@ class NavBar extends React.Component<PropsFromRedux> {
                   onClick={ this.setupChat }>Chat</a>
               <a className="dropdown-item"
                   href="#"
-                  onClick={ this.setupWebcam }>Webcam</a>
+                  onClick={ this.launchWebCam }>Webcam</a>
+              <a className="sub-menu dropdown-item"
+                 href="#">
+                Webcam Settings
+                <WebCamSettings></WebCamSettings>
+              </a>
             </NavBarDropDown>
           </div>
           <div className="navsection justify-right">
