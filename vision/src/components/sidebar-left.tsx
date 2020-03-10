@@ -37,12 +37,14 @@ class SideBar extends React.Component<PropsFromRedux>  {
 
 		return (
 			<div className="user-sidebar">
-				<h2 className="user-header">Users</h2>
-				<ul className="users">
-					{ this.props.socket ? listItems : null }
-				</ul>
+				<div className="user-section">
+					<h2 className="user-header">Users</h2>
+					<ul className="users">
+						{ this.props.socket ? listItems : null }
+					</ul>
+				</div>
 			</div>
-		)
+		);
 	}
 }
 

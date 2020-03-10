@@ -50,10 +50,6 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 		this.setState({
 			message: evt.target.value
 		});
-
-		if (evt.target.value.includes("\n")) {
-			this.sendMessage();
-		}
 	}
 
 	onDown = (evt: React.KeyboardEvent) => {
@@ -73,14 +69,24 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 	}
 
 	private sendMessage = () => {
-		// check to see if we are addressing individual member
+		if (this.state.message.length <= 0) {
+			logger.info("Empty message");
+			return;
+		}
+		// check to see if we are addressing individual member(s)
 		let recipients: string[] = Array.from(this.props.connected);
 		if (this.props.selectedUsers.length > 0) {
-			recipients = this.props.selectedUsers;
-			// Always include ourself in the recipients list
-			if (!this.props.selectedUsers.includes(this.props.username)) {
-				recipients.push(this.props.username);
+			// If recipients only includes the logged in User, assume it's a public message
+			const { selectedUsers, username } = this.props;
+			if (selectedUsers.length === 1 && selectedUsers[0] === username) {
+				logger.log(`Only ${username} in selected-users list`);
+			} else {
+				recipients = this.props.selectedUsers;
 			}
+		}
+		// Always include ourself in the recipients list
+		if (!this.props.selectedUsers.includes(this.props.username)) {
+			recipients.push(this.props.username);
 		}
 
 		if (this.state.message.startsWith("[")) {

@@ -9,7 +9,7 @@ interface MediaKinds {
 }
 
 const webcamSettings = () => {
-  let kinds: MediaKinds = {
+  const kinds: MediaKinds = {
     videoIn: [],
     audioIn: [],
     audioOut: []
@@ -19,16 +19,16 @@ const webcamSettings = () => {
 
   useEffect(() => {
     const getDevs = async () => {
-      let stream = await navigator.mediaDevices.getUserMedia({
+/*       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 }
         }
-      });
+      }); */
 
-      let devs = await navigator.mediaDevices.enumerateDevices();
-      let mediaDevs = devs.reduce((acc, dev) => {
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      const mediaDevs = devs.reduce((acc, dev) => {
         switch(dev.kind) {
           case "audioinput":
             acc.audioIn.push(dev);
@@ -37,44 +37,73 @@ const webcamSettings = () => {
             acc.audioOut.push(dev);
             break;
           case "videoinput":
-            acc.videoIn.push(dev)
+            acc.videoIn.push(dev);
             break;
           default:
             logger.log("Unknown device type");
         }
-        return acc
-      }, kinds)      
-      setKinds(mediaDevs)
-    }
+        return acc;
+      }, kinds);
+      setKinds(mediaDevs);
+    };
 
     getDevs();
-  }, [])
+  }, []);
+
+  /**
+   * Handles what happens when the user selects a choice
+   */
+  const selected = (opt: string) => (evt: React.SyntheticEvent<HTMLSelectElement, Event>) => {
+    logger.log(`For ${opt} you selected: `, evt.currentTarget.value);
+  };
+  const selectedVideo = selected("video");
+  const selectedAudioOut = selected("speakers");
+  const selectedAudioIn = selected("microphone");
 
   return (
     <div className="nested-menu">
       <label>Video</label>
-      <select name="video">
-        { 
+      <select name="video" onChange={ selectedVideo }>
+        {
           devices.videoIn.map(dev => {
-            let val = dev.label || dev.deviceId;
+            const val = dev.label || dev.deviceId;
             logger.log("video: ", val);
-            <option value={ val }>{ val }</option>
+            return(
+              <option value={ val }>
+                { val }
+              </option>
+            );
           })
         }
       </select>
       <label>Speakers</label>
-      <select name="speakers">
-        { 
+      <select name="speakers" onChange={ selectedAudioOut }>
+        {
           devices.audioOut.map(dev => {
-            let val = dev.label || dev.deviceId;
-            <option value={ val }>{ val }</option>
+            const val = dev.label || dev.deviceId;
+            return (
+              <option value={ val }>
+                { val }
+              </option>
+            );
           })
         }
       </select>
-{/*       <label>Microphone</label>
-      <select name="microphone">{ audioIn }</select> */}
+      <label>Microphone</label>
+      <select name="speakers" onChange={ selectedAudioIn }>
+        {
+          devices.audioIn.map(dev => {
+            const val = dev.label || dev.deviceId;
+            return (
+              <option value={ val }>
+                { val }
+              </option>
+            );
+          })
+        }
+      </select>
     </div>
-  )
-}
+  );
+};
 
 export default webcamSettings;

@@ -10,6 +10,7 @@ const mapStateToProps = (state: State) => {
   return {
 		webcam: state.webcam,
 		connected: state.connectState.loggedIn,
+		user: state.connectState.username,
 		websocket: state.websocket,
 		messages: state.messages
 	};
@@ -28,9 +29,18 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 	 */
 	makeChatMessage = () => {
 		return this.props.messages.map(msg => {
-			return (
-				<ChatMessage body={msg.body} sender={ msg.sender } time={ msg.time }/>
-			);
+			const ownMessage = msg.sender === this.props.user;
+
+			let chatmessage = <ChatMessage body={msg.body} sender={ msg.sender } time={ msg.time } />;
+			if (ownMessage) {
+				chatmessage = (
+					<ChatMessage body={msg.body}
+										   sender={ msg.sender }
+										   time={ msg.time }
+										   highlight=" user-highlight"/>
+				);
+			}
+			return chatmessage;
 		});
 	}
 
@@ -41,9 +51,9 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 
 		const cntr = (
 			<div className="main-body" style={ { flex: 1 } }>
-				<div>
+				<div className="chat-window">
 				  { showCam ? <VideoStream /> : null }
-					<ul>
+					<ul className="chat-messages">
 						{ this.makeChatMessage() }
 					</ul>
 				</div>

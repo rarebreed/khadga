@@ -1,21 +1,23 @@
 import React from "react";
+import { connect, ConnectedProps } from "react-redux";
 
-interface MessageBody {
-	body: string,
-	sender: string,
-	time: string
+export interface MessageBody {
+	body: string;
+	sender: string;
+	time: string;
 }
 
 type MediaProps = MessageBody & {
-	avatar?: string
+	avatar?: string;
+	highlight?: string;
 };
 
 export class ChatMessage extends React.Component<MediaProps> {
 	render() {
-		const dt = new Date();
+		const style = this.props.highlight ? "message" + this.props.highlight : "message";
 
 		return (
-			<div className="message">
+			<div className={ style }>
 				<strong>{ this.props.sender }</strong> <small>{ this.props.time }</small>
 				<br />
         <p>

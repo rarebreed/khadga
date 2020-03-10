@@ -78,7 +78,7 @@ nav {
   display: None;
   position: absolute;
 
-  background-color: #f9f9f9;
+  background-color: #adadad;
   /* min-width: 160px; */
   box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
   z-index: 2;
@@ -141,7 +141,7 @@ head {
  */
 .app {
   display: grid;
-  grid-template-columns: 1fr 6fr 1.5fr;
+  grid-template-columns: 1.5fr 6fr 1.5fr;
   grid-template-rows: auto auto minmax(100%, 1fr);
   /* height: 100%; */
   height: 97vh;
@@ -162,17 +162,6 @@ head {
   grid-row-start: 2;
   grid-row-end: -1;
   background-color: black;
-  position: sticky;
-}
-
-.user-header {
-  color: white;
-}
-
-h2.user-header {
-  margin: 0;
-  padding: 6px 0;
-  text-align: center;
 }
 
 .chat-input {
@@ -195,6 +184,7 @@ h2.user-header {
 .main-body {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
+  overflow-anchor: none;
 }
 
 /* End grid layouyt
@@ -204,14 +194,45 @@ h2.user-header {
   color: white;
   text-decoration: none;
   list-style: none;
-  /* text-align: right; */
   padding: 8px 4px;
-  /*  width: 100%; */
 }
 
-ul.users {
+.user-section {
   margin: 0;
   padding: 10px 0;
+  position: fixed;
+  /* display: flex;
+  flex-direction: column; */
+}
+
+.highlighted {
+  color: rgb(75, 162, 173);
+}
+
+.user-header {
+  color: white;
+  /* display: flex;
+  align-items: center; */
+}
+
+.users {
+  text-align: left;
+  /* display: flex;
+  flex-direction: column; */
+}
+
+h2.user-header {
+  margin: 0;
+  padding: 6px 0;
+}
+
+div.user-section ul {
+  padding: 10px;
+}
+
+.user-avatar{
+  display: flex;
+  align-items: center;
 }
 
 .username:hover {
@@ -308,6 +329,7 @@ html, body {
   border-radius: 8px;
   text-align: justify;
   margin: 8px;
+  background-color: darkgrey;
 }
 
 .message strong,p {
@@ -317,6 +339,11 @@ html, body {
 
 .message strong {
   text-decoration: underline;
+}
+
+.message.user-highlight {
+  border: 2px solid rgb(84, 99, 150);
+  background-color: #e7d998;
 }
 
 .column ul {
@@ -330,13 +357,30 @@ html, body {
   margin: 12x;
   padding: 8px;
 
-  background-color: #f9f9f9;
-  /* min-width: 160px; */
+  background-color: #adadad;
   box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.2);
   z-index: 2;
-  left: calc(100% + 0px)
+  left: calc(100% + 0px);
+  top: 66%;
 }
 
 .sub-menu:hover .nested-menu {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* .chat-window * {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+} */
+
+/**/
+.chat-messages {
+  display: flex;
+  flex-direction: column-reverse;
+  flex: 1;
+  height: 100%;
+  overflow: auto;
 }

@@ -14,7 +14,8 @@ interface Item {
 const mapPropsToState = (state: State) => {
 	return {
 		selected: state.selectedUsers,
-		username: state.login.username
+		username: state.connectState.username,
+		connected: state.connectState.connected
 	};
 };
 
@@ -45,6 +46,8 @@ class ListItem extends React.Component<PropsFromRedux> {
 
 	render() {
 		const id = `user-${this.props.name}`;
+		const classStyle = this.props.name === this.props.username ? "highlighted" : "";
+		const color = this.props.connected.includes(this.props.name) ? "green" : "grey";
 		return (
 			<li className={ this.props.classStyle }>
 				<span className="user-avatar">
@@ -52,8 +55,8 @@ class ListItem extends React.Component<PropsFromRedux> {
 								 id={id}
 					       onClick={ this.setCheck }
 					       type="checkbox" />
-					<label htmlFor={id}>{ this.props.name }</label>
-					<i className="far fa-user" style={{ color: "green", margin: "0 4px"}}/>
+					<label className={ classStyle } htmlFor={id}>{ this.props.name }</label>
+					<i className="far fa-user" style={{ color, margin: "0 4px"}}/>
 				</span>
 			</li>
 		);
