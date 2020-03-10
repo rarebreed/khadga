@@ -1,5 +1,6 @@
 import * as React from "react";
 import { connect, ConnectedProps } from "react-redux";
+import { Subject } from "rxjs";
 
 import { State } from "../state/store";
 import { setActive
@@ -10,7 +11,8 @@ import { setActive
        , chatMessageAction
        } from "../state/action-creators";
 import { WEBCAM_ENABLE
-       , WebSocketState
+       , WebSocketState,
+       WebcamState
        } from "../state/types";
 import { NavBarItem, NavBarDropDown } from "./navbar-item";
 import GoogleAuth from "./google-signin";
@@ -34,7 +36,8 @@ const mapState = (state: State) => {
     loggedIn: state.connectState.loggedIn,
     connected: state.connectState.connected,
 		auth: state.connectState.auth2,
-    socket: state.websocket.socket
+    socket: state.websocket.socket,
+    camState: state.webcam
   };
 };
 
@@ -50,7 +53,38 @@ const mapDispatch = {
 const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
+interface AppSettings {
+  videoSubj: Subject<MediaDeviceInfo>;
+  audioOutSubj: Subject<MediaDeviceInfo>;
+  audioInSubj: Subject<MediaDeviceInfo>;
+}
+
 class NavBar extends React.Component<PropsFromRedux> {
+  videoSubj: Subject<MediaDeviceInfo>;
+  audioOutSubj: Subject<MediaDeviceInfo>;
+  audioInSubj: Subject<MediaDeviceInfo>;
+
+  constructor(props: PropsFromRedux) {
+    super(props);
+
+    this.videoSubj = new Subject();
+    this.audioOutSubj = new Subject();
+    this.audioInSubj =  new Subject();
+
+    // Rx-ify our state.  When settings changes, it will call next(), so we subscribe here
+    this.videoSubj.subscribe({
+      next: (val) => {
+        const webcamState: WebcamState = {
+          active: this.props.camState.active,
+          videoId: val.deviceId
+        };
+
+        this.props.webcam(webcamState, WEBCAM_ENABLE);
+      },
+      error: (err) => logger.error(`Got error: ${err}`),
+      complete: () => logger.info("Subject stream is complete")
+    });
+  }
 	/**
 	 * Sets up webcam
 	 *
@@ -64,13 +98,6 @@ class NavBar extends React.Component<PropsFromRedux> {
 
     this.props.webcam(webcamState, WEBCAM_ENABLE);
     return;
-  }
-
-  /**
-   * Launches a new menu to get webcam settings
-   */
-  setupWebcam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    
   }
 
   /**
@@ -133,7 +160,9 @@ class NavBar extends React.Component<PropsFromRedux> {
               <a className="sub-menu dropdown-item"
                  href="#">
                 Webcam Settings
-                <WebCamSettings></WebCamSettings>
+                <WebCamSettings speakerSubj={ this.audioOutSubj }
+                                microphoneSubj={ this.audioInSubj }
+                                videoSubj={ this.videoSubj } ></WebCamSettings>
               </a>
             </NavBarDropDown>
           </div>

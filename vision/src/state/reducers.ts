@@ -286,6 +286,9 @@ export const webcamReducer = ( previous: WebcamState = initialWebcamState
 	switch (action.type) {
 		case WEBCAM_ENABLE:
 			newstate.active = true;
+			if (action.webcam.videoId) {
+				newstate.videoId = action.webcam.videoId;
+			}
 			break;
 		case WEBCAM_DISABLE:
 			newstate.active = false;

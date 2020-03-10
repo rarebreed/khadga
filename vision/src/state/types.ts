@@ -140,7 +140,8 @@ export interface WebcamState {
 	size?: {
 		height: number,
 		width: number
-	}
+	},
+	videoId?: string
 }
 
 export interface WebcamAction {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Subject } from "rxjs";
 
 const logger = console;
 
@@ -8,7 +9,16 @@ interface MediaKinds {
   videoIn: MediaDeviceInfo[]
 }
 
-const webcamSettings = () => {
+interface MediaSettingsState {
+  speakerSubj: Subject<MediaDeviceInfo>;
+  microphoneSubj: Subject<MediaDeviceInfo>;
+  videoSubj: Subject<MediaDeviceInfo>;
+}
+
+/**
+ * Functional component that handles webcam settings
+ */
+const webcamSettings = (props: MediaSettingsState) => {
   const kinds: MediaKinds = {
     videoIn: [],
     audioIn: [],
@@ -19,14 +29,6 @@ const webcamSettings = () => {
 
   useEffect(() => {
     const getDevs = async () => {
-/*       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      }); */
-
       const devs = await navigator.mediaDevices.enumerateDevices();
       const mediaDevs = devs.reduce((acc, dev) => {
         switch(dev.kind) {
@@ -53,12 +55,28 @@ const webcamSettings = () => {
   /**
    * Handles what happens when the user selects a choice
    */
-  const selected = (opt: string) => (evt: React.SyntheticEvent<HTMLSelectElement, Event>) => {
+  const selected = ( opt: string
+                   , devs: MediaDeviceInfo[]
+                   , subj: Subject<MediaDeviceInfo>) =>
+                   (evt: React.SyntheticEvent<HTMLSelectElement, Event>) => {
     logger.log(`For ${opt} you selected: `, evt.currentTarget.value);
+    let dev = devs.filter(d => d.label === evt.currentTarget.value);
+    if (dev.length !== 1) {
+      logger.error("More than one device found with same label,");
+    }
+    if (dev.length === 0) {
+      logger.warn("No device with label.  Trying deviceId");
+      dev = devs.filter(d => d.deviceId === evt.currentTarget.value);
+    }
+    if (dev.length !== 1) {
+      logger.error("Incorrect number of devices: ", dev);
+      return;
+    }
+    subj.next(dev[0]);
   };
-  const selectedVideo = selected("video");
-  const selectedAudioOut = selected("speakers");
-  const selectedAudioIn = selected("microphone");
+  const selectedVideo = selected("video", kinds.videoIn, props.videoSubj);
+  const selectedAudioOut = selected("speakers", kinds.audioOut, props.speakerSubj);
+  const selectedAudioIn = selected("microphone", kinds.audioIn, props.microphoneSubj);
 
   return (
     <div className="nested-menu">
@@ -90,7 +108,7 @@ const webcamSettings = () => {
         }
       </select>
       <label>Microphone</label>
-      <select name="speakers" onChange={ selectedAudioIn }>
+      <select name="microphone" onChange={ selectedAudioIn }>
         {
           devices.audioIn.map(dev => {
             const val = dev.label || dev.deviceId;

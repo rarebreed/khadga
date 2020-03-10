@@ -293,11 +293,27 @@ html, body {
 }
 
 #localVideoHeader {
+  display: flex;   /* Span the contents across the header horizontally */
+  flex-grow: 1;    /* Make sure we fill up available space */
   padding: 10px;
   cursor: move;
   z-index: 10;
   background-color: rgb(119, 14, 139);
   color: #fff;
+}
+
+.video-header-section {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;  /* make sure the section spans across */
+}
+
+.webcam-button {
+  padding: 0 8px;
+}
+
+#webcam-resize {
+  cursor: nwse-resize;
 }
 
 .vision-container {
