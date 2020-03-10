@@ -26,13 +26,64 @@ const mapPropsToDispatch = {
 const connector = connect(mapPropsToState, mapPropsToDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector> & Item;
 
-class ListItem extends React.Component<PropsFromRedux> {
+interface PopupState {
+	enabled: boolean;
+	x: number;
+	y: number;
+}
+
+class ListItem extends React.Component<PropsFromRedux, PopupState> {
 	checked: boolean;
+	userId: React.RefObject<HTMLLIElement>;
+	labelId: React.RefObject<HTMLLabelElement>;
 
 	constructor(props: PropsFromRedux) {
 		super(props);
 
 		this.checked = false;
+		this.userId = React.createRef();
+		this.labelId = React.createRef();
+
+		this.state = {
+			enabled: false,
+			x: 0,
+			y: 0
+		};
+	}
+
+	componentDidMount() {
+		if (this.userId.current) {
+			logger.log("Disabling contextmenu for list item");
+			const elmnt = this.userId.current;
+
+			elmnt.addEventListener("contextmenu", (evt: MouseEvent) => {
+				evt.preventDefault();
+				logger.log("Preventing right mouse click default");
+				if (this.labelId.current) {
+					if (this.labelId.current.innerHTML === this.props.username) {
+						logger.log("Can't do webcam session with yourself!");
+						return;
+					}
+				}
+
+				logger.log("mouse details: ", evt);
+
+				this.setState({
+					enabled: true,
+					x: evt.clientX,
+					y: evt.clientY
+				});
+			});
+
+		} else {
+			logger.log("Unable to disable contextmenu: ", this.userId);
+		}
+	}
+
+	disablePopup = (evt?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+		this.setState({
+			enabled: false
+		});
 	}
 
 	setCheck = (evt: ClickEvent<HTMLInputElement>) => {
@@ -48,19 +99,58 @@ class ListItem extends React.Component<PropsFromRedux> {
 		const id = `user-${this.props.name}`;
 		const classStyle = this.props.name === this.props.username ? "highlighted" : "";
 		const color = this.props.connected.includes(this.props.name) ? "green" : "grey";
+	  const popstateClassName = this.state.enabled ? "user-popup-enabled" : "user-popup-hidden";
+
 		return (
-			<li className={ this.props.classStyle }>
-				<span className="user-avatar">
+			<li ref={ this.userId } className={ this.props.classStyle }>
+				<div className="user-avatar">
 					<input className="select-user"
 								 id={id}
 					       onClick={ this.setCheck }
 					       type="checkbox" />
-					<label className={ classStyle } htmlFor={id}>{ this.props.name }</label>
+					<label ref={ this.labelId }
+								 className={ classStyle }
+								 htmlFor={id}>
+						{ this.props.name }
+					</label>
 					<i className="far fa-user" style={{ color, margin: "0 4px"}}/>
-				</span>
+				</div>
+				<PopupMenu classStyle={ popstateClassName }
+									 x={ this.state.x }
+									 y={ this.state.y }
+									 disable={ this.disablePopup }></PopupMenu>
 			</li>
 		);
 	}
 }
+
+interface PopupProps {
+	x: number;
+	y: number;
+	classStyle: string;
+	disable: (evt?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+}
+
+/**
+ * Functional component
+ */
+const PopupMenu = (props: PopupProps) => {
+	const disablePopup = () => {
+		props.disable();
+	};
+
+  const negotiateSDP = () => {
+		alert("Videocall functionality not enabled yet");
+	};
+
+	const { classStyle, y, x } = props;
+	return (
+		<div className={ classStyle } style={ { top: `${y - 55}px`, left: `${x + 20}px` }}>
+			<label>Videocall?</label>
+			<button onClick={ negotiateSDP }>Start</button>
+			<button onClick={ disablePopup }>Cancel</button>
+		</div>
+	);
+};
 
 export default connector(ListItem);

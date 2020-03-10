@@ -384,3 +384,19 @@ html, body {
   height: 100%;
   overflow: auto;
 }
+
+.user-popup-hidden {
+  display: none;
+}
+
+.user-popup-enabled {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 2;
+  background-color: #adadad;
+  padding: 4px;
+  margin: 4px;
+  border: 1px solid black;
+  overflow: visible;
+}
