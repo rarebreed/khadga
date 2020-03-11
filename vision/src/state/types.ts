@@ -48,6 +48,9 @@ export type LOGIN_ACTIONS = "USER_LOGIN"
 													| "AUTH_CREATED"
 													| "AUTH_EXPIRED";
 export type SELECT_USERS_ACTION = "ADD_USER" | "REMOVE_USER" | "CLEAR_ALL";
+export const SET_PEER_CONNECTION = "SET_PEER_CONNECTION";
+export const REMOVE_PEER_CONNECTION = "REMOVE_PEER_CONNECTION";
+export type PEER_CONNECTION_ACTIONS = "SET_PEER_CONNECTION" | "REMOVE_PEER_CONNECTION";
 
 export interface ActiveState {
 	isActive: boolean
@@ -195,3 +198,12 @@ export interface SelectUsersAction {
 export type ClickEvent<T extends HTMLElement> = React.MouseEvent<T, MouseEvent>;
 export type AnchorEvent = ClickEvent<HTMLAnchorElement>;
 export type InputEvent = ClickEvent<HTMLInputElement>;
+
+export interface PeerConnState {
+	peer: RTCPeerConnection | null
+}
+
+export interface PeerConnAction {
+	type: PEER_CONNECTION_ACTIONS,
+	peer: RTCPeerConnection | null
+}

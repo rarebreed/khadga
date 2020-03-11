@@ -11,10 +11,8 @@ import { ModalState
 			 , SET_SIGNUP_USERNAME
 			 , SET_SIGNUP_ACTIVE
 			 , SET_LOGIN_ACTIVE
-			 , SET_LOGIN_PASSWORD
 			 , StateStore
 			 , LoginAction
-			 , LoginFormAction
 			 , USER_LOGIN
 			 , USER_LOGOUT
 			 , ChatMessage
@@ -22,8 +20,6 @@ import { ModalState
 			 , MESSAGE_ADD
 			 , MESSAGE_DELETE
 			 , LoginReducerState
-			 , SET_LOGIN_USERNAME
-			 , SET_LOGIN_CLEAR
 			 , SET_SIGNUP_CLEAR
 			 , WebcamState
 			 , WebcamAction
@@ -38,7 +34,8 @@ import { ModalState
 			 , WEBSOCKET_CLOSE
 			 , WEBSOCKET_CREATE
 			 , SelectUsersAction
-			 , SelectedUsersState
+			 , PeerConnState
+			 , PeerConnAction
 			 } from "./types";
 import { ChatMessageState
 	     , ChatMessageAction
@@ -356,6 +353,30 @@ export const selectedUsersReducer = ( previous: string[] = []
 			return previous.filter(name => name !== action.user);
 		case "CLEAR_ALL":
 			return [];
+		default:
+			return previous;
+	}
+};
+
+const defaultPeerConnState: PeerConnState = {
+	peer: null
+};
+
+export const peerConnReducer = ( previous: PeerConnState = defaultPeerConnState
+	                             , action: PeerConnAction) => {
+	switch(action.type) {
+		case "SET_PEER_CONNECTION":
+      if (action.peer === null) {
+				logger.error("Can not have null peer object when setting");
+				return previous;
+			}
+			return {
+				peer: action.peer
+			};
+		case "REMOVE_PEER_CONNECTION":
+			return {
+				peer: null
+			};
 		default:
 			return previous;
 	}

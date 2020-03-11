@@ -63,6 +63,8 @@ class NavBar extends React.Component<PropsFromRedux> {
   videoSubj: Subject<MediaDeviceInfo>;
   audioOutSubj: Subject<MediaDeviceInfo>;
   audioInSubj: Subject<MediaDeviceInfo>;
+  // FIXME: Not really the place for this, but not in redux either
+  peer$: Subject<RTCPeerConnection>;
 
   constructor(props: PropsFromRedux) {
     super(props);
@@ -70,6 +72,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.videoSubj = new Subject();
     this.audioOutSubj = new Subject();
     this.audioInSubj =  new Subject();
+    this.peer$ = new Subject();
 
     // Rx-ify our state.  When settings changes, it will call next(), so we subscribe here
     this.videoSubj.subscribe({
@@ -104,12 +107,13 @@ class NavBar extends React.Component<PropsFromRedux> {
    * Handles messages coming from the websocket
    */
   messageHandler = (socket: WebSocket) => {
-    socketSetup(socket, {
+    socketSetup(this.peer$, socket, {
       user: this.props.user,
       auth: this.props.auth,
       loginAction: this.props.connection,
       chatAction: this.props.chatMessage,
-      setWebsocket: this.props.websocket
+      setWebsocket: this.props.websocket,
+      videoRef: React.createRef()  // FIXME:
     });
   }
 

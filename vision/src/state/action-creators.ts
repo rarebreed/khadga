@@ -13,6 +13,8 @@ import { ModalAction
 			 , WEBCAM_ACTIONS
 			 , SELECT_USERS_ACTION
 			 , SelectUsersAction
+			 , PEER_CONNECTION_ACTIONS,
+			 PeerConnAction
 			 } from "./types";
 import { ChatMessageState, CHAT_MESSAGE_ACTIONS} from "./message-types";
 
@@ -90,5 +92,14 @@ export const selectUserAction = (user: string, action: SELECT_USERS_ACTION): Sel
 	return {
 		type: action,
 		user
+	};
+};
+
+export const peerConnAction = ( peer: RTCPeerConnection | null
+															, action: PEER_CONNECTION_ACTIONS)
+															: PeerConnAction => {
+	return {
+		type: action,
+		peer
 	};
 };

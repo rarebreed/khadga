@@ -24,6 +24,7 @@ export interface State {
 	websocket: WebSocketState,
 	messages: ChatMessageState[],
 	selectedUsers: string[]
+	peer: RTCPeerConnection
 }
 
 /**

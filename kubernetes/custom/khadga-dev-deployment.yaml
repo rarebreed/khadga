@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: khadga
-        image: rarebreed/khadga:0.1.4
+        image: rarebreed/khadga:latest
         resources:
           limits:
             memory: "128Mi"

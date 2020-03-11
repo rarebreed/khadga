@@ -2,7 +2,7 @@ import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
 import { State } from "../state/store";
-import { selectUserAction } from "../state/action-creators";
+import { selectUserAction, peerConnAction } from "../state/action-creators";
 import { AnchorEvent, ClickEvent } from "../state/types";
 import { logger } from "../logger";
 
@@ -15,12 +15,14 @@ const mapPropsToState = (state: State) => {
 	return {
 		selected: state.selectedUsers,
 		username: state.connectState.username,
-		connected: state.connectState.connected
+		connected: state.connectState.connected,
+		peer: state.peer
 	};
 };
 
 const mapPropsToDispatch = {
-	setUser: selectUserAction
+	setUser: selectUserAction,
+	setPeer: peerConnAction
 };
 
 const connector = connect(mapPropsToState, mapPropsToDispatch);
@@ -116,8 +118,10 @@ class ListItem extends React.Component<PropsFromRedux, PopupState> {
 					<i className="far fa-user" style={{ color, margin: "0 4px"}}/>
 				</div>
 				<PopupMenu classStyle={ popstateClassName }
+				           name= { this.props.name }
 									 x={ this.state.x }
 									 y={ this.state.y }
+									 setPeer={ this.props.setPeer }
 									 disable={ this.disablePopup }></PopupMenu>
 			</li>
 		);
@@ -127,8 +131,10 @@ class ListItem extends React.Component<PropsFromRedux, PopupState> {
 interface PopupProps {
 	x: number;
 	y: number;
+	name: string;
 	classStyle: string;
 	disable: (evt?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+	setPeer: typeof peerConnAction
 }
 
 /**
@@ -140,7 +146,10 @@ const PopupMenu = (props: PopupProps) => {
 	};
 
   const negotiateSDP = () => {
-		alert("Videocall functionality not enabled yet");
+		// alert("Videocall functionality not enabled yet");
+		logger.log("Preparing to send SDP invitation offer to ", props.name);
+
+		
 	};
 
 	const { classStyle, y, x } = props;
