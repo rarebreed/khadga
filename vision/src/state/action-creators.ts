@@ -13,10 +13,13 @@ import { ModalAction
 			 , WEBCAM_ACTIONS
 			 , SELECT_USERS_ACTION
 			 , SelectUsersAction
-			 , PEER_CONNECTION_ACTIONS,
-			 PeerConnAction
+			 , PEER_CONNECTION_ACTIONS
+			 , PeerConnAction
+			 , VIDEO_REF_ACTION,
+			 VideoRefAction
 			 } from "./types";
 import { ChatMessageState, CHAT_MESSAGE_ACTIONS} from "./message-types";
+import { logger } from "../logger";
 
 export const setActive = (isActive: boolean, action: SET_MODAL_ACTIVE): ModalAction => {
 	return {
@@ -101,5 +104,17 @@ export const peerConnAction = ( peer: RTCPeerConnection | null
 	return {
 		type: action,
 		peer
+	};
+};
+
+export const videoRefAction = ( videoRef: React.RefObject<HTMLVideoElement> | null
+															, action: VIDEO_REF_ACTION)
+															: VideoRefAction => {
+	logger.info("videoRef action: ", action);
+  return {
+		type: action,
+		ref: {
+			videoRefId: videoRef
+		}
 	};
 };

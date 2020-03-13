@@ -53,49 +53,56 @@ export const makeWsICECandMsg = (sender: string, reciever: string, cand: ICECand
 	return msg;
 };
 
-const closeVideoCall = (peer: RTCPeerConnection | null) => {
+/**
+ * Handles closing of the MediaStream from our RTCPeerConnection
+ *
+ * @param peer
+ */
+export const closeVideoCall = (peer: RTCPeerConnection | null) => {
 	const localVideo = document.getElementById("local_video") as HTMLVideoElement;
   logger.log("Closing the call");
 
-  // Close the RTCPeerConnection
-  if (peer) {
-    logger.log("--> Closing the peer connection");
+	// Close the RTCPeerConnection
+	if (!peer) {
+		logger.error("RTCPeerConnection was null");
+		return;
+	}
+	logger.log("--> Closing the peer connection");
 
-    // Disconnect all our event listeners; we don't want stray events
-    // to interfere with the hangup while it's ongoing.
-    peer.ontrack = null;
-    peer.onicecandidate = null;
-    peer.oniceconnectionstatechange = null;
-    peer.onsignalingstatechange = null;
-    peer.onicegatheringstatechange = null;
-    // peer.onnotificationneeded = null;
+	// Disconnect all our event listeners; we don't want stray events
+	// to interfere with the hangup while it's ongoing.
+	peer.ontrack = null;
+	peer.onicecandidate = null;
+	peer.oniceconnectionstatechange = null;
+	peer.onsignalingstatechange = null;
+	peer.onicegatheringstatechange = null;
+	// peer.onnotificationneeded = null;
 
-    // Stop all transceivers on the connection
-    peer.getTransceivers().forEach(transceiver => {
-      transceiver.stop();
-    });
+	// Stop all transceivers on the connection
+	peer.getTransceivers().forEach(transceiver => {
+		transceiver.stop();
+	});
 
-    // Stop the webcam preview as well by pausing the <video>
-    // element, then stopping each of the getUserMedia() tracks
-    // on it.
-    if (localVideo && localVideo.srcObject) {
-			localVideo.pause();
-			const stream = localVideo.srcObject as MediaStream;
-      stream.getTracks().forEach(track => {
-        track.stop();
-      });
-    }
+	// Stop the webcam preview as well by pausing the <video>
+	// element, then stopping each of the getUserMedia() tracks
+	// on it.
+	if (localVideo && localVideo.srcObject) {
+		localVideo.pause();
+		const stream = localVideo.srcObject as MediaStream;
+		stream.getTracks().forEach(track => {
+			track.stop();
+		});
+	}
 
-    // Close the peer connection
-    peer.close();
-    peer = null;
-  }
+	// Close the peer connection
+	peer.close();
+	peer = null;
 };
 
 export interface RTCSetup {
 	sockSubj: Subject<string>;  // used to send messages
 	connectSubj: Subject<[string, string]>;  // Gets sender, receiver
-	videoRef: React.RefObject<HTMLVideoElement>;
+	videoRef: React.RefObject<HTMLVideoElement>
 }
 
 /**
@@ -192,7 +199,7 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 
 	/**
 	 * Called by the WebRTC layer to let us know when it's time to
-	 * begin, resume, or restart ICE negotiation.
+	 * begin, resume, or restart ICE negotiation.  This will be triggered by the remote
 	 */
 	const handleNegotiationNeededEvent = () => {
 		logger.log("*** Negotiation needed");
@@ -270,13 +277,14 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
   */
 	function handleTrackEvent(event: RTCTrackEvent) {
 		logger.log("*** Track event");
-		if (args.videoRef.current) {
+		if (args.videoRef && args.videoRef.current) {
 			args.videoRef.current.srcObject = event.streams[0];
 		}
 	}
 
   peer$.subscribe({
 		next: (peer) => {
+			logger.log("Settings up event handlers for RTCPeerConnection");
 			// Set up event handlers for the ICE negotiation process.
 			peer.onicecandidate = handleICECandidateEvent;
 			peer.oniceconnectionstatechange = handleICEConnectionStateChangeEvent;

@@ -20,7 +20,6 @@ const connector = connect(mapStateToProps);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class ChatContainer extends React.Component<PropsFromRedux> {
-
 	/**
 	 * Creates the messages that will be displayed in the GUI
 	 *

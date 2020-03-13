@@ -207,3 +207,13 @@ export interface PeerConnAction {
 	type: PEER_CONNECTION_ACTIONS,
 	peer: RTCPeerConnection | null
 }
+
+export interface VideoRefReducerState {
+	videoRefId: React.RefObject<HTMLVideoElement> | null;
+}
+
+export type VIDEO_REF_ACTION = "SET_VIDEO_REF" | "REMOVE_VIDEO_REF";
+export interface VideoRefAction {
+	type: VIDEO_REF_ACTION
+	ref: VideoRefReducerState
+}

@@ -9,15 +9,16 @@ import { setActive
        , webcamCamAction
        , websocketAction
        , chatMessageAction
+       , videoRefAction
        } from "../state/action-creators";
 import { WEBCAM_ENABLE
-       , WebSocketState,
-       WebcamState
+       , WebSocketState
+       , WebcamState
        } from "../state/types";
 import { NavBarItem, NavBarDropDown } from "./navbar-item";
 import GoogleAuth from "./google-signin";
 import { socketSetup } from "./webrtc/websocket-handler";
-import WebCamSettings from "../components/webrtc/settings"
+import WebCamSettings from "../components/webrtc/settings";
 
 const logger = console;
 
@@ -37,7 +38,8 @@ const mapState = (state: State) => {
     connected: state.connectState.connected,
 		auth: state.connectState.auth2,
     socket: state.websocket.socket,
-    camState: state.webcam
+    camState: state.webcam,
+    videoRef: state.videoRef.videoRefId
   };
 };
 
@@ -47,7 +49,8 @@ const mapDispatch = {
   setLoginForm: setLoginFormAction,
   webcam: webcamCamAction,
   websocket: websocketAction,
-  chatMessage: chatMessageAction
+  chatMessage: chatMessageAction,
+  video: videoRefAction
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -63,8 +66,9 @@ class NavBar extends React.Component<PropsFromRedux> {
   videoSubj: Subject<MediaDeviceInfo>;
   audioOutSubj: Subject<MediaDeviceInfo>;
   audioInSubj: Subject<MediaDeviceInfo>;
-  // FIXME: Not really the place for this, but not in redux either
+  // FIXME: Not really the place for either of these, but not in redux either
   peer$: Subject<RTCPeerConnection>;
+  videoRef: React.RefObject<HTMLVideoElement>;
 
   constructor(props: PropsFromRedux) {
     super(props);
@@ -73,6 +77,10 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.audioOutSubj = new Subject();
     this.audioInSubj =  new Subject();
     this.peer$ = new Subject();
+    this.videoRef = React.createRef();
+
+    // make sure the videoRef is available if user clicks Webcam
+    this.props.video(this.videoRef, "SET_VIDEO_REF");
 
     // Rx-ify our state.  When settings changes, it will call next(), so we subscribe here
     this.videoSubj.subscribe({
@@ -88,11 +96,15 @@ class NavBar extends React.Component<PropsFromRedux> {
       complete: () => logger.info("Subject stream is complete")
     });
   }
+
 	/**
 	 * Sets up webcam
 	 *
 	 * Currently, this is not hooked up to the Signaling service at all.  This will only get the local
-	 * webcam video stream, not another user's webcam stream
+	 * webcam video stream, not another user's webcam stream.  This sets off a chain of events that
+	 * will launch the webcam.  By calling this.props.webcam, it sets the state of the webcam.active
+	 * to true.  That in turn causes the ChatContainer component to react to the new state, and create
+	 * the VideoCam component.
 	 */
 	launchWebCam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     const webcamState = {
@@ -113,7 +125,7 @@ class NavBar extends React.Component<PropsFromRedux> {
       loginAction: this.props.connection,
       chatAction: this.props.chatMessage,
       setWebsocket: this.props.websocket,
-      videoRef: React.createRef()  // FIXME:
+      videoRef: this.videoRef
     });
   }
 

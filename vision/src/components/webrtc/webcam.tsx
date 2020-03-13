@@ -9,7 +9,7 @@ import { connect, ConnectedProps } from "react-redux";
 
 import * as noesis from "@khadga/noesis";
 import { State } from "../../state/store";
-import { webcamCamAction } from "../../state/action-creators";
+import { webcamCamAction, videoRefAction,  } from "../../state/action-creators";
 import { WEBCAM_DISABLE } from "../../state/types";
 import dragElement, { resizeElement } from "../../utils/utils";
 
@@ -18,12 +18,14 @@ const logger = console;
 const mapStateToProps = (state: State) => {
 	return {
 		webcamActive: state.webcam.active,
-		webcamId: state.webcam.videoId
+		webcamId: state.webcam.videoId,
+		videoRef: state.videoRef.videoRefId
 	};
 };
 
 const mapPropsToDispatch = {
-	setWebcam: webcamCamAction
+	setWebcam: webcamCamAction,
+	video: videoRefAction
 };
 
 const connector = connect(mapStateToProps, mapPropsToDispatch);
@@ -34,20 +36,19 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
  */
 class VideoStream extends React.Component<PropsFromRedux> {
 	myRef: React.RefObject<HTMLDivElement>;
-	videoRef: React.RefObject<HTMLVideoElement>;
 	resizeRef: React.RefObject<HTMLImageElement>;
 
 	constructor(props: PropsFromRedux) {
 		super(props);
 		this.myRef = React.createRef();
-		this.videoRef = React.createRef();
 		this.resizeRef = React.createRef();
 
 		this.disableCam.bind(this);
 	}
 
 	/**
-	 * Once the component has mounted, we need to get the MediaDevice and attach to our <video> element
+	 * Once the component has mounted, we need to get the MediaDevice and attach to our <video>
+	 * element
 	 */
 	async componentDidMount() {
 		if (this.myRef.current) {
@@ -62,11 +63,11 @@ class VideoStream extends React.Component<PropsFromRedux> {
 			logger.error("No resize element yet");
 		}
 
-		if (this.videoRef.current !== null) {
+		if (this.props.videoRef !== null) {
 			logger.log("Loading video object");
 /* 			const camProm = noesis.get_media_stream() as Promise<MediaStream>;
 			const cam = await camProm; */
-			let constraints: MediaStreamConstraints = {
+			const constraints: MediaStreamConstraints = {
 				audio: true,
 				video: {
 					width: { ideal: 1280 },
@@ -74,24 +75,21 @@ class VideoStream extends React.Component<PropsFromRedux> {
 				}
 			};
 
-			if (this.props.webcamId) {
-				constraints = {
-					video: { deviceId: this.props.webcamId },
-					audio: true
-				};
-			}
-
 			const cam = await navigator.mediaDevices.getUserMedia(constraints);
-			const video = this.videoRef.current;
+			const video = this.props.videoRef.current;
 
 			// TODO: Present a list of options for the user
-			const mediaDevs = noesis.list_media_devices();
+			const mediaDevs = await noesis.list_media_devices();
 			logger.log(mediaDevs);
 
-			video.srcObject = cam;
-			video.play();
+			if (video !== null) {
+				video.srcObject = cam;
+				video.play();
+			} else {
+				alert("Video not available");
+			}
 		} else {
-			alert("video is not available");
+			alert("Video is not available.");
 		}
 	}
 
@@ -99,21 +97,23 @@ class VideoStream extends React.Component<PropsFromRedux> {
 	 * When user clicks the "Turn Off" button, remove the webcam and MediaStream
 	 */
 	disableCam = () => {
-		logger.log(this.videoRef);
-		if (this.videoRef  && this.videoRef.current !== null) {
-			const video = this.videoRef.current;
+		logger.log(this.props.videoRef);
+		if (this.props.videoRef  && this.props.videoRef.current !== null) {
+			const video = this.props.videoRef.current;
 
 			video.remove();
+			video.srcObject = null;
 		}
 
 		this.props.setWebcam({ active: false }, WEBCAM_DISABLE);
+		this.props.video(null, "REMOVE_VIDEO_REF");
 	}
 
 	render() {
 		return (
 			<div>
 				<div ref={ this.myRef } id="localVideo">
-					<video width="1280px" height="720px" id="webcam" ref={ this.videoRef }>
+					<video width="1280px" height="720px" id="webcam" ref={ this.props.videoRef }>
 						No video stream available
 					</video>
 					<div id="localVideoHeader">

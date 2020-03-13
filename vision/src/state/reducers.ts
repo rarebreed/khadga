@@ -36,6 +36,8 @@ import { ModalState
 			 , SelectUsersAction
 			 , PeerConnState
 			 , PeerConnAction
+			 , VideoRefReducerState
+			 , VideoRefAction
 			 } from "./types";
 import { ChatMessageState
 	     , ChatMessageAction
@@ -376,6 +378,28 @@ export const peerConnReducer = ( previous: PeerConnState = defaultPeerConnState
 		case "REMOVE_PEER_CONNECTION":
 			return {
 				peer: null
+			};
+		default:
+			return previous;
+	}
+};
+
+const initialVideoRefState: VideoRefReducerState = {
+	videoRefId: null
+};
+
+export const videoRefReducer = ( previous: VideoRefReducerState = initialVideoRefState
+	                             , action: VideoRefAction) => {
+	switch(action.type) {
+		case "SET_VIDEO_REF":
+			if (action.ref === null) {
+				logger.error("Trying to set videoRefId with a null action.ref");
+				return previous;
+			}
+			return action.ref;
+		case "REMOVE_VIDEO_REF":
+			return {
+				videoRefId: null
 			};
 		default:
 			return previous;
