@@ -1,25 +1,32 @@
-import { ModalAction
-			 , SET_MODAL_ACTIVE
-			 , SignUpAction
-			 , LoginFormAction
-			 , LOGIN_ACTIONS
-			 , LoginAction
-			 , WebSocketAction
-			 , NamePropState
-			 , SET_SIGNUP
-			 , SET_LOGIN_FORM
-			 , WebcamAction
-			 , WebcamState
-			 , WEBCAM_ACTIONS
-			 , SELECT_USERS_ACTION
-			 , SelectUsersAction
-			 , PEER_CONNECTION_ACTIONS
-			 , PeerConnAction
-			 , VIDEO_REF_ACTION,
-			 VideoRefAction
-			 } from "./types";
-import { ChatMessageState, CHAT_MESSAGE_ACTIONS} from "./message-types";
+import { 
+	ModalAction,
+	SET_MODAL_ACTIVE,
+	SignUpAction,
+	LoginFormAction,
+	LOGIN_ACTIONS,
+	LoginAction,
+	WebSocketAction,
+	NamePropState,
+	SET_SIGNUP,
+	SET_LOGIN_FORM,
+	WebcamAction,
+	WebcamState,
+	WEBCAM_ACTIONS,
+	SELECT_USERS_ACTION,
+	SelectUsersAction,
+	PEER_CONNECTION_ACTIONS,
+	PeerConnAction,
+	VIDEO_REF_ACTION,
+	VideoRefAction,
+	WebCommAction,
+	WebCommActions
+} from "./types";
+import {
+	ChatMessageState,
+	CHAT_MESSAGE_ACTIONS
+} from "./message-types";
 import { logger } from "../logger";
+import { WebComm } from "../components/webrtc/communication";
 
 export const setActive = (isActive: boolean, action: SET_MODAL_ACTIVE): ModalAction => {
 	return {
@@ -118,3 +125,18 @@ export const videoRefAction = ( videoRef: React.RefObject<HTMLVideoElement> | nu
 		}
 	};
 };
+
+
+export const webcommAction = (
+	webcomm: WebComm | null,
+	action: WebCommActions
+) => {
+	let act: WebCommAction = {
+		type: action
+	}
+
+	if (webcomm !== null) {
+		act.data = webcomm
+	}
+	return act;
+}

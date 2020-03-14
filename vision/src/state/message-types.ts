@@ -30,6 +30,7 @@ export interface WsMessage<T> {
 export type WsCommandTypes = "Ping"
 													 | "Pong"
 													 | "SDPOffer"
+													 | "SDPAnswer"
 													 | "IceCandidate";
 
 // FIXME: The args should be generic

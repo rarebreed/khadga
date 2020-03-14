@@ -265,10 +265,9 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 				const timeout = window.setInterval(() => {
 					logger.log("refreshing JWT");
 					this.signIn();
-				}, 1000 * 60 * 15);
+				}, 1000 * 60 * 30);
 				this.setState({ timeout });
 			}
-
 		} else {
 			logger.log("No this.auth2 instance");
 		}

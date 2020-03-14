@@ -10,6 +10,7 @@ import { setActive
        , websocketAction
        , chatMessageAction
        , videoRefAction
+       , webcommAction
        } from "../state/action-creators";
 import { WEBCAM_ENABLE
        , WebSocketState
@@ -19,6 +20,7 @@ import { NavBarItem, NavBarDropDown } from "./navbar-item";
 import GoogleAuth from "./google-signin";
 import { socketSetup } from "./webrtc/websocket-handler";
 import WebCamSettings from "../components/webrtc/settings";
+import { WebComm, WSSetup } from "../components/webrtc/communication";
 
 const logger = console;
 
@@ -39,7 +41,8 @@ const mapState = (state: State) => {
 		auth: state.connectState.auth2,
     socket: state.websocket.socket,
     camState: state.webcam,
-    videoRef: state.videoRef.videoRefId
+    videoRef: state.videoRef.videoRefId,
+    webcomm: state.webcomm.webcomm
   };
 };
 
@@ -50,7 +53,8 @@ const mapDispatch = {
   webcam: webcamCamAction,
   websocket: websocketAction,
   chatMessage: chatMessageAction,
-  video: videoRefAction
+  video: videoRefAction,
+  setWebComm: webcommAction
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -68,7 +72,7 @@ class NavBar extends React.Component<PropsFromRedux> {
   audioInSubj: Subject<MediaDeviceInfo>;
   // FIXME: Not really the place for either of these, but not in redux either
   peer$: Subject<RTCPeerConnection>;
-  videoRef: React.RefObject<HTMLVideoElement>;
+  // videoRef: React.RefObject<HTMLVideoElement>;
 
   constructor(props: PropsFromRedux) {
     super(props);
@@ -77,10 +81,10 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.audioOutSubj = new Subject();
     this.audioInSubj =  new Subject();
     this.peer$ = new Subject();
-    this.videoRef = React.createRef();
+    //this.videoRef = React.createRef();
 
     // make sure the videoRef is available if user clicks Webcam
-    this.props.video(this.videoRef, "SET_VIDEO_REF");
+    // this.props.video(this.videoRef, "SET_VIDEO_REF");
 
     // Rx-ify our state.  When settings changes, it will call next(), so we subscribe here
     this.videoSubj.subscribe({
@@ -154,7 +158,27 @@ class NavBar extends React.Component<PropsFromRedux> {
     } else {
       logger.log(`In setupChat`, this.props);
     }
-	}
+  }
+  
+  createWebComm = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    if (!this.props.loggedIn) {
+      alert("Please log in first");
+      return;
+    }
+
+    // Create and initialize our WebComm object
+    const webcomm = new WebComm(this.props.user);
+    const wssetup: WSSetup = {
+      auth: this.props.auth,
+      loginAction: this.props.connection,
+      chatAction: this.props.chatMessage,
+    };
+    webcomm.socketSetup(wssetup);
+
+    // Set our state in the redux store
+    this.props.setWebComm(webcomm, "CREATE_WEBCOMM");
+    this.props.websocket(webcomm.socket);
+  }
 
 	render() {
 		return (
@@ -169,7 +193,7 @@ class NavBar extends React.Component<PropsFromRedux> {
             <NavBarDropDown value="Menu">
               <a className="dropdown-item"
                   href="#"
-                  onClick={ this.setupChat }>Chat</a>
+                  onClick={ this.createWebComm }>Chat</a>
               <a className="dropdown-item"
                   href="#"
                   onClick={ this.launchWebCam }>Webcam</a>

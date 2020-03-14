@@ -1,7 +1,7 @@
 import React from "react";
 import { connect, ConnectedProps } from "react-redux";
 
-import { WsMessage, ChatMessageState } from "../../state/message-types";
+import { WsMessage } from "../../state/message-types";
 import { State } from "../../state/store";
 import { chatMessageAction } from "../../state/action-creators";
 
@@ -34,7 +34,7 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 	target: React.RefObject<HTMLTextAreaElement>;
 	ctlKeyDown: boolean;
 
-  constructor(props: PropsFromReduxLogin) {
+	constructor(props: PropsFromReduxLogin) {
 		super(props);
 		this.message = "";
 		this.target = React.createRef();
@@ -99,7 +99,7 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 			recipients = results[0].split(",").map(user => user.replace("@", ""));
 		}
 		const msg = this.makeWSMessage(this.state.message);
-    msg.recipients = recipients;
+		msg.recipients = recipients;
 
 		logger.log(`sending`, msg);
 		if (this.props.socket) {
@@ -139,17 +139,17 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
 	}
 
 	render() {
-		return(
+		return (
 			<div className="chat-input">
 				<div className="field-group">
 					<textarea className="chat-text"
-						cols={ 1 }
-						wrap={ "hard" }
-						ref={ this.target }
-						onKeyDown={ this.onDown }
-						onKeyUp={ this.onUp }
-						onInput={ this.dataHandler } />
-					<button onClick={ this.send }>
+						cols={1}
+						wrap={"hard"}
+						ref={this.target}
+						onKeyDown={this.onDown}
+						onKeyUp={this.onUp}
+						onInput={this.dataHandler} />
+					<button onClick={this.send}>
 						Send
 					</button>
 				</div>

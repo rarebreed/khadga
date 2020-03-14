@@ -1,16 +1,14 @@
 /**
- * This module describes the SDP (Session Description Protocol) and how to get ICE working
+ * This module implements the functionality for connection between WebRTC clients.  This includes
+ * the SDP (Session Description Protocol) and how to get ICE working as well as RTCPeerConnection
+ * details
  */
+
 import React from "react";
 import { Subject, of } from "rxjs";
 import { flatMap, map, catchError } from "rxjs/operators";
 import { WsMessage, WsCommand } from "../../state/message-types";
 const logger = console;
-
-export interface SDPMessage {
-	type: "offer" | "video-answer",
-	sdp: string
-}
 
 export const makeWsSDPMessage = (sender: string, receiver: string, sdp: RTCSessionDescription) => {
 	const msg: WsMessage<WsCommand<RTCSessionDescription>> = {
@@ -60,7 +58,7 @@ export const makeWsICECandMsg = (sender: string, reciever: string, cand: ICECand
  */
 export const closeVideoCall = (peer: RTCPeerConnection | null) => {
 	const localVideo = document.getElementById("local_video") as HTMLVideoElement;
-  logger.log("Closing the call");
+	logger.log("Closing the call");
 
 	// Close the RTCPeerConnection
 	if (!peer) {
@@ -152,7 +150,7 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 			next: (peer) => {
 				logger.log("*** ICE connection state changed to " + peer.iceConnectionState);
 
-				switch(peer.iceConnectionState) {
+				switch (peer.iceConnectionState) {
 					case "closed":
 					case "failed":
 					case "disconnected":
@@ -186,7 +184,7 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 		peer$.subscribe({
 			next: (peer) => {
 				logger.log("*** WebRTC signaling state changed to: " + peer.signalingState);
-				switch(peer.signalingState) {
+				switch (peer.signalingState) {
 					case "closed":
 						closeVideoCall(peer);
 						break;
@@ -201,9 +199,9 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 	 * Called by the WebRTC layer to let us know when it's time to
 	 * begin, resume, or restart ICE negotiation.  This will be triggered by the remote
 	 */
-	const handleNegotiationNeededEvent = () => {
+	const handleNegotiationNeededEvent = (ev: Event) => {
 		logger.log("*** Negotiation needed");
-    const handle$ = peer$.pipe(
+		const handle$ = peer$.pipe(
 			flatMap((peer) => {
 				return peer.createOffer().then(offer => {
 					return {
@@ -213,7 +211,7 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 				});
 			}),
 			map((state) => {
-				const {peer, offer} = state;
+				const { peer, offer } = state;
 				if (peer.signalingState !== "stable") {
 					logger.log("     -- The connection isn't stable yet; postponing...");
 					return of(state);
@@ -260,21 +258,21 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 		});
 	};
 
- /**
-  * Called by the WebRTC layer when events occur on the media tracks
-  * on our WebRTC call. This includes when streams are added to and
-  * removed from the call.
-  *
-  * track events include the following fields
-  *
-  * RTCRtpReceiver       receiver
-  * MediaStreamTrack     track
-  * MediaStream[]        streams
-  * RTCRtpTransceiver    transceiver
-  *
-  * In our case, we're just taking the first stream found and attaching
-  * it to the <video> element for incoming media.
-  */
+	/**
+	 * Called by the WebRTC layer when events occur on the media tracks
+	 * on our WebRTC call. This includes when streams are added to and
+	 * removed from the call.
+	 *
+	 * track events include the following fields
+	 *
+	 * RTCRtpReceiver       receiver
+	 * MediaStreamTrack     track
+	 * MediaStream[]        streams
+	 * RTCRtpTransceiver    transceiver
+	 *
+	 * In our case, we're just taking the first stream found and attaching
+	 * it to the <video> element for incoming media.
+	 */
 	function handleTrackEvent(event: RTCTrackEvent) {
 		logger.log("*** Track event");
 		if (args.videoRef && args.videoRef.current) {
@@ -282,7 +280,7 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 		}
 	}
 
-  peer$.subscribe({
+	peer$.subscribe({
 		next: (peer) => {
 			logger.log("Settings up event handlers for RTCPeerConnection");
 			// Set up event handlers for the ICE negotiation process.

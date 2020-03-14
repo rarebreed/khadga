@@ -25,7 +25,7 @@ const mapStateToProps = (state: State) => {
 
 const mapPropsToDispatch = {
 	setWebcam: webcamCamAction,
-	video: videoRefAction
+	setVideo: videoRefAction
 };
 
 const connector = connect(mapStateToProps, mapPropsToDispatch);
@@ -106,7 +106,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
 		}
 
 		this.props.setWebcam({ active: false }, WEBCAM_DISABLE);
-		this.props.video(null, "REMOVE_VIDEO_REF");
+		this.props.setVideo(null, "REMOVE_VIDEO_REF");
 	}
 
 	render() {

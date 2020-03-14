@@ -38,6 +38,8 @@ import { ModalState
 			 , PeerConnAction
 			 , VideoRefReducerState
 			 , VideoRefAction
+			 , WebCommReducerState
+			 , WebCommAction
 			 } from "./types";
 import { ChatMessageState
 	     , ChatMessageAction
@@ -47,6 +49,7 @@ import { ChatMessageState
 			 , CHAT_MESSAGE_REPLY
 			 } from "./message-types";
 import { logger } from "../logger";
+import { WebComm } from "../components/webrtc/communication";
 
 const initialModalState: ModalState = {
 	signup: {
@@ -364,6 +367,12 @@ const defaultPeerConnState: PeerConnState = {
 	peer: null
 };
 
+/**
+ * FIXME: Remove this in place of the webcommReducer
+ * 
+ * @param previous 
+ * @param action 
+ */
 export const peerConnReducer = ( previous: PeerConnState = defaultPeerConnState
 	                             , action: PeerConnAction) => {
 	switch(action.type) {
@@ -405,3 +414,28 @@ export const videoRefReducer = ( previous: VideoRefReducerState = initialVideoRe
 			return previous;
 	}
 };
+
+
+const InitialWebCommState: WebCommReducerState = {
+	webcomm: null
+}
+
+export const webcommReducer = (
+	previous: WebCommReducerState = InitialWebCommState,
+	action: WebCommAction
+) => {
+	switch(action.type) {
+		case "CREATE_WEBCOMM":
+			if (!action.data) {
+				logger.warn("No WebComm object supplied.   Returning previous");
+				return previous;
+			}
+			return action.data;
+		case "DELETE_WEBCOMM":
+			return {
+				webcomm: null
+			}
+		default:
+			return previous;
+	}
+}
