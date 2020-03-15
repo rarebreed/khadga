@@ -1,12 +1,21 @@
 import React from "react";
-import { connect, ConnectedProps, useSelector } from "react-redux";
+import { 
+  connect,
+  ConnectedProps,
+  useSelector,
+  useDispatch
+} from "react-redux";
+import { map } from "rxjs/operators"
 
 import { State } from "../state/store";
-import { selectUserAction, peerConnAction } from "../state/action-creators";
+import { 
+  selectUserAction,
+  peerConnAction,
+  webcamCamAction
+} from "../state/action-creators";
 import { ClickEvent } from "../state/types";
 import { logger } from "../logger";
-import { WebComm } from "../components/webrtc/communication";
-const log = logger.log;
+import webcam from "./webrtc/webcam";
 
 interface Item {
   classStyle: string,
@@ -117,7 +126,7 @@ class ListItem extends React.Component<PropsFromRedux, PopupState> {
             htmlFor={ id }>
             {this.props.name}
           </label>
-          <i className="far fa-user" style={{ color, margin: "0 4px" }} />
+          <i className="far fa-user" style={{color, margin: "0 4px"}} />
         </div>
         <PopupMenu classStyle={ popstateClassName }
           name={ this.props.name }
@@ -144,33 +153,78 @@ interface PopupProps {
  */
 const PopupMenu = (props: PopupProps) => {
   const webcomm = useSelector((state: State) => state.webcomm.webcomm);
+  const webcamActive = useSelector((state: State) => state.webcam.active);
+  const dispatch = useDispatch();
 
   const disablePopup = () => {
     props.disable();
   };
 
+  /**
+   * When the user clicks Start, we will initiate the SDP negotiation that kicks off the whole
+   * process
+   */
   const invite = () => {
     // Check if webcomm has been created
     if (webcomm === null) {
       alert("User has not logged in yet");
       return;
     }
+    // Check if we have webcam started.  If not, start it for the user.
+    if (!webcamActive) {
+      dispatch(webcamCamAction({
+        active: true,
+      }, "WEBCAM_ENABLE"))
+    }
+
     // Check if we have RTCPeerConnection.
     if (!webcomm.peer) {
       logger.info("Setting up RTCPeerConnection");
       webcomm.peer = webcomm.createPeerConnection();
     }
+    logger.log("RTCPeerConnection: ", webcomm.peer);
 
     // Push the target to the webcomm.  Its handleVideoOffer will take this value, and use it create
     // an SDPOffer message
     webcomm.targets$.next(props.name);
 
-    
+    // Get the webcam and add tracks to the peer connection.  This will trigger a negotiation event
+    let cam$ = webcomm.streamLocal$.pipe(
+      map((stream) => {
+        if (!stream) {
+          logger.info("No MediaStream yet");
+          return false;
+        }
+        
+        let success = true;
+        stream.getTracks().forEach((track) => {
+          if(!webcomm.peer) {
+            logger.error("No RTCPeerConnection yet in webcomm");
+            success = false;
+            return;
+          }
+          webcomm.peer.addTrack(track, stream)
+        });
+        return success;
+      }),
+    );
+
+    cam$.subscribe({
+      next: (success) => {
+        if (!success) {
+          logger.error("Unable to add tracks to RTCPeerConnection")
+        } else {
+          logger.info("Successfully added track to RTCPeerConnection")
+        }
+        // Close the popup menu
+        disablePopup();
+      }
+    })
   };
 
-  const { classStyle, y, x } = props;
+  const {classStyle, y, x} = props;
   return (
-    <div className={ classStyle } style={{ top: `${y - 55}px`, left: `${x + 20}px` }}>
+    <div className={ classStyle } style={{top: `${y - 55}px`, left: `${x + 20}px`}}>
       <label>Videocall?</label>
       <button onClick={ invite }>Start</button>
       <button onClick={ disablePopup }>Cancel</button>
@@ -179,3 +233,5 @@ const PopupMenu = (props: PopupProps) => {
 };
 
 export default connector(ListItem);
+
+

@@ -2,7 +2,7 @@
  * This module will store the various Actions and data types used in the Action
  */
 
-import { WebComm } from "../components/webrtc/communication";
+import {WebComm} from "../components/webrtc/communication";
 
 export const SET_SIGNUP_ACTIVE = "SET_SIGNUP_ACTIVE";
 export const SET_LOGIN_ACTIVE = "SET_LOGIN_ACTIVE";
@@ -121,8 +121,8 @@ export interface LoginReducerState {
 }
 
 export const makeLoginArgs = (props: LoginReducerState): [string[], string, any] => {
-	const { connected, username, auth2 } = props;
-	return [connected, username, auth2];
+  const {connected, username, auth2} = props;
+  return [ connected, username, auth2 ];
 };
 
 export interface ChatMessage {

@@ -33,7 +33,7 @@ module.exports = {
       "error",
       "always"
     ],
-    "eslint block-spacing": "error",
+    "block-spacing": "error",
     "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
     "indent": [
       "error",

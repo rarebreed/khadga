@@ -1,26 +1,26 @@
 import * as React from "react";
-import { connect, ConnectedProps } from "react-redux";
-import { Subject } from "rxjs";
+import {connect, ConnectedProps} from "react-redux";
+import {Subject} from "rxjs";
 
-import { State } from "../state/store";
-import { setActive
-       , createLoginAction
-       , setLoginFormAction
-       , webcamCamAction
-       , websocketAction
-       , chatMessageAction
-       , videoRefAction
-       , webcommAction
-       } from "../state/action-creators";
-import { WEBCAM_ENABLE
-       , WebSocketState
-       , WebcamState
-       } from "../state/types";
-import { NavBarItem, NavBarDropDown } from "./navbar-item";
+import {State} from "../state/store";
+import {setActive
+  , createLoginAction
+  , setLoginFormAction
+  , webcamCamAction
+  , websocketAction
+  , chatMessageAction
+  , videoRefAction
+  , webcommAction
+} from "../state/action-creators";
+import {WEBCAM_ENABLE
+  , WebSocketState
+  , WebcamState
+} from "../state/types";
+import {NavBarItem, NavBarDropDown} from "./navbar-item";
 import GoogleAuth from "./google-signin";
-import { socketSetup } from "./webrtc/websocket-handler";
+import {socketSetup} from "./webrtc/websocket-handler";
 import WebCamSettings from "../components/webrtc/settings";
-import { WebComm, WSSetup } from "../components/webrtc/communication";
+import {WebComm, WSSetup} from "../components/webrtc/communication";
 
 const logger = console;
 
@@ -38,7 +38,7 @@ const mapState = (state: State) => {
     modal: state.modal,
     loggedIn: state.connectState.loggedIn,
     connected: state.connectState.connected,
-		auth: state.connectState.auth2,
+    auth: state.connectState.auth2,
     socket: state.websocket.socket,
     camState: state.webcam,
     videoRef: state.videoRef.videoRefId,
@@ -96,21 +96,21 @@ class NavBar extends React.Component<PropsFromRedux> {
 
         this.props.webcam(webcamState, WEBCAM_ENABLE);
       },
-      error: (err) => logger.error(`Got error: ${err}`),
+      error: err => logger.error(`Got error: ${err}`),
       complete: () => logger.info("Subject stream is complete")
     });
   }
 
-	/**
-	 * Sets up webcam
-	 *
-	 * Currently, this is not hooked up to the Signaling service at all.  This will only get the local
-	 * webcam video stream, not another user's webcam stream.  This sets off a chain of events that
-	 * will launch the webcam.  By calling this.props.webcam, it sets the state of the webcam.active
-	 * to true.  That in turn causes the ChatContainer component to react to the new state, and create
-	 * the VideoCam component.
-	 */
-	launchWebCam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  /**
+   * Sets up webcam
+   *
+   * Currently, this is not hooked up to the Signaling service at all.  This will only get the local
+   * webcam video stream, not another user's webcam stream.  This sets off a chain of events that
+   * will launch the webcam.  By calling this.props.webcam, it sets the state of the webcam.active
+   * to true.  That in turn causes the ChatContainer component to react to the new state, and create
+   * the VideoCam component.
+   */
+  launchWebCam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     const webcamState = {
       active: true
     };
@@ -142,29 +142,29 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.props.websocket(webcomm.socket);
   }
 
-	render() {
-		return (
-			<nav className="navbar-grid-area">
+  render() {
+    return (
+      <nav className="navbar-grid-area">
         <div className="navbar">
           <div className="navsection">
             <img src="khadga-logo-cropped.png"
-                 alt="khadga"
-                 height="42px"
-                 className="fit" />
+              alt="khadga"
+              height="42px"
+              className="fit" />
             <NavBarItem href="https://rarebreed.github.com">About</NavBarItem>
             <NavBarDropDown value="Menu">
               <a className="dropdown-item"
-                  href="#"
-                  onClick={ this.createWebComm }>Chat</a>
+                href="#"
+                onClick={ this.createWebComm }>Chat</a>
               <a className="dropdown-item"
-                  href="#"
-                  onClick={ this.launchWebCam }>Webcam</a>
+                href="#"
+                onClick={ this.launchWebCam }>Webcam</a>
               <a className="sub-menu dropdown-item"
-                 href="#">
+                href="#">
                 Webcam Settings
                 <WebCamSettings speakerSubj={ this.audioOutSubj }
-                                microphoneSubj={ this.audioInSubj }
-                                videoSubj={ this.videoSubj } ></WebCamSettings>
+                  microphoneSubj={ this.audioInSubj }
+                  videoSubj={ this.videoSubj } ></WebCamSettings>
               </a>
             </NavBarDropDown>
           </div>
@@ -173,9 +173,9 @@ class NavBar extends React.Component<PropsFromRedux> {
           </div>
         </div>
 
-			</nav>
-		);
-	}
+      </nav>
+    );
+  }
 }
 
 export default connector(NavBar);

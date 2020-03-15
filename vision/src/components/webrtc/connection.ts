@@ -5,27 +5,27 @@
  */
 
 import React from "react";
-import { Subject, of } from "rxjs";
-import { flatMap, map, catchError } from "rxjs/operators";
-import { WsMessage, WsCommand } from "../../state/message-types";
+import {Subject, of} from "rxjs";
+import {flatMap, map, catchError} from "rxjs/operators";
+import {WsMessage, WsCommand} from "../../state/message-types";
 const logger = console;
 
 export const makeWsSDPMessage = (sender: string, receiver: string, sdp: RTCSessionDescription) => {
-	const msg: WsMessage<WsCommand<RTCSessionDescription>> = {
-		sender,
-		recipients: [receiver],
-		event_type: "CommandRequest",
-		body: {
-			cmd: {
-				op: "SDPOffer",
-				id: "",
-				ack: true
-			},
-			args: sdp
-		},
-		time: Date.now()
-	};
-	return msg;
+  const msg: WsMessage<WsCommand<RTCSessionDescription>> = {
+    sender,
+    recipients: [ receiver ],
+    event_type: "CommandRequest",
+    body: {
+      cmd: {
+        op: "SDPOffer",
+        id: "",
+        ack: true
+      },
+      args: sdp
+    },
+    time: Date.now()
+  };
+  return msg;
 };
 
 export interface ICECandidateMessage {
@@ -34,21 +34,21 @@ export interface ICECandidateMessage {
 }
 
 export const makeWsICECandMsg = (sender: string, reciever: string, cand: ICECandidateMessage) => {
-	const msg: WsMessage<WsCommand<ICECandidateMessage>> = {
-		sender,
-		recipients: [reciever],
-		time: Date.now(),
-		body: {
-			cmd: {
-				op: "IceCandidate",
-				id: "",
-				ack: true
-			},
-			args: cand
-		},
-		event_type: "CommandRequest"
-	};
-	return msg;
+  const msg: WsMessage<WsCommand<ICECandidateMessage>> = {
+    sender,
+    recipients: [ reciever ],
+    time: Date.now(),
+    body: {
+      cmd: {
+        op: "IceCandidate",
+        id: "",
+        ack: true
+      },
+      args: cand
+    },
+    event_type: "CommandRequest"
+  };
+  return msg;
 };
 
 /**
@@ -57,44 +57,44 @@ export const makeWsICECandMsg = (sender: string, reciever: string, cand: ICECand
  * @param peer
  */
 export const closeVideoCall = (peer: RTCPeerConnection | null) => {
-	const localVideo = document.getElementById("local_video") as HTMLVideoElement;
-	logger.log("Closing the call");
+  const localVideo = document.getElementById("local_video") as HTMLVideoElement;
+  logger.log("Closing the call");
 
-	// Close the RTCPeerConnection
-	if (!peer) {
-		logger.error("RTCPeerConnection was null");
-		return;
-	}
-	logger.log("--> Closing the peer connection");
+  // Close the RTCPeerConnection
+  if (!peer) {
+    logger.error("RTCPeerConnection was null");
+    return;
+  }
+  logger.log("--> Closing the peer connection");
 
-	// Disconnect all our event listeners; we don't want stray events
-	// to interfere with the hangup while it's ongoing.
-	peer.ontrack = null;
-	peer.onicecandidate = null;
-	peer.oniceconnectionstatechange = null;
-	peer.onsignalingstatechange = null;
-	peer.onicegatheringstatechange = null;
-	// peer.onnotificationneeded = null;
+  // Disconnect all our event listeners; we don't want stray events
+  // to interfere with the hangup while it's ongoing.
+  peer.ontrack = null;
+  peer.onicecandidate = null;
+  peer.oniceconnectionstatechange = null;
+  peer.onsignalingstatechange = null;
+  peer.onicegatheringstatechange = null;
+  // peer.onnotificationneeded = null;
 
-	// Stop all transceivers on the connection
-	peer.getTransceivers().forEach(transceiver => {
-		transceiver.stop();
-	});
+  // Stop all transceivers on the connection
+  peer.getTransceivers().forEach((transceiver) => {
+    transceiver.stop();
+  });
 
-	// Stop the webcam preview as well by pausing the <video>
-	// element, then stopping each of the getUserMedia() tracks
-	// on it.
-	if (localVideo && localVideo.srcObject) {
-		localVideo.pause();
-		const stream = localVideo.srcObject as MediaStream;
-		stream.getTracks().forEach(track => {
-			track.stop();
-		});
-	}
+  // Stop the webcam preview as well by pausing the <video>
+  // element, then stopping each of the getUserMedia() tracks
+  // on it.
+  if (localVideo && localVideo.srcObject) {
+    localVideo.pause();
+    const stream = localVideo.srcObject as MediaStream;
+    stream.getTracks().forEach((track) => {
+      track.stop();
+    });
+  }
 
-	// Close the peer connection
-	peer.close();
-	peer = null;
+  // Close the peer connection
+  peer.close();
+  peer = null;
 };
 
 export interface RTCSetup {
@@ -116,62 +116,62 @@ export interface RTCSetup {
  * it to the recipient listed.
  */
 export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RTCSetup) => {
-	logger.log("Setting up a connection...");
+  logger.log("Setting up a connection...");
 
-	const handleICECandidateEvent = (event: RTCPeerConnectionIceEvent) => {
-		if (event.candidate) {
-			logger.log("*** Outgoing ICE candidate: " + event.candidate.candidate);
+  const handleICECandidateEvent = (event: RTCPeerConnectionIceEvent) => {
+    if (event.candidate) {
+      logger.log("*** Outgoing ICE candidate: " + event.candidate.candidate);
 
-			args.connectSubj.subscribe({
-				next: ([sender, receiver]) => {
-					const mesg = makeWsICECandMsg(sender, receiver, {
-						type: "new-ice-candidate",
-						candidate: JSON.stringify(event.candidate)
-					});
+      args.connectSubj.subscribe({
+        next: ([ sender, receiver ]) => {
+          const mesg = makeWsICECandMsg(sender, receiver, {
+            type: "new-ice-candidate",
+            candidate: JSON.stringify(event.candidate)
+          });
 
-					args.sockSubj.next(JSON.stringify(mesg));
-				},
-				error: (err) => logger.error(err),
-				complete: () => logger.log("User subject has completed")
-			});
-		} else {
-			logger.warn("no candidate in event");
-		}
-	};
+          args.sockSubj.next(JSON.stringify(mesg));
+        },
+        error: err => logger.error(err),
+        complete: () => logger.log("User subject has completed")
+      });
+    } else {
+      logger.warn("no candidate in event");
+    }
+  };
 
-	/**
+  /**
 	 * Handle |iceconnectionstatechange| events. This will detect
 	 * when the ICE connection is closed, failed, or disconnected.
 	 *
 	 * This is called when the state of the ICE agent changes.
 	 */
-	const handleICEConnectionStateChangeEvent = (event: Event) => {
-		peer$.subscribe({
-			next: (peer) => {
-				logger.log("*** ICE connection state changed to " + peer.iceConnectionState);
+  const handleICEConnectionStateChangeEvent = (event: Event) => {
+    peer$.subscribe({
+      next: (peer) => {
+        logger.log("*** ICE connection state changed to " + peer.iceConnectionState);
 
-				switch (peer.iceConnectionState) {
-					case "closed":
-					case "failed":
-					case "disconnected":
-						closeVideoCall(peer);
-						break;
-				}
-			},
-			error: (err) => logger.error("Error getting peer: ", err),
-			complete: () => logger.log("Peer subject completed")
-		});
-	};
+        switch (peer.iceConnectionState) {
+        case "closed":
+        case "failed":
+        case "disconnected":
+          closeVideoCall(peer);
+          break;
+        }
+      },
+      error: err => logger.error("Error getting peer: ", err),
+      complete: () => logger.log("Peer subject completed")
+    });
+  };
 
-	const handleICEGatheringStateChangeEvent = (event: Event) => {
-		peer$.subscribe({
-			next: (peer) => {
-				logger.log("*** ICE gathering state changed to: " + peer.iceGatheringState);
-			}
-		});
-	};
+  const handleICEGatheringStateChangeEvent = (event: Event) => {
+    peer$.subscribe({
+      next: (peer) => {
+        logger.log("*** ICE gathering state changed to: " + peer.iceGatheringState);
+      }
+    });
+  };
 
-	/**
+  /**
 	 * Set up a |signalingstatechange| event handler. This will detect when
 	 * the signaling connection is closed
 	 *
@@ -180,85 +180,85 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 	 * browsers catch up with the latest version of the specification!
 	 * @param event
 	 */
-	const handleSignalingStateChangeEvent = (event: Event) => {
-		peer$.subscribe({
-			next: (peer) => {
-				logger.log("*** WebRTC signaling state changed to: " + peer.signalingState);
-				switch (peer.signalingState) {
-					case "closed":
-						closeVideoCall(peer);
-						break;
-				}
-			},
-			error: (err) => logger.error(err),
-			complete: () => logger.log("Subj completed")
-		});
-	};
+  const handleSignalingStateChangeEvent = (event: Event) => {
+    peer$.subscribe({
+      next: (peer) => {
+        logger.log("*** WebRTC signaling state changed to: " + peer.signalingState);
+        switch (peer.signalingState) {
+        case "closed":
+          closeVideoCall(peer);
+          break;
+        }
+      },
+      error: err => logger.error(err),
+      complete: () => logger.log("Subj completed")
+    });
+  };
 
-	/**
+  /**
 	 * Called by the WebRTC layer to let us know when it's time to
 	 * begin, resume, or restart ICE negotiation.  This will be triggered by the remote
 	 */
-	const handleNegotiationNeededEvent = (ev: Event) => {
-		logger.log("*** Negotiation needed");
-		const handle$ = peer$.pipe(
-			flatMap((peer) => {
-				return peer.createOffer().then(offer => {
-					return {
-						peer,
-						offer
-					};
-				});
-			}),
-			map((state) => {
-				const { peer, offer } = state;
-				if (peer.signalingState !== "stable") {
-					logger.log("     -- The connection isn't stable yet; postponing...");
-					return of(state);
-				}
+  const handleNegotiationNeededEvent = (ev: Event) => {
+    logger.log("*** Negotiation needed");
+    const handle$ = peer$.pipe(
+      flatMap((peer) => {
+        return peer.createOffer().then((offer) => {
+          return {
+            peer,
+            offer
+          };
+        });
+      }),
+      map((state) => {
+        const {peer, offer} = state;
+        if (peer.signalingState !== "stable") {
+          logger.log("     -- The connection isn't stable yet; postponing...");
+          return of(state);
+        }
 
-				// Establish the offer as the local peer's current
-				// description.
-				logger.log("---> Setting local description to the offer");
-				return peer.setLocalDescription(offer).then(_ => {
-					return state;
-				});
-			}),
-			flatMap(state => state),
-			map((state) => {
-				const { peer } = state;
-				// Send the offer to the remote peer.
-				logger.log("---> Sending the offer to the remote peer");
-				args.connectSubj.subscribe({
-					next: ([s, r]) => {
-						const msg = makeWsSDPMessage(s, r, new RTCSessionDescription({
-							type: "offer",
-							sdp: JSON.stringify(peer.localDescription)
-						}));
+        // Establish the offer as the local peer's current
+        // description.
+        logger.log("---> Setting local description to the offer");
+        return peer.setLocalDescription(offer).then((_) => {
+          return state;
+        });
+      }),
+      flatMap(state => state),
+      map((state) => {
+        const {peer} = state;
+        // Send the offer to the remote peer.
+        logger.log("---> Sending the offer to the remote peer");
+        args.connectSubj.subscribe({
+          next: ([ s, r ]) => {
+            const msg = makeWsSDPMessage(s, r, new RTCSessionDescription({
+              type: "offer",
+              sdp: JSON.stringify(peer.localDescription)
+            }));
 
-						args.sockSubj.next(JSON.stringify(msg));
-					},
-					error: (err) => logger.error(err),
-					complete: () => logger.log("User subject is completed")
-				});
-				return true;
-			}),
-			catchError((err) => {
-				logger.error("Error occurred while handling the negotiationneeded event:", err);
-				return of(false);
-			})
-		);
+            args.sockSubj.next(JSON.stringify(msg));
+          },
+          error: err => logger.error(err),
+          complete: () => logger.log("User subject is completed")
+        });
+        return true;
+      }),
+      catchError((err) => {
+        logger.error("Error occurred while handling the negotiationneeded event:", err);
+        return of(false);
+      })
+    );
 
-		handle$.subscribe({
-			next: res => {
-				logger.log("handle negotiation was successful? ", res);
-			},
-			error: err => logger.error(err),
-			complete: () => logger.info("Handler has completed")
-		});
-	};
+    handle$.subscribe({
+      next: (res) => {
+        logger.log("handle negotiation was successful? ", res);
+      },
+      error: err => logger.error(err),
+      complete: () => logger.info("Handler has completed")
+    });
+  };
 
-	/**
+  /**
 	 * Called by the WebRTC layer when events occur on the media tracks
 	 * on our WebRTC call. This includes when streams are added to and
 	 * removed from the call.
@@ -273,23 +273,23 @@ export const createPeerConnection = (peer$: Subject<RTCPeerConnection>, args: RT
 	 * In our case, we're just taking the first stream found and attaching
 	 * it to the <video> element for incoming media.
 	 */
-	function handleTrackEvent(event: RTCTrackEvent) {
-		logger.log("*** Track event");
-		if (args.videoRef && args.videoRef.current) {
-			args.videoRef.current.srcObject = event.streams[0];
-		}
-	}
+  function handleTrackEvent(event: RTCTrackEvent) {
+    logger.log("*** Track event");
+    if (args.videoRef && args.videoRef.current) {
+      args.videoRef.current.srcObject = event.streams[0];
+    }
+  }
 
-	peer$.subscribe({
-		next: (peer) => {
-			logger.log("Settings up event handlers for RTCPeerConnection");
-			// Set up event handlers for the ICE negotiation process.
-			peer.onicecandidate = handleICECandidateEvent;
-			peer.oniceconnectionstatechange = handleICEConnectionStateChangeEvent;
-			peer.onicegatheringstatechange = handleICEGatheringStateChangeEvent;
-			peer.onsignalingstatechange = handleSignalingStateChangeEvent;
-			peer.onnegotiationneeded = handleNegotiationNeededEvent;
-			peer.ontrack = handleTrackEvent;
-		}
-	});
+  peer$.subscribe({
+    next: (peer) => {
+      logger.log("Settings up event handlers for RTCPeerConnection");
+      // Set up event handlers for the ICE negotiation process.
+      peer.onicecandidate = handleICECandidateEvent;
+      peer.oniceconnectionstatechange = handleICEConnectionStateChangeEvent;
+      peer.onicegatheringstatechange = handleICEGatheringStateChangeEvent;
+      peer.onsignalingstatechange = handleSignalingStateChangeEvent;
+      peer.onnegotiationneeded = handleNegotiationNeededEvent;
+      peer.ontrack = handleTrackEvent;
+    }
+  });
 };

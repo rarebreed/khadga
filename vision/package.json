@@ -10,7 +10,7 @@
     "serve": "webpack-dev-server",
     "clean": "rimraf dist/* .cache",
     "test": "jest",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint . --fix --ext .ts,.tsx"
   },
   "keywords": [],
   "author": "Sean Toner",

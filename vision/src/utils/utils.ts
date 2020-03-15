@@ -2,17 +2,17 @@
  * Make the DIV element draggable:
  */
 const dragElement = (elmnt: HTMLDivElement) => {
-	let pos1 = 0;
-	let pos2 = 0;
-	let pos3 = 0;
-	let pos4 = 0;
+  let pos1 = 0;
+  let pos2 = 0;
+  let pos3 = 0;
+  let pos4 = 0;
 
-	const helem = document.getElementById(elmnt.id + "Header");
+  const helem = document.getElementById(elmnt.id + "Header");
   if (!helem) {
-		elmnt.onmousedown = dragMouseDown;
-	} else {
-		helem.onmousedown = dragMouseDown;
-	}
+    elmnt.onmousedown = dragMouseDown;
+  } else {
+    helem.onmousedown = dragMouseDown;
+  }
 
   function dragMouseDown(e: MouseEvent) {
     e = e || window.event;
@@ -46,19 +46,19 @@ const dragElement = (elmnt: HTMLDivElement) => {
 };
 
 export const resizeElement = (elmnt: HTMLElement) => {
-	let pos1 = 0;
-	let pos2 = 0;
-	let pos3 = 0;
-	let pos4 = 0;
+  let pos1 = 0;
+  let pos2 = 0;
+  let pos3 = 0;
+  let pos4 = 0;
 
   const helem = document.getElementById("webcam");
   let velem: HTMLVideoElement;
   if (!helem) {
-		elmnt.onmousedown = dragMouseDown;
-	} else {
+    elmnt.onmousedown = dragMouseDown;
+  } else {
     velem = helem as HTMLVideoElement;
     velem.onmousedown = dragMouseDown;
-	}
+  }
 
   function dragMouseDown(e: MouseEvent) {
     e = e || window.event;
