@@ -19,7 +19,7 @@ const mapStateToProps = (state: State) => {
 	return {
 		webcamActive: state.webcam.active,
 		webcamId: state.webcam.videoId,
-		videoRef: state.videoRef.videoRefId
+		webcomm: state.webcomm.webcomm
 	};
 };
 
@@ -28,8 +28,13 @@ const mapPropsToDispatch = {
 	setVideo: videoRefAction
 };
 
+interface LocalProps {
+	kind: "local" | "remote",
+	target: string
+}
+
 const connector = connect(mapStateToProps, mapPropsToDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector>;
+type PropsFromRedux = ConnectedProps<typeof connector> & LocalProps;
 
 /**
  * This component is for the local and remote webcam streams
@@ -37,13 +42,31 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 class VideoStream extends React.Component<PropsFromRedux> {
 	myRef: React.RefObject<HTMLDivElement>;
 	resizeRef: React.RefObject<HTMLImageElement>;
+	videoRef: React.RefObject<HTMLVideoElement>;
+	ready: boolean;
 
 	constructor(props: PropsFromRedux) {
 		super(props);
 		this.myRef = React.createRef();
 		this.resizeRef = React.createRef();
+		this.videoRef = React.createRef();
+		this.ready = false;
 
-		this.disableCam.bind(this);
+		// Set the video ref to webcomm
+		if (this.props.webcomm) {
+			if (this.props.kind === "local") {
+				this.props.webcomm.videoRefLocal$.next(this.videoRef);
+			}
+			if (this.props.kind === "remote") {
+				const refremote = new Map();
+				refremote.set(this.props.target, this.videoRef);
+				this.props.webcomm.videoRefRemote$.next(refremote);
+			}
+			this.ready = true;
+		} else {
+			alert("Please enable chat before using webcam");
+			logger.log("webcomm = ", this.props.webcomm);
+		}
 	}
 
 	/**
@@ -51,6 +74,11 @@ class VideoStream extends React.Component<PropsFromRedux> {
 	 * element
 	 */
 	async componentDidMount() {
+		if (!this.ready) {
+			this.disableCam();
+			return;
+		}
+
 		if (this.myRef.current) {
 			dragElement(this.myRef.current);
 		} else {
@@ -63,7 +91,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
 			logger.error("No resize element yet");
 		}
 
-		if (this.props.videoRef !== null) {
+		if (this.videoRef !== null) {
 			logger.log("Loading video object");
 /* 			const camProm = noesis.get_media_stream() as Promise<MediaStream>;
 			const cam = await camProm; */
@@ -76,7 +104,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
 			};
 
 			const cam = await navigator.mediaDevices.getUserMedia(constraints);
-			const video = this.props.videoRef.current;
+			const video = this.videoRef.current;
 
 			// TODO: Present a list of options for the user
 			const mediaDevs = await noesis.list_media_devices();
@@ -97,9 +125,9 @@ class VideoStream extends React.Component<PropsFromRedux> {
 	 * When user clicks the "Turn Off" button, remove the webcam and MediaStream
 	 */
 	disableCam = () => {
-		logger.log(this.props.videoRef);
-		if (this.props.videoRef  && this.props.videoRef.current !== null) {
-			const video = this.props.videoRef.current;
+		logger.log(this.videoRef);
+		if (this.videoRef  && this.videoRef.current !== null) {
+			const video = this.videoRef.current;
 
 			video.remove();
 			video.srcObject = null;
@@ -113,7 +141,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
 		return (
 			<div>
 				<div ref={ this.myRef } id="localVideo">
-					<video width="1280px" height="720px" id="webcam" ref={ this.props.videoRef }>
+					<video width="1280px" height="720px" id="webcam" ref={ this.videoRef }>
 						No video stream available
 					</video>
 					<div id="localVideoHeader">

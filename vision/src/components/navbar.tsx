@@ -86,7 +86,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     // make sure the videoRef is available if user clicks Webcam
     // this.props.video(this.videoRef, "SET_VIDEO_REF");
 
-    // Rx-ify our state.  When settings changes, it will call next(), so we subscribe here
+    // Rx-ify our state.  When webcam settings changes, it will call next(), so we subscribe here
     this.videoSubj.subscribe({
       next: (val) => {
         const webcamState: WebcamState = {
@@ -120,46 +120,8 @@ class NavBar extends React.Component<PropsFromRedux> {
   }
 
   /**
-   * Handles messages coming from the websocket
+   * 
    */
-  messageHandler = (socket: WebSocket) => {
-    socketSetup(this.peer$, socket, {
-      user: this.props.user,
-      auth: this.props.auth,
-      loginAction: this.props.connection,
-      chatAction: this.props.chatMessage,
-      setWebsocket: this.props.websocket,
-      videoRef: this.videoRef
-    });
-  }
-
-	/**
-	 * Performs initial handshake with the khadga backend to establish a websocket
-	 */
-  setupChat = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    if (!this.props.loggedIn) {
-      alert("Please Log in first");
-      return;
-    }
-
-    const origin = window.location.host;
-    const url = `wss://${origin}/chat/${this.props.user}`;
-    logger.log(`Connecting to ${url}`);
-    const sock: WebSocketState = {
-      socket: null
-    };
-
-    if (!this.props.socket) {
-      sock.socket = new WebSocket(url);
-
-      const socket = sock.socket;
-      this.messageHandler(socket);
-
-    } else {
-      logger.log(`In setupChat`, this.props);
-    }
-  }
-  
   createWebComm = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     if (!this.props.loggedIn) {
       alert("Please log in first");

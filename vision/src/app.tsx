@@ -15,13 +15,14 @@ type WindowWithDevTools = Window & {
   __REDUX_DEVTOOLS_EXTENSION__: () => StoreEnhancer<unknown, {}>
  };
 
-const isReduxDevtoolsExtenstionExist = (arg: Window | WindowWithDevTools)
-                                       : arg is WindowWithDevTools  => {
+const isReduxDevtoolsExtenstionExist = (
+  arg: Window | WindowWithDevTools
+): arg is WindowWithDevTools  => {
   return  '__REDUX_DEVTOOLS_EXTENSION__' in arg;
 };
 
 const foo = isReduxDevtoolsExtenstionExist(window) ?
-          window.__REDUX_DEVTOOLS_EXTENSION__() : undefined;
+            window.__REDUX_DEVTOOLS_EXTENSION__() : undefined;
 const store = createStore( reducers, foo);
 
 class App extends React.Component {

@@ -51,7 +51,7 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 		const cntr = (
 			<div className="main-body" style={ { flex: 1 } }>
 				<div className="chat-window">
-				  { showCam ? <VideoStream /> : null }
+				  { showCam ? <VideoStream kind="local" target={ this.props.user } /> : null }
 					<ul className="chat-messages">
 						{ this.makeChatMessage() }
 					</ul>

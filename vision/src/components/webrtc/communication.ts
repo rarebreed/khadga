@@ -1,16 +1,16 @@
-import { Subject, Subscription, of } from "rxjs";
-import { map, flatMap, catchError } from "rxjs/operators";
+import { Subject, Subscription, of, BehaviorSubject } from "rxjs";
+import { map, flatMap, catchError, scan, combineLatest } from "rxjs/operators";
+import React from "react";
+
 
 import {
 	WsMessage,
 	makeChatMessage,
 	CHAT_MESSAGE_ADD,
-	WsCommand,
-	WsCommandTypes
+	WsCommand
 } from "../../state/message-types";
 import {
 	createLoginAction,
-	websocketAction,
 	chatMessageAction
 } from "../../state/action-creators";
 import { USER_CONNECTION_EVT } from "../../state/types";
@@ -35,27 +35,75 @@ interface SockSubj {
 	subscription: Subscription
 }
 
+type RemoteVideoRefs = Map<string, React.RefObject<HTMLVideoElement>>
+
+/**
+ * This class holds all the data and functionality for communication between clients
+ * 
+ * This includes both the websocket for chatting, and a Ref for the webcam elements
+ */
 export class WebComm {
 	user: string;
-	targets$: Subject<string>;
+	targets$: BehaviorSubject<string>;
 	socket: WebSocket;
 	send$: Subject<string>;
 	peer: RTCPeerConnection | null;  // FIXME: make this a map of RTCPeers
 	sockHdlrIdx: number | null;
 	#commHandlers: Map<string, Hdlr>;
-	videoRef: React.RefObject<HTMLVideoElement> | null;
+	videoRefLocal$: Subject<React.RefObject<HTMLVideoElement>>;
+	videoRefRemote$: Subject<RemoteVideoRefs>;
+	cmdHandler: CommandHandler;
+	transceiver: RTCRtpTransceiver | null;
 
 	constructor(user: string) {
 		this.user = user;
-		this.targets$ = new Subject();
+		this.targets$ = new BehaviorSubject("");
 		this.socket = this.createSocket();
 		this.send$ = new Subject();
 		this.peer = null;
 		this.sockHdlrIdx = null;
 		this.#commHandlers = new Map();
-		this.videoRef = null;
+		this.videoRefLocal$ = new Subject();
+		this.transceiver = null;
 
+		this.videoRefRemote$ = new Subject();
+		const vidRemoteRefs$ = this.videoRefRemote$.pipe(
+			scan((acc, next) => {
+				for (const [k, v] of next.entries()) {
+					acc.set(k, v)
+				}
+				return acc;
+			})
+		);
+
+		this.cmdHandler = new CommandHandler(this);
 		this.setupCmdHandlers();
+
+		this.videoRefLocal$.pipe(
+			map((ref) => {
+				if (!ref.current) {
+					return null;
+				}
+				if (this.peer === null) {
+					this.peer = this.createPeerConnection();
+				}
+
+				const { peer } = this;
+				try {
+					const video = ref.current;
+					const stream = video.srcObject;
+					if (stream !== null) {
+						const cam = stream as MediaStream;
+						cam.getTracks().forEach((track) => {
+							logger.info("Adding cam stream ", cam);
+							this.transceiver = peer.addTransceiver(track, {streams: [cam]})
+						})
+					}
+				} catch(err) {
+					this.handleGetUserMediaError(err);
+				}
+			})
+		)
 	}
 
 	createSocket = () => {
@@ -89,38 +137,6 @@ export class WebComm {
 	}
 
 	/**
-	 * Handles a Ping type of WsCommand, used as a keep alive mechanism
-	 *
-	 * @param socket
-	 */
-	initPingRequestHandler = (msg: WsMessage<any>) => {
-		const cmd = msg.body as WsCommand<any>;
-		const args = cmd.args as string[];
-		const replyMsg: WsMessage<string> = {
-			sender: msg.sender,
-			recipients: msg.recipients,
-			event_type: "CommandReply",
-			time: Date.now(),
-			body: JSON.stringify({
-				cmd: {
-					op: "pong",
-					ack: false,
-					id: this.user
-				},
-				args
-			})
-		};
-		this.socket.send(JSON.stringify(replyMsg));
-		logger.debug(`Sent reply: `, replyMsg);
-	}
-
-	sdpOfferHandler = (msg: WsMessage<WsCommand<string>>) => {
-		const cmd = msg.body as WsCommand<string>;
-		
-		logger.log("Got SDPOffer from ", msg.sender);
-	}
-
-	/**
 	 * Handles Websocket intialization when the user selects Menu -> Chat
 	 */
 	socketSetup = (props: WSSetup) => {
@@ -146,7 +162,7 @@ export class WebComm {
 					break;
 				case "CommandRequest":
 					// Pass it to the commandHandler
-					this.commandHandler(msg);
+					this.commandHandler(msg).catch(logger.error);
 					logger.info("Delegating to ")
 					break;
 				default:
@@ -162,7 +178,7 @@ export class WebComm {
 		this.#commHandlers.set(action, handler);
 	}
 
-	commandHandler = (msg: WsMessage<any>) => {
+	commandHandler = async (msg: WsMessage<any>) => {
 		const cmd = msg.body as WsCommand<any>;
 		logger.debug(`command is =`, cmd);
 
@@ -171,7 +187,9 @@ export class WebComm {
 			logger.warn(`No handlder for ${cmd.cmd.op}.  No action taken`);
 			return;
 		}
+		hdlr(msg);
 	}
+
 
 	/**
 	 * Sets up our initial commandHandlers
@@ -179,23 +197,24 @@ export class WebComm {
 	 * Later, we can dynamically add handlers
 	 */
 	setupCmdHandlers = () => {
-		this.addCmdHdlr("Ping", this.initPingRequestHandler);
-		this.addCmdHdlr("SDPOffer", this.sdpOfferHandler)
+		this.addCmdHdlr("Ping", this.cmdHandler.initPingRequestHandler);
+		this.addCmdHdlr("SDPOffer", this.cmdHandler.handleVideoOffer)
 	}
 
 	/**
-	 * Handles setting up RTCPeerConnection
+	 * This is the main function that sets up the RTCPeerConnection, which in turn sets up our ICE
+	 * establishment
 	 */
-	rtcSetup = () => {
+	createPeerConnection = () => {
 		const peer = new RTCPeerConnection({
 			iceServers: [
 				{
 					urls: [
-						"stun.l.google.com:19305",
-						"stun1.l.google.com:19305",
-						"stun2.l.google.com:19305",
-						"stun3.l.google.com:19305",
-						"stun4.l.google.com:19305",
+						"stun:stun.l.google.com:19305",
+						"stun:stun1.l.google.com:19305",
+						"stun:stun2.l.google.com:19305",
+						"stun:stun3.l.google.com:19305",
+						"stun:stun4.l.google.com:19305",
 					]
 				}
 			]
@@ -205,12 +224,12 @@ export class WebComm {
 			throw new Error("Unable to create RTCPeerConnection");
 		}
 
-		peer.onnegotiationneeded = this.handleNegotiationNeededEvent;
 		peer.onicecandidate = this.handleICECandidateEvent;
 		peer.oniceconnectionstatechange = this.handleICEConnectionStateChangeEvent;
 		peer.onicegatheringstatechange = this.handleICEGatheringStateChangeEvent;
 		peer.onsignalingstatechange = this.handleSignalingStateChangeEvent
-
+		peer.onnegotiationneeded = this.handleNegotiationNeededEvent;
+		peer.ontrack = this.handleTrackEvent;
 		return peer;
 	}
 
@@ -269,7 +288,7 @@ export class WebComm {
 			flatMap(state => state),
 			map((state) => {
 				const { offer, receiver } = state;
-				// Send the offer to the remote peer.
+				// Send the offer to the remote peer.  This will be received by the websocket handler
 				logger.log("---> Sending the offer to the remote peer");
 				const msg = makeWsSDPMessage(this.user, receiver, new RTCSessionDescription({
 					type: "offer",
@@ -282,7 +301,11 @@ export class WebComm {
 				logger.error("Error occurred while handling the negotiationneeded event:", err);
 				return of(false);
 			})
-		)
+		);
+
+		handle$.subscribe({
+			next: (res) => logger.info(`Negotiation success was ${res}`)
+		})
 	}
 
 	handleICEConnectionStateChangeEvent = (event: Event) => {
@@ -333,7 +356,7 @@ export class WebComm {
 		}
 	};
 
-		/**
+	/**
 	 * Called by the WebRTC layer when events occur on the media tracks
 	 * on our WebRTC call. This includes when streams are added to and
 	 * removed from the call.
@@ -349,12 +372,19 @@ export class WebComm {
 	 * it to the <video> element for incoming media.
 	 */
 	handleTrackEvent = (event: RTCTrackEvent) => {
-		logger.log("*** Track event");
-		if (this.videoRef && this.videoRef.current) {
-			this.videoRef.current.srcObject = event.streams[0];
-		}
+		this.videoRefLocal$.subscribe({
+			next: (ref) => {
+				logger.log("*** Track event");
+				if (ref.current) {
+					ref.current.srcObject = event.streams[0]
+				}
+			}
+		});
 	}
 
+	/**
+	 * Closes the RTCPeerConnection
+	 */
 	closeVideoCall = () => {
 		const localVideo = document.getElementById("local_video") as HTMLVideoElement;
 		logger.log("Closing the call");
@@ -395,6 +425,27 @@ export class WebComm {
 		this.peer.close();
 		this.peer = null;
 	};
+
+	handleGetUserMediaError = (e: Error) => {
+		logger.error(e);
+		switch (e.name) {
+			case "NotFoundError":
+				alert("Unable to open your call because no camera and/or microphone" +
+					"were found.");
+				break;
+			case "SecurityError":
+			case "PermissionDeniedError":
+				// Do nothing; this is the same as the user canceling the call.
+				break;
+			default:
+				alert("Error opening your camera and/or microphone: " + e.message);
+				break;
+		}
+	
+		// Make sure we shut down our end of the RTCPeerConnection so we're
+		// ready to try again.
+		this.closeVideoCall();
+	}
 }
 
 export interface ICECandidateMessage {
@@ -420,16 +471,21 @@ export const makeWsICECandMsg = (sender: string, reciever: string, cand: ICECand
 	return msg;
 };
 
-export const makeWsSDPMessage = (sender: string, receiver: string, sdp: RTCSessionDescription) => {
+export const makeWsSDPMessage = (
+	sender: string,
+	receiver: string,
+	sdp: RTCSessionDescription,
+	kind: "SDPOffer" | "SDPAnswer" = "SDPOffer"
+) => {
 	const msg: WsMessage<WsCommand<RTCSessionDescription>> = {
 		sender,
 		recipients: [receiver],
 		event_type: "CommandRequest",
 		body: {
 			cmd: {
-				op: "SDPOffer",
+				op: kind,
 				id: "",
-				ack: true
+				ack: kind === "SDPOffer" ? true : false
 			},
 			args: sdp
 		},
@@ -437,3 +493,128 @@ export const makeWsSDPMessage = (sender: string, receiver: string, sdp: RTCSessi
 	};
 	return msg;
 };
+
+class CommandHandler {
+	webcomm: WebComm;
+
+	constructor(wc: WebComm) {
+		this.webcomm = wc;
+	}
+
+	/**
+	 * Handles a Ping type of WsCommand, used as a keep alive mechanism
+	 *
+	 * @param socket
+	 */
+	initPingRequestHandler = async (msg: WsMessage<any>) => {
+		const cmd = msg.body as WsCommand<any>;
+		const args = cmd.args as string[];
+		const replyMsg: WsMessage<string> = {
+			sender: msg.sender,
+			recipients: msg.recipients,
+			event_type: "CommandReply",
+			time: Date.now(),
+			body: JSON.stringify({
+				cmd: {
+					op: "pong",
+					ack: false,
+					id: this.webcomm.user
+				},
+				args
+			})
+		};
+		this.webcomm.socket.send(JSON.stringify(replyMsg));
+		logger.debug(`Sent reply: `, replyMsg);
+	}
+
+	/**
+	 * This is a handler for a WsCommand of SDPOffer
+	 */
+	handleVideoOffer = async (msg: WsMessage<any>) => {
+		const { peer } = this.webcomm;
+		if (!peer) {
+			logger.error("No RTCPeerConnection yet");
+			return false;
+		};
+
+		const mesg = msg as WsMessage<WsCommand<RTCSessionDescription>>;
+		logger.log("Received video chat offer from ", mesg.sender);
+		logger.log("With message of type", mesg.body.cmd);
+		const desc = new RTCSessionDescription(mesg.body.args);
+
+		if (peer.signalingState !== "stable") {
+			// Set the local and remove descriptions for rollback; don't proceed until returned
+			logger.log("  - But the signaling state isn't stable, so triggering rollback");
+			await Promise.all([
+				peer.setLocalDescription({ type: "rollback" }),
+				peer.setRemoteDescription(desc)
+			]);
+			return false;
+		} else {
+			logger.log("  - Setting remote description");
+			await peer.setRemoteDescription(desc);
+		}
+
+		// The WebComm dynamically gets videoRef's as they are created and destroyed.  So we have to
+		// subscribe to the stream of them.  Once we have the video ref, we pull out the underlying
+		const sdp$ = this.webcomm.videoRefLocal$.pipe(
+			map((ref) => {
+				const { current } = ref;
+				if (current && current.srcObject) {
+					const webcamStream: MediaStream = current.srcObject as MediaStream;
+	
+					try {
+						webcamStream.getTracks().forEach((track) => {
+							this.webcomm.transceiver = peer.addTransceiver(track, { streams: [webcamStream] });
+						});
+					} catch (err) {
+						this.webcomm.handleGetUserMediaError(err);
+						return false;
+					}
+				} else {
+					logger.warn("Video ref current or srcObject is unavailable: ", current);
+				}
+				return true
+			}),
+			flatMap((success) => {
+				if (!success) {
+					return of(null)
+				}
+				log("---> Creating and sending answer to caller");
+				return peer.createAnswer();   
+			}),
+			flatMap((desc) => {
+				if (desc === null) {
+					return of(null);
+				}
+				const prom = peer.setLocalDescription(desc).then(_ => desc);
+				return prom;
+			}),
+			combineLatest(this.webcomm.targets$)
+		);
+
+		sdp$.subscribe({
+			next: ([d, target]) => {
+				if (target === "") {
+					logger.error("No targets added yet.  Waiting for real target");
+			    return;
+				}
+				if (d === null) {
+					logger.error("Unable to create RTCSessionDescription");
+					return;
+				}
+				if (!peer.localDescription) {
+					logger.error("RTCPeerConnection does not have a local description yet");
+					return;
+				}
+				// Create the SDPMessage with the offer
+				const msg = makeWsSDPMessage(this.webcomm.user, target, peer.localDescription);
+				this.webcomm.socket.send(JSON.stringify(msg));
+			},
+			error: logger.error,
+			complete: () => logger.info("videoRefLocal$ is complete")
+		})
+		
+		return true;
+	}
+}

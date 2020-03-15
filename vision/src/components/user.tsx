@@ -149,7 +149,7 @@ const PopupMenu = (props: PopupProps) => {
     props.disable();
   };
 
-  const setupRTCHandlers = () => {
+  const invite = () => {
     // Check if webcomm has been created
     if (webcomm === null) {
       alert("User has not logged in yet");
@@ -157,16 +157,22 @@ const PopupMenu = (props: PopupProps) => {
     }
     // Check if we have RTCPeerConnection.
     if (!webcomm.peer) {
-      webcomm.peer = webcomm.rtcSetup();
+      logger.info("Setting up RTCPeerConnection");
+      webcomm.peer = webcomm.createPeerConnection();
     }
+
+    // Push the target to the webcomm.  Its handleVideoOffer will take this value, and use it create
+    // an SDPOffer message
     webcomm.targets$.next(props.name);
+
+    
   };
 
   const { classStyle, y, x } = props;
   return (
     <div className={ classStyle } style={{ top: `${y - 55}px`, left: `${x + 20}px` }}>
       <label>Videocall?</label>
-      <button onClick={ setupRTCHandlers }>Start</button>
+      <button onClick={ invite }>Start</button>
       <button onClick={ disablePopup }>Cancel</button>
     </div>
   );

@@ -430,7 +430,9 @@ export const webcommReducer = (
 				logger.warn("No WebComm object supplied.   Returning previous");
 				return previous;
 			}
-			return action.data;
+			return {
+				webcomm: action.data
+			};
 		case "DELETE_WEBCOMM":
 			return {
 				webcomm: null
