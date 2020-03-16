@@ -5,6 +5,7 @@ import {ChatMessage} from "./message";
 import VideoStream from "../webrtc/webcam";
 import {State} from "../../state/store";
 import {logger} from "../../logger";
+import { webcommAction } from "../../state//action-creators";
 
 const mapStateToProps = (state: State) => {
   return {
@@ -12,14 +13,24 @@ const mapStateToProps = (state: State) => {
     connected: state.connectState.loggedIn,
     user: state.connectState.username,
     websocket: state.websocket,
-    messages: state.messages
+    messages: state.messages,
+    webcomm: state.webcomm.webcomm
   };
 };
 
-const connector = connect(mapStateToProps);
+const mapDispatchToProps = {
+  setWebcomm: webcommAction
+}
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 class ChatContainer extends React.Component<PropsFromRedux> {
+  constructor(props: PropsFromRedux) {
+    super(props);
+
+    logger.log("ChatContainer is created");
+  }
   /**
    * Creates the messages that will be displayed in the GUI
    *
@@ -43,15 +54,39 @@ class ChatContainer extends React.Component<PropsFromRedux> {
     });
   }
 
+  addRemoteVideo = () => {
+    // This should never happen.  The webcomm is added when user selects "Chat".  We can't get a
+    // video call offer unless we've logged into chat.  But this makes the compiler happy
+    if (!this.props.webcomm) {
+      logger.error("No webcomm yet");
+      return null;
+    }
+
+    const { streamRemotes$ } = this.props.webcomm;
+    let remoteStreams: [string, MediaStream][] = [];
+    streamRemotes$.value.forEach((val, key) => {
+      if (val) {
+        remoteStreams.push([key, val])
+      }
+    });
+
+    return remoteStreams.map(([key, val]) => {
+      return (
+        <VideoStream kind="remote" target={ key } stream={ val }></VideoStream>
+      )
+    })
+  }
+
   render() {
     const showCam = this.props.webcam.active /* && this.props.connected */;
-    logger.info(`webcam.active = ${this.props.webcam.active}`);
-    logger.info(`connected = ${this.props.connected}`);
+    logger.info(`ChatContainer: webcam.active = ${this.props.webcam.active}`);
+    logger.info(`ChatContainer: connected = ${this.props.connected}`);
 
     const cntr = (
       <div className="main-body" style={ {flex: 1} }>
         <div className="chat-window">
           { showCam ? <VideoStream kind="local" target={ this.props.user } /> : null }
+          { this.addRemoteVideo() }
           <ul className="chat-messages">
             { this.makeChatMessage() }
           </ul>

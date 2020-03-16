@@ -2,6 +2,7 @@
 use crate::message::{self,
                      CommandRequestMsg,
                      ConnectionMsg,
+                     CommandTypes,
                      Message as KMessage,
                      MessageEvent::{self,
                                     CommandRequest}};
@@ -161,13 +162,14 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
         debug!("Unable to process message");
         return;
     };
-    debug!("Raw Message from {} is {:#?}", my_id, msg);
+    // debug!("Raw Message from {} is {:#?}", my_id, msg);
 
     let mesg: message::Message<String> = serde_json::from_str(msg).expect("Unable to parse");
     let message: String = match mesg.event_type {
         CommandRequest => {
             let cmd_body: CommandRequestMsg<String> =
                 serde_json::from_str(&mesg.body).expect("Unable to deserialize");
+            debug!("{:#?}", cmd_body.cmd);
             // TODO: Do something with the request and send back CommandReply
             if cmd_body.cmd.ack {
                 info!("Got args {}", cmd_body.args);

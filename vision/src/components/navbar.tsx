@@ -110,6 +110,11 @@ class NavBar extends React.Component<PropsFromRedux> {
    * the VideoCam component.
    */
   launchWebCam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    if (!this.props.loggedIn) {
+      alert("Please log in first");
+      return;
+    }
+    
     const webcamState = {
       active: true
     };

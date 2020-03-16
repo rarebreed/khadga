@@ -34,7 +34,10 @@ interface SockSubj {
   subscription: Subscription
 }
 
-type RemoteVideoRefs = Map<string, MediaStream | null>
+/**
+ * Type alias for the remote media streams
+ */
+type RemoteMediaStreams = Map<string, MediaStream | null>
 
 /**
  * This class holds all the data and functionality for communication between clients
@@ -50,7 +53,7 @@ export class WebComm {
   sockHdlrIdx: number | null;
   #commHandlers: Map<string, Hdlr>;
   streamLocal$: Subject<MediaStream | null>;
-  streamRemote$: Subject<RemoteVideoRefs>;
+  streamRemotes$: BehaviorSubject<RemoteMediaStreams>;
   cmdHandler: CommandHandler;
   transceiver: RTCRtpTransceiver | null;
 
@@ -65,8 +68,9 @@ export class WebComm {
     this.streamLocal$ = new Subject();
     this.transceiver = null;
 
-    this.streamRemote$ = new Subject();
-    const vidRemoteRefs$ = this.streamRemote$.pipe(
+    const initRemoteStream: RemoteMediaStreams = new Map();
+    this.streamRemotes$ = new BehaviorSubject(initRemoteStream);
+    const remoteStreams$ = this.streamRemotes$.pipe(
       scan((acc, next) => {
         for (const [ k, v ] of next.entries()) {
           acc.set(k, v);
@@ -84,11 +88,14 @@ export class WebComm {
           logger.warn("MediaStream was set to null");
           return false;
         }
-        logger.info("Adding video ref local to webcomm");
         if (this.peer === null) {
+          logger.info("Creating RTCPeerConnection");
           this.peer = this.createPeerConnection();
+        } else {
+          logger.info("RTCPeerConnection already established")
         }
 
+        // Adding the mediastream to the peer tranceiver so that we can stop it later
         const {peer} = this;
         try {
           stream.getTracks().forEach((track) => {
@@ -101,7 +108,7 @@ export class WebComm {
         return true
       })
     ).subscribe({
-      next: res => logger.log("MediaStream local was added successfully? ", res),
+      next: res => logger.log(`MediaStream local was ${ res ? "added" : "removed"}?`),
       error: logger.error,
       complete: () => logger.info("streamLocal$ is completed")
     })
@@ -184,7 +191,7 @@ export class WebComm {
 
     const hdlr = this.#commHandlers.get(cmd.cmd.op);
     if (!hdlr) {
-      logger.warn(`No handlder for ${cmd.cmd.op}.  No action taken`);
+      logger.warn(`No handler for ${cmd.cmd.op}.  No action taken`);
       return;
     }
     hdlr(msg);
@@ -197,7 +204,9 @@ export class WebComm {
    */
   setupCmdHandlers = () => {
     this.addCmdHdlr("Ping", this.cmdHandler.initPingRequestHandler);
-    this.addCmdHdlr("SDPOffer", this.cmdHandler.handleVideoOffer);
+    this.addCmdHdlr("SDPOffer", this.cmdHandler.handleVideoOfferMsg);
+    this.addCmdHdlr("SDPAnswer", this.cmdHandler.handleVideoAnswerMsg);
+    this.addCmdHdlr("IceCandidate", this.cmdHandler.handleNewICECandidateMsg);
   }
 
   /**
@@ -282,8 +291,7 @@ export class WebComm {
           return of(state);
         }
 
-        // Establish the offer as the local peer's current
-        // description.
+        // Establish the offer as the local peer's current description.
         logger.log("---> Setting local description to the offer");
         return peer.setLocalDescription(offer).then((_) => {
           return state;
@@ -294,11 +302,12 @@ export class WebComm {
         const {offer, receiver} = state;
         // Send the offer to the remote peer.  This will be received by the websocket handler
         logger.log("---> Sending the offer to the remote peer");
-        //const mesg = makeGenericMsg(this.user, receiver, "CommandRequest", { dummy: "value" }, "SDPOffer", false);
-        const msg = makeWsSDPMessage(this.user, receiver, new RTCSessionDescription({
+        let sdp = new RTCSessionDescription({
           type: "offer",
           sdp: JSON.stringify(peer.localDescription)
-        }));
+        });
+        logger.log("---> sdp is ", sdp);
+        const msg = makeWsSDPMessage(this.user, receiver, sdp);
         socket.send(JSON.stringify(msg));
         return true;
       }),
@@ -330,6 +339,17 @@ export class WebComm {
     }
   }
 
+
+  /** 
+   * Handle the |icegatheringstatechange| event. This lets us know what the ICE engine is currently 
+   * working on: "new" means no networking has happened  yet, "gathering" means the ICE engine is 
+   * currently gathering candidates, and "complete" means gathering is complete. Note that the 
+   * engine can alternate between "gathering" and "complete" repeatedly as needs and
+   * circumstances change.
+   * 
+   * We don't need to do anything when this happens, but we log it to the console so you can see 
+   * what's going on when playing with the sample.
+   */
   handleICEGatheringStateChangeEvent = (event: Event) => {
     if (!this.peer) {
       logger.error("No RTCPeerConnection yet");
@@ -377,12 +397,12 @@ export class WebComm {
    * it to the <video> element for incoming media.
    */
   handleTrackEvent = (event: RTCTrackEvent) => {
-    this.streamLocal$.subscribe({
-      next: (stream) => {
-        logger.log("*** Track event");
-        stream = event.streams[0];
-      }
-    });
+    // Here, we add the stream to the remote-video html element.  We need to tell the chat container
+    // to add the remote-video element and display it and add the stream
+    const target = this.targets$.value;
+    let obj: RemoteMediaStreams = new Map();
+    obj.set(target, event.streams[0]);
+    this.streamRemotes$.next(obj);
   }
 
   /**
@@ -457,18 +477,18 @@ export interface ICECandidateMessage {
 }
 
 export const makeWsICECandMsg = (sender: string, reciever: string, cand: ICECandidateMessage) => {
-  const msg: WsMessage<WsCommand<ICECandidateMessage>> = {
+  const msg: WsMessage<string> = {
     sender,
     recipients: [ reciever ],
     time: Date.now(),
-    body: {
+    body: JSON.stringify({
       cmd: {
         op: "IceCandidate",
         id: "",
         ack: true
       },
-      args: cand
-    },
+      args: JSON.stringify(cand)
+    }),
     event_type: "CommandRequest"
   };
   return msg;
@@ -560,17 +580,31 @@ class CommandHandler {
   /**
    * This is a handler for a WsCommand of SDPOffer
    */
-  handleVideoOffer = async (msg: WsMessage<any>) => {
-    const {peer} = this.webcomm;
+  handleVideoOfferMsg = async (msg: WsMessage<any>) => {
+    let {peer} = this.webcomm;
     if (!peer) {
-      logger.error("No RTCPeerConnection yet");
-      return false;
+      logger.info("No RTCPeerConnection yet");
+      peer = this.webcomm.createPeerConnection();
     }
 
-    const mesg = msg as WsMessage<WsCommand<RTCSessionDescription>>;
-    logger.log("Received video chat offer from ", mesg.sender);
-    logger.log("With message of type", mesg.body.cmd);
-    const desc = new RTCSessionDescription(mesg.body.args);
+    // This is all some ugliness to make the compiler happy
+    if (peer === null) {
+      throw new Error("Unable to create RTCPeerConnection");
+    }
+    this.webcomm.peer = peer;
+    const finalPeer = peer;
+
+    logger.log("Type of msg/body", typeof msg.body.args);
+    logger.log("Received video chat offer from ", msg.sender);
+    let args = JSON.parse(msg.body.args);
+    let sdp = JSON.parse(args.sdp);
+    logger.log("sdp is ", sdp);
+    logger.log("Type of sdp is ", typeof sdp);
+    
+    const desc = new RTCSessionDescription({
+      type: sdp.type,
+      sdp: sdp.sdp
+    });
 
     if (peer.signalingState !== "stable") {
       // Set the local and remove descriptions for rollback; don't proceed until returned
@@ -585,17 +619,18 @@ class CommandHandler {
       await peer.setRemoteDescription(desc);
     }
 
-    // The WebComm dynamically gets videoRef's as they are created and destroyed.  So we have to
+    // The WebComm dynamically gets MediaStream's as they are created and destroyed.  So we have to
     // subscribe to the stream of them.
     const sdp$ = this.webcomm.streamLocal$.pipe(
       map((stream) => {
         if (stream === null) {
-          logger.error("MediaStream was set to null");
+          // If media stream is null, we need to create one and then set it
+
           return false;
         }
         try {
           stream.getTracks().forEach((track) => {
-            this.webcomm.transceiver = peer.addTransceiver(track, {streams: [ stream ] });
+            this.webcomm.transceiver = finalPeer.addTransceiver(track, {streams: [ stream ] });
           });
         } catch (err) {
           this.webcomm.handleGetUserMediaError(err);
@@ -608,35 +643,31 @@ class CommandHandler {
           return of(null);
         }
         log("---> Creating and sending answer to caller");
-        return peer.createAnswer();   
+        return finalPeer.createAnswer();   
       }),
       flatMap((desc) => {
         if (desc === null) {
           return of(null);
         }
-        const prom = peer.setLocalDescription(desc).then(_ => desc);
+        const prom = finalPeer.setLocalDescription(desc);
         return prom;
       }),
       combineLatest(this.webcomm.targets$)
     );
 
     sdp$.subscribe({
-      next: ([ d, target ]) => {
+      next: ([ _, target ]) => {
         if (target === "") {
           logger.error("No targets added yet.  Waiting for real target");
           return;
         }
-        if (d === null) {
-          logger.error("Unable to create RTCSessionDescription");
-          return;
-        }
-        if (!peer.localDescription) {
+        if (!finalPeer.localDescription) {
           logger.error("RTCPeerConnection does not have a local description yet");
           return;
         }
+        logger.log("Local peer description: ", finalPeer.localDescription)
         // Create the SDPMessage with the offer
-        const msg = makeWsSDPMessage(this.webcomm.user, target, peer.localDescription);
-        //const mesg = makeGenericMsg(this.webcomm.user, target, "CommandRequest", { dummy: "value" }, "SDPOffer", false);
+        const msg = makeWsSDPMessage(this.webcomm.user, target, finalPeer.localDescription, "SDPAnswer");
         this.webcomm.socket.send(JSON.stringify(msg));
       },
       error: logger.error,
@@ -644,5 +675,41 @@ class CommandHandler {
     });
     
     return true;
+  }
+
+  handleVideoAnswerMsg = async (msg: WsMessage<WsCommand<string>>) => {
+    if (!this.webcomm.peer) {
+      logger.error("No RTCPeerConnection yet");
+      return;
+    }
+    log("*** Call recipient has accepted our call");
+  
+    // Configure the remote description, which is the SDP payload in our "video-answer" message.
+    const sdp: RTCSessionDescription = JSON.parse(msg.body.args) as RTCSessionDescription;
+    logger.log("SDP Answer is: ", sdp);
+  
+    var desc = new RTCSessionDescription(sdp);
+    await this.webcomm.peer.setRemoteDescription(desc).catch(logger.error);
+  }
+
+  handleNewICECandidateMsg = async (msg: WsMessage<WsCommand<string>>) => {
+    if (!this.webcomm.peer) {
+      logger.error("No RTCPeerConnection yet");
+      return;
+    }
+    logger.log("msg.body.args", msg.body.args);
+    logger.log("type of args", typeof msg.body.args);
+
+    let candidate = JSON.parse(msg.body.args);
+    candidate = JSON.parse(candidate.candidate);
+    logger.log("candidate", candidate);
+    candidate = new RTCIceCandidate(candidate);
+  
+    log("*** Adding received ICE candidate: " + JSON.stringify(candidate));
+    try {
+      await this.webcomm.peer.addIceCandidate(candidate)
+    } catch(err) {
+      logger.error(err);
+    }
   }
 }

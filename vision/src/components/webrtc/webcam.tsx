@@ -30,7 +30,8 @@ const mapPropsToDispatch = {
 
 interface LocalProps {
   kind: "local" | "remote",
-  target: string
+  target: string,
+  stream?: MediaStream
 }
 
 const connector = connect(mapStateToProps, mapPropsToDispatch);
@@ -52,7 +53,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
     this.resizeRef = React.createRef();
     this.videoRef = React.createRef();
     this.ready = false;
-    this.stream = null;
+    this.stream = props.stream ? props.stream : null;
   }
 
   /**
@@ -83,20 +84,24 @@ class VideoStream extends React.Component<PropsFromRedux> {
         }
       };
 
-      const cam = await navigator.mediaDevices.getUserMedia(constraints);
-      this.stream = cam;
+      // For local video, this.stream should be null, and we will create the cam ourself
+      // For remote video, the stream will have been created by the WebComm, and sent to the
+      // streamRemote$ stream that the ChatContainer is subscribed to.  It will pick up the
+      // MediaStream and pass it to our constructor
+      if (this.stream === null) {
+        const cam = await navigator.mediaDevices.getUserMedia(constraints);
+        this.stream = cam;
+      }
+      
       const video = this.videoRef.current;
 
       // Set the video ref to webcomm
       if (this.props.webcomm) {
         if (this.props.kind === "local") {
-          this.props.webcomm.streamLocal$.next(cam);
+          this.props.webcomm.streamLocal$.next(this.stream);
         }
         if (this.props.kind === "remote") {
-          logger.log("Adding video ref remote to webcomm");
-          const refremote = new Map();
-          refremote.set(this.props.target, cam);
-          this.props.webcomm.streamRemote$.next(refremote);
+          logger.log("Added media stream to remote video");
         }
         this.ready = true;
       } else {
@@ -114,7 +119,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
       logger.log(mediaDevs);
 
       if (video !== null) {
-        video.srcObject = cam;
+        video.srcObject = this.stream;
         video.play();
       } else {
         alert("Video not available");

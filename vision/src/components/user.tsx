@@ -170,6 +170,7 @@ const PopupMenu = (props: PopupProps) => {
       alert("User has not logged in yet");
       return;
     }
+    
     // Check if we have webcam started.  If not, start it for the user.
     if (!webcamActive) {
       dispatch(webcamCamAction({
