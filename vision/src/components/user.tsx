@@ -216,10 +216,11 @@ const PopupMenu = (props: PopupProps) => {
         } else {
           logger.info("Successfully added track to RTCPeerConnection")
         }
-        // Close the popup menu
-        disablePopup();
       }
-    })
+    });
+
+    // Close the popup menu
+    disablePopup();
   };
 
   const {classStyle, y, x} = props;

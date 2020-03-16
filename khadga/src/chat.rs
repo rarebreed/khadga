@@ -161,6 +161,7 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
         debug!("Unable to process message");
         return;
     };
+    debug!("Raw Message from {} is {:#?}", my_id, msg);
 
     let mesg: message::Message<String> = serde_json::from_str(msg).expect("Unable to parse");
     let message: String = match mesg.event_type {
@@ -181,7 +182,7 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
         _ => format!("{}", msg),
     };
 
-    debug!("From {} got message {}", my_id, message);
+    // debug!("From {} got message {}", my_id, message);
 
     // New message from this user, send it to everyone else (except same uid)...
     // FIXME: Send only to the recipients in _mesg.

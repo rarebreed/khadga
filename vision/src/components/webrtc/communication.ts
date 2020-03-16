@@ -1,13 +1,12 @@
 import {Subject, Subscription, of, BehaviorSubject} from "rxjs";
 import {map, flatMap, catchError, scan, combineLatest} from "rxjs/operators";
-import React from "react";
-
 
 import {
   WsMessage,
   makeChatMessage,
   CHAT_MESSAGE_ADD,
-  WsCommand
+  WsCommand,
+  MessageEvent as MsgEvent
 } from "../../state/message-types";
 import {
   createLoginAction,
@@ -295,6 +294,7 @@ export class WebComm {
         const {offer, receiver} = state;
         // Send the offer to the remote peer.  This will be received by the websocket handler
         logger.log("---> Sending the offer to the remote peer");
+        //const mesg = makeGenericMsg(this.user, receiver, "CommandRequest", { dummy: "value" }, "SDPOffer", false);
         const msg = makeWsSDPMessage(this.user, receiver, new RTCSessionDescription({
           type: "offer",
           sdp: JSON.stringify(peer.localDescription)
@@ -480,22 +480,49 @@ export const makeWsSDPMessage = (
   sdp: RTCSessionDescription,
   kind: "SDPOffer" | "SDPAnswer" = "SDPOffer"
 ) => {
-  const msg: WsMessage<WsCommand<RTCSessionDescription>> = {
+  let wscmd: WsCommand<RTCSessionDescription>;
+
+  const msg: WsMessage<string> = {
     sender,
     recipients: [ receiver ],
     event_type: "CommandRequest",
-    body: {
+    body: JSON.stringify({
       cmd: {
         op: kind,
         id: "",
         ack: kind === "SDPOffer" ? true : false
       },
-      args: sdp
-    },
+      args: JSON.stringify(sdp)
+    }),
     time: Date.now()
   };
   return msg;
 };
+
+export const makeGenericMsg = <T>(
+  sender: string,
+  receiver: string,
+  event_type: MsgEvent,
+  args: T,
+  op: string,
+  ack: boolean
+) => {
+  const msg: WsMessage<string> = {
+    sender,
+    recipients: [ receiver ],
+    event_type,
+    body: JSON.stringify({
+      cmd: {
+        op,
+        id: "",
+        ack,
+      },
+      args
+    }),
+    time: Date.now()
+  };
+  return msg;
+}
 
 class CommandHandler {
   webcomm: WebComm;
@@ -609,6 +636,7 @@ class CommandHandler {
         }
         // Create the SDPMessage with the offer
         const msg = makeWsSDPMessage(this.webcomm.user, target, peer.localDescription);
+        //const mesg = makeGenericMsg(this.webcomm.user, target, "CommandRequest", { dummy: "value" }, "SDPOffer", false);
         this.webcomm.socket.send(JSON.stringify(msg));
       },
       error: logger.error,

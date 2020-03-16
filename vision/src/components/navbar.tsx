@@ -18,7 +18,6 @@ import {WEBCAM_ENABLE
 } from "../state/types";
 import {NavBarItem, NavBarDropDown} from "./navbar-item";
 import GoogleAuth from "./google-signin";
-import {socketSetup} from "./webrtc/websocket-handler";
 import WebCamSettings from "../components/webrtc/settings";
 import {WebComm, WSSetup} from "../components/webrtc/communication";
 

@@ -73,6 +73,7 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
       logger.info("Empty message");
       return;
     }
+    
     // check to see if we are addressing individual member(s)
     let recipients: string[] = Array.from(this.props.connected);
     if (this.props.selectedUsers.length > 0) {
