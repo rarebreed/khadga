@@ -12,6 +12,7 @@ import {State} from "../../state/store";
 import {webcamCamAction, videoRefAction,} from "../../state/action-creators";
 import {WEBCAM_DISABLE} from "../../state/types";
 import dragElement, {resizeElement} from "../../utils/utils";
+import { LocalMediaStream } from "../../components/webrtc/communication";
 
 const logger = console;
 
@@ -98,7 +99,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
       // Set the video ref to webcomm
       if (this.props.webcomm) {
         if (this.props.kind === "local") {
-          this.props.webcomm.streamLocal$.next(this.stream);
+          this.props.webcomm.streamLocal$.next(new LocalMediaStream(this.stream));
         }
         if (this.props.kind === "remote") {
           logger.log("Added media stream to remote video");
@@ -145,7 +146,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
     this.props.setVideo(null, "REMOVE_VIDEO_REF");
     this.stream = null;
     if (this.props.webcomm) {
-      this.props.webcomm.streamLocal$.next(null);
+      this.props.webcomm.streamLocal$.next(new LocalMediaStream(null));
     }
   }
 
@@ -153,7 +154,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
     return (
       <div>
         <div ref={ this.myRef } id="localVideo">
-          <video width="1280px" height="720px" id="webcam" ref={ this.videoRef }>
+          <video width="800px" height="450px" id="webcam" ref={ this.videoRef }>
             No video stream available
           </video>
           <div id="localVideoHeader">

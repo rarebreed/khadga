@@ -55,6 +55,7 @@ class ChatContainer extends React.Component<PropsFromRedux> {
   }
 
   addRemoteVideo = () => {
+    logger.log("Checking for remote video");
     // This should never happen.  The webcomm is added when user selects "Chat".  We can't get a
     // video call offer unless we've logged into chat.  But this makes the compiler happy
     if (!this.props.webcomm) {
@@ -69,12 +70,39 @@ class ChatContainer extends React.Component<PropsFromRedux> {
         remoteStreams.push([key, val])
       }
     });
+    logger.log(`There are ${remoteStreams.length} number of remote streams`, remoteStreams);
 
     return remoteStreams.map(([key, val]) => {
       return (
         <VideoStream kind="remote" target={ key } stream={ val }></VideoStream>
       )
     })
+  }
+
+  addLocalVideo = () => {
+    const showCam = this.props.webcam.active /* && this.props.connected */;
+    if (!this.props.webcomm) {
+      if (showCam) {
+        logger.log("Showing local video prompted by user");
+        return  <VideoStream kind="local" target={ this.props.user } />
+      }
+      return null;
+    }
+    
+    const { streamLocal$ } = this.props.webcomm;
+    if (streamLocal$.value.stream === null) {
+      if (showCam) {
+        logger.log("Showing local video prompted by user");
+        return  <VideoStream kind="local" target={ this.props.user } />
+      }
+      return null;
+    } else {
+      logger.log("Showing local video created by offer");
+      const stream = streamLocal$.value.stream;
+      return (
+        <VideoStream kind="local" target={ this.props.user } stream={ stream }></VideoStream>
+      )
+    }
   }
 
   render() {
@@ -85,7 +113,7 @@ class ChatContainer extends React.Component<PropsFromRedux> {
     const cntr = (
       <div className="main-body" style={ {flex: 1} }>
         <div className="chat-window">
-          { showCam ? <VideoStream kind="local" target={ this.props.user } /> : null }
+          { this.addLocalVideo() }
           { this.addRemoteVideo() }
           <ul className="chat-messages">
             { this.makeChatMessage() }

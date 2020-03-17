@@ -1,15 +1,15 @@
 
 import * as React from "react";
 import * as ReactDom from "react-dom";
-import {Provider} from "react-redux";
+import { Provider } from "react-redux";
 import {createStore, StoreEnhancer} from "redux";
 
-import {reducers} from "./state/store";
+import { reducers } from "./state/store";
 import NavBar from "./components/navbar";
 import SideBar from "./components/sidebar-left";
 import ChatInput from "./components/chat/chat-input";
 import ChatContainer from "./components/chat/chat-container";
-import {SideBarRight} from "./components/sidebar-right";
+import { SideBarRight} from "./components/sidebar-right";
 
 type WindowWithDevTools = Window & {
   __REDUX_DEVTOOLS_EXTENSION__: () => StoreEnhancer<unknown, {}>

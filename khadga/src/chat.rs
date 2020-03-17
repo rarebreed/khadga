@@ -172,7 +172,7 @@ async fn user_message(my_id: String, msg: Message, users: &Users) {
             debug!("{:#?}", cmd_body.cmd);
             // TODO: Do something with the request and send back CommandReply
             if cmd_body.cmd.ack {
-                info!("Got args {}", cmd_body.args);
+                info!("From {} got args {}", my_id, cmd_body.args);
             } else {
                 return;
             }

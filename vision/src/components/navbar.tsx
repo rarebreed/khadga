@@ -133,7 +133,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     }
 
     // Create and initialize our WebComm object
-    const webcomm = new WebComm(this.props.user);
+    const webcomm = new WebComm(this.props.user, this.props.webcam);
     const wssetup: WSSetup = {
       auth: this.props.auth,
       loginAction: this.props.connection,

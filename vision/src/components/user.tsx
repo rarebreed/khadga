@@ -191,7 +191,7 @@ const PopupMenu = (props: PopupProps) => {
 
     // Get the webcam and add tracks to the peer connection.  This will trigger a negotiation event
     let cam$ = webcomm.streamLocal$.pipe(
-      map((stream) => {
+      map(({ stream }) => {
         if (!stream) {
           logger.info("No MediaStream yet");
           return false;
