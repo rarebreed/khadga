@@ -40,6 +40,7 @@ import {ModalState
   , VideoRefAction
   , WebCommReducerState
   , WebCommAction
+  , VideoReducerAction
 } from "./types";
 import {ChatMessageState
   , ChatMessageAction
@@ -293,6 +294,9 @@ export const webcamReducer = (
     if (action.webcam.videoId) {
       newstate.videoId = action.webcam.videoId;
     }
+    if (action.webcam.target) {
+      newstate.target = action.webcam.target
+    }
     break;
   case WEBCAM_DISABLE:
     newstate.active = false;
@@ -443,3 +447,17 @@ export const webcommReducer = (
     return previous;
   }
 };
+
+export const remoteVideoReducer = (
+  previous: Map<string, MediaStream> = new Map(),
+  action: VideoReducerAction
+) => {
+  switch (action.type) {
+    case "REMOTE_EVENT":
+      return action.data
+    default:
+      return previous;
+  }
+}
+
+"For"

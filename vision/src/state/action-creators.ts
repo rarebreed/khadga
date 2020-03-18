@@ -19,7 +19,9 @@ import {
   VIDEO_REF_ACTION,
   VideoRefAction,
   WebCommAction,
-  WebCommActions
+  WebCommActions,
+  VideoReducerAction,
+  VideoReducerActions
 } from "./types";
 import {
   ChatMessageState,
@@ -114,9 +116,10 @@ export const peerConnAction = ( peer: RTCPeerConnection | null
   };
 };
 
-export const videoRefAction = ( videoRef: React.RefObject<HTMLVideoElement> | null
-  , action: VIDEO_REF_ACTION)
-                              : VideoRefAction => {
+export const videoRefAction = ( 
+  videoRef: React.RefObject<HTMLVideoElement> | null,
+  action: VIDEO_REF_ACTION
+): VideoRefAction => {
   logger.info("videoRef action: ", action);
   return {
     type: action,
@@ -125,7 +128,6 @@ export const videoRefAction = ( videoRef: React.RefObject<HTMLVideoElement> | nu
     }
   };
 };
-
 
 export const webcommAction = (
   webcomm: WebComm | null,
@@ -140,3 +142,13 @@ export const webcommAction = (
   }
   return act;
 };
+
+export const remoteVideoAction = (
+  data: Map<string, MediaStream>,
+  action: VideoReducerActions
+): VideoReducerAction => {
+  return {
+    type: action,
+    data
+  }
+}

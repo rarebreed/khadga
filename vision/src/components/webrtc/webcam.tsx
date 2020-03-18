@@ -20,6 +20,7 @@ const mapStateToProps = (state: State) => {
   return {
     webcamActive: state.webcam.active,
     webcamId: state.webcam.videoId,
+    webcamTarget: state.webcam.target,
     webcomm: state.webcomm.webcomm
   };
 };
@@ -62,14 +63,17 @@ class VideoStream extends React.Component<PropsFromRedux> {
    * element
    */
   async componentDidMount() {
+    const uniqueHeaderId = `localVideoHeader-${this.props.webcamTarget}`;
+    const webcamId = `webcam-${this.props.webcamTarget}`;
+
     if (this.myRef.current) {
-      dragElement(this.myRef.current);
+      dragElement(this.myRef.current, uniqueHeaderId);
     } else {
       logger.error("No drag div element yet");
     }
 
     if (this.resizeRef.current) {
-      resizeElement(this.resizeRef.current);
+      resizeElement(this.resizeRef.current, webcamId);
     } else {
       logger.error("No resize element yet");
     }
@@ -93,12 +97,16 @@ class VideoStream extends React.Component<PropsFromRedux> {
         const cam = await navigator.mediaDevices.getUserMedia(constraints);
         this.stream = cam;
       }
-      
-      const video = this.videoRef.current;
+
+      if (!this.setupMediaStream(this.stream)) {
+        logger.error("No RTCPeerConnection yet in webcomm.  No tracks added");
+      }
 
       // Set the video ref to webcomm
+      const video = this.videoRef.current;
       if (this.props.webcomm) {
         if (this.props.kind === "local") {
+          logger.info("Adding mediastream to streamLocal$");
           this.props.webcomm.streamLocal$.next(new LocalMediaStream(this.stream));
         }
         if (this.props.kind === "remote") {
@@ -116,8 +124,8 @@ class VideoStream extends React.Component<PropsFromRedux> {
       }
 
       // TODO: Present a list of options for the user
-      const mediaDevs = await noesis.list_media_devices();
-      logger.log(mediaDevs);
+      //const mediaDevs = await noesis.list_media_devices();
+      //logger.log(mediaDevs);
 
       if (video !== null) {
         video.srcObject = this.stream;
@@ -128,6 +136,25 @@ class VideoStream extends React.Component<PropsFromRedux> {
     } else {
       alert("Video is not available.");
     }
+  }
+
+  /**
+   * Sets up the MediaStream by adding tracks to the RTCPeerConnection
+   */
+  setupMediaStream = (stream: MediaStream) => {
+    if (!this.props.webcomm) {
+      logger.error("No webcomm yet for setupMediaStream");
+      return false;
+    }
+    const { webcomm } = this.props;
+    stream.getTracks().forEach((track) => {
+      if(!webcomm.peer) {
+        return false;
+      }
+      logger.log(`Adding track to stream`, track);
+      webcomm.peer.addTrack(track, stream)
+    });
+    return true;
   }
 
   /**
@@ -151,21 +178,25 @@ class VideoStream extends React.Component<PropsFromRedux> {
   }
 
   render() {
+    const uniqueLocalVidId = `localVideo-${this.props.webcamTarget}`;
+    const uniqueHeaderId = `localVideoHeader-${this.props.webcamTarget}`;
+    const webcamId = `webcam-${this.props.webcamTarget}`;
+
     return (
       <div>
-        <div ref={ this.myRef } id="localVideo">
-          <video width="800px" height="450px" id="webcam" ref={ this.videoRef }>
+        <div ref={ this.myRef } className="localVideo" id={ uniqueLocalVidId }>
+          <video width="800px" height="450px" id={ webcamId } ref={ this.videoRef }>
             No video stream available
           </video>
-          <div id="localVideoHeader">
+          <div className="localVideoHeader" id={ uniqueHeaderId }>
             <div className="video-header-section">
               <button className="webcam-button" onClick={ this.disableCam }>
                 Turn Off
               </button>
-              Click here to move
+              { this.props.webcamTarget } Click here to move
             </div>
 
-            <div id="webcam-resize" className="video-header-section justify-right">
+            <div className="video-header-section webcam-resize justify-right">
               <i ref={ this.resizeRef } className="fas fa-compress" style={ {color: "black"}}></i>
             </div>
           </div>

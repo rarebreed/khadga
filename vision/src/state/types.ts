@@ -140,6 +140,7 @@ export interface MessageAction {
 
 export interface WebcamState {
 	active: boolean,
+	target?: string,
 	size?: {
 		height: number,
 		width: number
@@ -226,4 +227,11 @@ export type WebCommActions = "CREATE_WEBCOMM" | "DELETE_WEBCOMM";
 export interface WebCommAction {
 	type: WebCommActions,
 	data?: WebComm
+}
+
+export type VideoReducerActions = "REMOTE_EVENT";
+
+export interface VideoReducerAction {
+  type: VideoReducerActions,
+  data: Map<string, MediaStream>
 }

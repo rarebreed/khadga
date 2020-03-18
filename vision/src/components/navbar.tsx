@@ -3,18 +3,20 @@ import {connect, ConnectedProps} from "react-redux";
 import {Subject} from "rxjs";
 
 import {State} from "../state/store";
-import {setActive
-  , createLoginAction
-  , setLoginFormAction
-  , webcamCamAction
-  , websocketAction
-  , chatMessageAction
-  , videoRefAction
-  , webcommAction
+import {
+  setActive,
+  createLoginAction,
+  setLoginFormAction,
+  webcamCamAction,
+  websocketAction,
+  chatMessageAction,
+  videoRefAction,
+  webcommAction,
+  remoteVideoAction
 } from "../state/action-creators";
-import {WEBCAM_ENABLE
-  , WebSocketState
-  , WebcamState
+import {
+  WEBCAM_ENABLE,
+  WebcamState
 } from "../state/types";
 import {NavBarItem, NavBarDropDown} from "./navbar-item";
 import GoogleAuth from "./google-signin";
@@ -53,7 +55,8 @@ const mapDispatch = {
   websocket: websocketAction,
   chatMessage: chatMessageAction,
   video: videoRefAction,
-  setWebComm: webcommAction
+  setWebComm: webcommAction,
+  remoteVideo: remoteVideoAction
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -69,9 +72,6 @@ class NavBar extends React.Component<PropsFromRedux> {
   videoSubj: Subject<MediaDeviceInfo>;
   audioOutSubj: Subject<MediaDeviceInfo>;
   audioInSubj: Subject<MediaDeviceInfo>;
-  // FIXME: Not really the place for either of these, but not in redux either
-  peer$: Subject<RTCPeerConnection>;
-  // videoRef: React.RefObject<HTMLVideoElement>;
 
   constructor(props: PropsFromRedux) {
     super(props);
@@ -79,8 +79,6 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.videoSubj = new Subject();
     this.audioOutSubj = new Subject();
     this.audioInSubj =  new Subject();
-    this.peer$ = new Subject();
-    //this.videoRef = React.createRef();
 
     // make sure the videoRef is available if user clicks Webcam
     // this.props.video(this.videoRef, "SET_VIDEO_REF");
@@ -133,7 +131,11 @@ class NavBar extends React.Component<PropsFromRedux> {
     }
 
     // Create and initialize our WebComm object
-    const webcomm = new WebComm(this.props.user, this.props.webcam);
+    const webcomm = new WebComm(
+      this.props.user,
+      this.props.webcam,
+      this.props.remoteVideo
+    );
     const wssetup: WSSetup = {
       auth: this.props.auth,
       loginAction: this.props.connection,

@@ -5,7 +5,7 @@ import {
   useSelector,
   useDispatch
 } from "react-redux";
-import { map } from "rxjs/operators"
+import { map, skip } from "rxjs/operators"
 
 import { State } from "../state/store";
 import { 
@@ -170,13 +170,6 @@ const PopupMenu = (props: PopupProps) => {
       alert("User has not logged in yet");
       return;
     }
-    
-    // Check if we have webcam started.  If not, start it for the user.
-    if (!webcamActive) {
-      dispatch(webcamCamAction({
-        active: true,
-      }, "WEBCAM_ENABLE"))
-    }
 
     // Check if we have RTCPeerConnection.
     if (!webcomm.peer) {
@@ -184,42 +177,24 @@ const PopupMenu = (props: PopupProps) => {
       webcomm.peer = webcomm.createPeerConnection();
     }
     logger.log("RTCPeerConnection: ", webcomm.peer);
-
-    // Push the target to the webcomm.  Its handleVideoOffer will take this value, and use it create
-    // an SDPOffer message
+    logger.log(`Adding ${props.name} to target$`);
     webcomm.targets$.next(props.name);
+    
+    // Check if we have webcam started.  If not, start it for the user.
+    // By dispatching here, we kick off a chain of events:
+    // - Redux store changes the webcam.active, thus causing <VideoStream > to be created
+    // - As part of componentDidMount, it will call setupMedia
+    // - This will add tracks from the MediaStream to the RTCPeerConnection (if available)
+    // - As part of adding tracks, it calls the handleNegotiationNeeded handler on local PC
+    // - The negotiation handler will send a SDPOffer message to our target
+    if (!webcamActive) {
+      dispatch(webcamCamAction({
+        active: true,
+        target: props.name
+      }, "WEBCAM_ENABLE"))
+    }
 
-    // Get the webcam and add tracks to the peer connection.  This will trigger a negotiation event
-    let cam$ = webcomm.streamLocal$.pipe(
-      map(({ stream }) => {
-        if (!stream) {
-          logger.info("No MediaStream yet");
-          return false;
-        }
-        
-        let success = true;
-        stream.getTracks().forEach((track) => {
-          if(!webcomm.peer) {
-            logger.error("No RTCPeerConnection yet in webcomm");
-            success = false;
-            return;
-          }
-          webcomm.peer.addTrack(track, stream)
-        });
-        return success;
-      }),
-    );
-
-    cam$.subscribe({
-      next: (success) => {
-        if (!success) {
-          logger.error("Unable to add tracks to RTCPeerConnection")
-        } else {
-          logger.info("Successfully added track to RTCPeerConnection")
-        }
-      }
-    });
-
+    
     // Close the popup menu
     disablePopup();
   };

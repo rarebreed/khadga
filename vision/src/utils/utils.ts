@@ -1,13 +1,16 @@
+import { logger } from "../logger";
+
 /**
  * Make the DIV element draggable:
  */
-const dragElement = (elmnt: HTMLDivElement) => {
+const dragElement = (elmnt: HTMLDivElement, id: string) => {
   let pos1 = 0;
   let pos2 = 0;
   let pos3 = 0;
   let pos4 = 0;
-
-  const helem = document.getElementById(elmnt.id + "Header");
+  
+  const helem = document.getElementById(id);
+  logger.log("helem is ", helem);
   if (!helem) {
     elmnt.onmousedown = dragMouseDown;
   } else {
@@ -45,13 +48,13 @@ const dragElement = (elmnt: HTMLDivElement) => {
   }
 };
 
-export const resizeElement = (elmnt: HTMLElement) => {
+export const resizeElement = (elmnt: HTMLElement, id: string) => {
   let pos1 = 0;
   let pos2 = 0;
   let pos3 = 0;
   let pos4 = 0;
 
-  const helem = document.getElementById("webcam");
+  const helem = document.getElementById(id);
   let velem: HTMLVideoElement;
   if (!helem) {
     elmnt.onmousedown = dragMouseDown;
@@ -92,5 +95,69 @@ export const resizeElement = (elmnt: HTMLElement) => {
     document.onmousemove = null;
   }
 };
+
+export const shuffle = <T>(container: T[]) => {
+  let size = container.length;
+  while (size > 0) {
+    // randomly pick one element and swap with last element
+    let rnd = Math.floor(Math.random() * (size - 1));
+    let tmp = container[size - 1];
+    container[size - 1] = container[rnd];
+    container[rnd] = tmp;
+    size--;
+  }
+}
+
+export function* range(
+	end: number = Infinity,
+	start: number = 0,
+	inc: number = 1
+): Generator<number> {
+	while (start <= end) {
+		yield start;
+		start += inc;
+	}
+}
+
+export const take = <T>(gen: Iterable<T>) => (amt: number) => {
+	let start = 0;
+	let result: T[] = [];
+	for(const val of gen) {
+		if (start > amt) break
+		result.push(val);
+		start++;
+	}
+	return result;
+}
+
+export class Fn {
+	private gen: Generator<number> | null
+	private taken: number[]
+
+	constructor() {
+		this.gen = null;
+		this.taken = [];
+	}
+
+	static new = () => {
+		return new Fn()
+	}
+
+	range = (end: number = Infinity, start: number = 0, inc: number = 1)=> {
+		this.gen = range(end, start, inc);
+		return this
+	}
+
+	take = <T>(amt: number, gen?: Generator<T>) => {
+    if (gen) {
+      return take(gen)(amt);
+    }
+		if (this.gen === null) {
+			throw new Error("this.gen is null")
+		}
+		this.taken = take(this.gen)(amt);
+		return this.taken
+	}
+}
 
 export default dragElement;

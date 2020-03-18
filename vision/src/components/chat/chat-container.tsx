@@ -14,7 +14,8 @@ const mapStateToProps = (state: State) => {
     user: state.connectState.username,
     websocket: state.websocket,
     messages: state.messages,
-    webcomm: state.webcomm.webcomm
+    webcomm: state.webcomm.webcomm,
+    remoteVideo: state.remoteVideo
   };
 };
 
@@ -59,13 +60,13 @@ class ChatContainer extends React.Component<PropsFromRedux> {
     // This should never happen.  The webcomm is added when user selects "Chat".  We can't get a
     // video call offer unless we've logged into chat.  But this makes the compiler happy
     if (!this.props.webcomm) {
-      logger.error("No webcomm yet");
+      logger.warn("No webcomm yet");
       return null;
     }
 
-    const { streamRemotes$ } = this.props.webcomm;
+    const { remoteVideo } = this.props;
     let remoteStreams: [string, MediaStream][] = [];
-    streamRemotes$.value.forEach((val, key) => {
+    remoteVideo.forEach((val, key) => {
       if (val) {
         remoteStreams.push([key, val])
       }
@@ -92,7 +93,7 @@ class ChatContainer extends React.Component<PropsFromRedux> {
     const { streamLocal$ } = this.props.webcomm;
     if (streamLocal$.value.stream === null) {
       if (showCam) {
-        logger.log("Showing local video prompted by user");
+        logger.log(`Showing local video prompted by`, this.props.user);
         return  <VideoStream kind="local" target={ this.props.user } />
       }
       return null;
@@ -106,7 +107,6 @@ class ChatContainer extends React.Component<PropsFromRedux> {
   }
 
   render() {
-    const showCam = this.props.webcam.active /* && this.props.connected */;
     logger.info(`ChatContainer: webcam.active = ${this.props.webcam.active}`);
     logger.info(`ChatContainer: connected = ${this.props.connected}`);
 
