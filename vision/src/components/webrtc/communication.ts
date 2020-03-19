@@ -8,7 +8,7 @@ import {
   map,
   flatMap,
   catchError,
-  combineLatest,
+  withLatestFrom,
   retry,
   tap
 } from "rxjs/operators";
@@ -135,13 +135,13 @@ export class WebComm {
     // combine this with our latest target value.  Then, we push the map of {target:stream} to
     // streamRemotes$.
     this.evtMediaStream$.pipe(
-      combineLatest(this.targets$)
+      withLatestFrom(this.targets$)
     ).subscribe({
       next: ([stream, target]) => {
         logger.info("Got track event for remote: ", target, stream);
         let obj: Map<string, MediaStream> = new Map();
         obj.set(target, stream);
-        // this.streamRemotes$.next(obj);
+        // Send event to dispatch so that the VideoStream component will update
         this.remoteVideoDispatch(obj, "REMOTE_EVENT");
       }
     });
@@ -284,7 +284,7 @@ export class WebComm {
 
   configIceCandidateEventStream = () => {
     const iceHandler$ = this.evtIceCandidate$.pipe(
-      combineLatest(this.targets$),
+      withLatestFrom(this.targets$),
       map(([candidate, receiver]) => {
         if (receiver === "") {
           logger.debug("Dummy value for target");
@@ -320,7 +320,7 @@ export class WebComm {
       logger.debug("*** Outgoing ICE candidate: " + event.candidate.candidate);
       this.evtIceCandidate$.next(event.candidate)
     } else {
-      logger.warn("no candidate in event");
+      logger.warn("no candidate in event", event);
     }
   };
 
@@ -328,7 +328,7 @@ export class WebComm {
     const { socket } = this;
 
     const handle$ = this.evtNegotiation$.pipe(
-      combineLatest(this.targets$),
+      withLatestFrom(this.targets$),
       flatMap(([_, sender]) => {
         logger.log("Creating offer for: ", sender);
         return peer.createOffer().then((offer) => {
@@ -353,7 +353,7 @@ export class WebComm {
       map((state) => {
         const { sender } = state;
         // Send the offer to the remote peer.  This will be received by the remote websocket
-        logger.log("---> Sending the offer to the remote peer");
+        logger.log(`---> Sending the offer to the remote peer ${sender}`);
         logger.log("---> peer.localDescription", peer.localDescription);
         let sdp = new RTCSessionDescription({
           type: "offer",
@@ -376,7 +376,7 @@ export class WebComm {
   }
 
   handleNegotiationNeededEvent = (evt: Event) => {
-    const {peer, socket} = this;
+    const {peer} = this;
     if (!peer) {
       logger.error("RTCPeerConnection not setup yet");
       return;
@@ -401,7 +401,6 @@ export class WebComm {
       break;
     }
   }
-
 
   /** 
    * Handle the |icegatheringstatechange| event. This lets us know what the ICE engine is currently 
@@ -563,7 +562,6 @@ export const makeWsSDPMessage = (
   kind: "SDPOffer" | "SDPAnswer" = "SDPOffer"
 ) => {
   let wscmd: WsCommand<RTCSessionDescription>;
-  logger.log("In makeWsSDPMessage: ", sdp);
 
   const msg: WsMessage<string> = {
     sender,
@@ -579,6 +577,7 @@ export const makeWsSDPMessage = (
     }),
     time: Date.now()
   };
+  logger.log("Created SDPOffer message", msg);
   return msg;
 };
 
@@ -656,34 +655,9 @@ class CommandHandler {
     // The WebComm dynamically gets MediaStream's as they are created and destroyed.  So we have to
     // subscribe to the stream of them.
     const sdp$ = this.webcomm.evtVideoOffer$.pipe(
-      combineLatest(this.webcomm.streamLocal$),
-      tap(([msg, { stream }]) => {
-        logger.log("streamLocalConfig: message is", msg, "stream is ", stream);
-      }),
-      // Check if our current MediaStream is null.  If it is, create one, and restart
-      flatMap(([msg, { stream }]) => {
-        if (stream === null) {
-          logger.log("Creating local media stream");
-          return navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-            .then(stream => {
-              return { preset: false, stream, msg }
-            });
-        } else {
-          return of({ preset: true, stream, msg });
-        }
-      }),
-      map((res) => {
-        if (!res.preset) {
-          this.webcomm.streamLocal$.next(new LocalMediaStream(res.stream));
-          this.webcomm.webcamDispatch({ active: true }, "WEBCAM_ENABLE");
-          logger.log("Resetting media stream");
-          throw res;
-        }
-        return res
-      }),
-      retry(1),
+      withLatestFrom(this.webcomm.streamLocal$),
       // At this point, we should have a valid MediaStream.  Create 
-      flatMap(({ stream, msg }) => {
+      flatMap(([msg, { stream }]) => {
         let args = JSON.parse(msg.body.args);
         let sdp = JSON.parse(args.sdp);
     
@@ -706,6 +680,30 @@ class CommandHandler {
             return { stream , msg }
           });
         }
+      }),
+      tap(({ stream, msg }) => {
+        logger.log("streamLocalConfig: message is", msg, "stream is ", stream);
+      }),
+      // Check if our current MediaStream is null.  If it is, create one, and restart
+      flatMap(({ stream, msg }) => {
+        if (stream === null) {
+          logger.log("Creating local media stream");
+          return navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+            .then(stream => {
+              return { preset: false, stream, msg }
+            });
+        } else {
+          return of({ preset: true, stream, msg });
+        }
+      }),
+      map((res) => {
+        if (!res.preset) {
+          // Add this to our strealLocal so that <VideoStream /> can pick it up
+          this.webcomm.streamLocal$.next(new LocalMediaStream(res.stream));
+          this.webcomm.webcamDispatch({ active: true }, "WEBCAM_ENABLE");
+          logger.log("Resetting media stream");
+        }
+        return res
       }),
       map(({ stream, msg }) => {
         try {
@@ -756,14 +754,14 @@ class CommandHandler {
           logger.error("RTCPeerConnection does not have a local description yet");
           return;
         }
-        logger.log("Local peer description: ", finalPeer.localDescription)
+        logger.log("Sending SDPAnswer with peer description: ", finalPeer.localDescription)
         // Create the SDPMessage with the SDPAnswer
         const mesg = makeWsSDPMessage(
           this.webcomm.user,
           msg.sender,
           finalPeer.localDescription,
           "SDPAnswer");
-        this.webcomm.socket.send(JSON.stringify(msg));
+        this.webcomm.socket.send(JSON.stringify(mesg));
       },
       error: logger.error,
       complete: () => logger.info("videoRefLocal$ is complete")
@@ -783,7 +781,7 @@ class CommandHandler {
   handleVideoOfferMsg = async (msg: WsMessage<WsCommand<string>>) => {
     let {peer} = this.webcomm;
     if (!peer) {
-      logger.info("No RTCPeerConnection yet");
+      logger.info("No RTCPeerConnection yet...creating");
       peer = this.webcomm.createPeerConnection();
     }
     if (!this.streamLocalConfigured) {
@@ -831,6 +829,7 @@ class CommandHandler {
     let candidate = JSON.parse(msg.body.args);
     candidate = JSON.parse(candidate.candidate);
     candidate = new RTCIceCandidate(candidate);
+    logger.log("type of candidate", typeof candidate);
   
     logger.log("*** Adding received ICE candidate: ", candidate);
     try {

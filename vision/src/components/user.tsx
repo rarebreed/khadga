@@ -16,6 +16,7 @@ import {
 import { ClickEvent } from "../state/types";
 import { logger } from "../logger";
 import webcam from "./webrtc/webcam";
+import { LocalMediaStream } from "./webrtc/communication";
 
 interface Item {
   classStyle: string,
@@ -160,11 +161,39 @@ const PopupMenu = (props: PopupProps) => {
     props.disable();
   };
 
+    /**
+   * Sets up the MediaStream by adding tracks to the RTCPeerConnection
+   */
+  const setupMediaStream = (stream: MediaStream) => {
+    if (!webcomm) {
+      logger.error("No webcomm yet for setupMediaStream");
+      return false;
+    }
+
+    stream.getTracks().forEach((track) => {
+      if(!webcomm.peer) {
+        return false;
+      }
+      logger.log(`Adding track to stream`, track);
+      try {
+        webcomm.peer.addTrack(track, stream);
+      } catch (ex) {
+        logger.warn("Didn't add track", ex);
+      }
+    });
+    return true;
+  }
+
   /**
    * When the user clicks Start, we will initiate the SDP negotiation that kicks off the whole
    * process
+   * 
+   * The invite() method will create the local <VideoStream/>.  It will generate the MediaStream
+   * object that will be used for our local webcam, and then add tracks.  This in turn will trigger
+   * a NegotiationNeeded, which will create and send an SDPOffer message to the user we have right
+   * clicked on.
    */
-  const invite = () => {
+  const invite = async () => {
     // Check if webcomm has been created
     if (webcomm === null) {
       alert("User has not logged in yet");
@@ -179,14 +208,23 @@ const PopupMenu = (props: PopupProps) => {
     logger.log("RTCPeerConnection: ", webcomm.peer);
     logger.log(`Adding ${props.name} to target$`);
     webcomm.targets$.next(props.name);
+
+    const constraints: MediaStreamConstraints = {
+      audio: true,
+      video: {
+        width: {ideal: 1280},
+        height: {ideal: 720}
+      }
+    };
+
+    // Create the local MediaStream
+    const cam = await navigator.mediaDevices.getUserMedia(constraints);
+    if (!setupMediaStream(cam)) {
+      logger.error("No RTCPeerConnection yet in webcomm.  No tracks added");
+    }
+    webcomm.streamLocal$.next(new LocalMediaStream(cam));
     
-    // Check if we have webcam started.  If not, start it for the user.
-    // By dispatching here, we kick off a chain of events:
-    // - Redux store changes the webcam.active, thus causing <VideoStream > to be created
-    // - As part of componentDidMount, it will call setupMedia
-    // - This will add tracks from the MediaStream to the RTCPeerConnection (if available)
-    // - As part of adding tracks, it calls the handleNegotiationNeeded handler on local PC
-    // - The negotiation handler will send a SDPOffer message to our target
+    // Dispatch WEBCAM_ENABLE to that the <VideoStream/> element will render
     if (!webcamActive) {
       dispatch(webcamCamAction({
         active: true,
@@ -194,7 +232,6 @@ const PopupMenu = (props: PopupProps) => {
       }, "WEBCAM_ENABLE"))
     }
 
-    
     // Close the popup menu
     disablePopup();
   };

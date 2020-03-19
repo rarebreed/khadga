@@ -81,46 +81,13 @@ class VideoStream extends React.Component<PropsFromRedux> {
     }
 
     if (this.videoRef !== null) {
-      logger.log("Loading video object");
-
-      const constraints: MediaStreamConstraints = {
-        audio: true,
-        video: {
-          width: {ideal: 1280},
-          height: {ideal: 720}
-        }
-      };
-
-      // For local video, this.stream should be null, and we will create the cam ourself
-      // For remote video, the stream will have been created by the WebComm, and sent to the
-      // streamRemote$ stream that the ChatContainer is subscribed to.  It will pick up the
-      // MediaStream and pass it to our constructor
-      if (this.stream === null) {
-        const cam = await navigator.mediaDevices.getUserMedia(constraints);
-        this.stream = cam;
-      }
-
-      if (!this.setupMediaStream(this.stream)) {
-        logger.error("No RTCPeerConnection yet in webcomm.  No tracks added");
-      }
+      logger.log("Loading video object for", this.props.kind);
 
       // Set the video ref to webcomm
       const video = this.videoRef.current;
-      if (this.props.webcomm) {
-        if (this.props.kind === "local") {
-          logger.info("Adding mediastream to streamLocal$");
-          this.props.webcomm.streamLocal$.next(new LocalMediaStream(this.stream));
-        }
-        if (this.props.kind === "remote") {
-          logger.log("Added media stream to remote video");
-        }
-        this.ready = true;
-      } else {
+      if (!this.props.webcomm) {
         alert("Please enable chat before using webcam");
         logger.log("webcomm = ", this.props.webcomm);
-      }
-
-      if (!this.ready) {
         this.disableCam();
         return;
       }
@@ -132,36 +99,13 @@ class VideoStream extends React.Component<PropsFromRedux> {
       if (video !== null) {
         video.srcObject = this.stream;
         video.play();
-        logger.log("Attached video.srcObject to MediaStream");
+        logger.log("Attached video.srcObject to MediaStream for", this.props.target);
       } else {
         alert("Video not available");
       }
     } else {
       alert("Video is not available.");
     }
-  }
-
-  /**
-   * Sets up the MediaStream by adding tracks to the RTCPeerConnection
-   */
-  setupMediaStream = (stream: MediaStream) => {
-    if (!this.props.webcomm) {
-      logger.error("No webcomm yet for setupMediaStream");
-      return false;
-    }
-    const { webcomm } = this.props;
-    stream.getTracks().forEach((track) => {
-      if(!webcomm.peer) {
-        return false;
-      }
-      logger.log(`Adding track to stream`, track);
-      try {
-        webcomm.peer.addTrack(track, stream);
-      } catch (ex) {
-        logger.warn("Didn't add track", ex);
-      }
-    });
-    return true;
   }
 
   /**
