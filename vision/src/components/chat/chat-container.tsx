@@ -6,6 +6,7 @@ import VideoStream from "../webrtc/webcam";
 import {State} from "../../state/store";
 import {logger} from "../../logger";
 import { webcommAction } from "../../state//action-creators";
+import { take, range, zip } from "../../utils/utils";
 
 const mapStateToProps = (state: State) => {
   return {
@@ -71,11 +72,16 @@ class ChatContainer extends React.Component<PropsFromRedux> {
         remoteStreams.push([key, val])
       }
     });
-    logger.log(`There are ${remoteStreams.length} number of remote streams`, remoteStreams);
+    logger.debug(`There are ${remoteStreams.length} number of remote streams`, remoteStreams);
 
+    // This is a hack.  Shouldn't be mutating inside a map
+    let offsetIdx = 1;
+    const offset = (offset: number) => (360 * offset) + 10;
     return remoteStreams.map(([key, val]) => {
+      const pos = { top: `${offset(offsetIdx)}px` };
+      offsetIdx++;
       return (
-        <VideoStream kind="remote" target={ key } stream={ val }></VideoStream>
+        <VideoStream kind="remote" target={ key } stream={ val } pos={ pos }></VideoStream>
       )
     })
   }
@@ -84,7 +90,7 @@ class ChatContainer extends React.Component<PropsFromRedux> {
     const showCam = this.props.webcam.active /* && this.props.connected */;
     if (!this.props.webcomm) {
       if (showCam) {
-        logger.log("Showing local video prompted by user");
+        logger.debug("Showing local video prompted by user");
         return  <VideoStream kind="local" target={ this.props.user } />
       }
       return null;
@@ -93,12 +99,12 @@ class ChatContainer extends React.Component<PropsFromRedux> {
     const { streamLocal$ } = this.props.webcomm;
     if (streamLocal$.value.stream === null) {
       if (showCam) {
-        logger.log(`Showing local video prompted by`, this.props.user);
+        logger.debug(`Showing local video prompted by`, this.props.user);
         return  <VideoStream kind="local" target={ this.props.user } />
       }
       return null;
     } else {
-      logger.log("Showing local video created by offer");
+      logger.debug("Showing local video created by offer");
       const stream = streamLocal$.value.stream;
       return (
         <VideoStream kind="local" target={ this.props.user } stream={ stream }></VideoStream>
@@ -107,8 +113,8 @@ class ChatContainer extends React.Component<PropsFromRedux> {
   }
 
   render() {
-    logger.info(`ChatContainer: webcam.active = ${this.props.webcam.active}`);
-    logger.info(`ChatContainer: connected = ${this.props.connected}`);
+    logger.debug(`ChatContainer: webcam.active = ${this.props.webcam.active}`);
+    logger.debug(`ChatContainer: connected = ${this.props.connected}`);
 
     const cntr = (
       <div className="main-body" style={ {flex: 1} }>

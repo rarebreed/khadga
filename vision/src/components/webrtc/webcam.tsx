@@ -20,7 +20,6 @@ const mapStateToProps = (state: State) => {
   return {
     webcamActive: state.webcam.active,
     webcamId: state.webcam.videoId,
-    webcamTarget: state.webcam.target,
     webcomm: state.webcomm.webcomm
   };
 };
@@ -33,7 +32,8 @@ const mapPropsToDispatch = {
 interface LocalProps {
   kind: "local" | "remote",
   target: string,
-  stream?: MediaStream
+  stream?: MediaStream,
+  pos?: { top: string }
 }
 
 const connector = connect(mapStateToProps, mapPropsToDispatch);
@@ -48,6 +48,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
   videoRef: React.RefObject<HTMLVideoElement>;
   ready: boolean;
   stream: MediaStream | null;
+  dimensions: { width: number, height: number }
 
   constructor(props: PropsFromRedux) {
     super(props);
@@ -56,6 +57,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
     this.videoRef = React.createRef();
     this.ready = false;
     this.stream = props.stream ? props.stream : null;
+    this.dimensions = { width: 640, height: 360 };
   }
 
   /**
@@ -63,8 +65,8 @@ class VideoStream extends React.Component<PropsFromRedux> {
    * element
    */
   async componentDidMount() {
-    const uniqueHeaderId = `localVideoHeader-${this.props.webcamTarget}`;
-    const webcamId = `webcam-${this.props.webcamTarget}`;
+    const uniqueHeaderId = `localVideoHeader-${this.props.target}`;
+    const webcamId = `webcam-${this.props.target}`;
 
     if (this.myRef.current) {
       dragElement(this.myRef.current, uniqueHeaderId);
@@ -130,6 +132,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
       if (video !== null) {
         video.srcObject = this.stream;
         video.play();
+        logger.log("Attached video.srcObject to MediaStream");
       } else {
         alert("Video not available");
       }
@@ -152,7 +155,11 @@ class VideoStream extends React.Component<PropsFromRedux> {
         return false;
       }
       logger.log(`Adding track to stream`, track);
-      webcomm.peer.addTrack(track, stream)
+      try {
+        webcomm.peer.addTrack(track, stream);
+      } catch (ex) {
+        logger.warn("Didn't add track", ex);
+      }
     });
     return true;
   }
@@ -178,14 +185,19 @@ class VideoStream extends React.Component<PropsFromRedux> {
   }
 
   render() {
-    const uniqueLocalVidId = `localVideo-${this.props.webcamTarget}`;
-    const uniqueHeaderId = `localVideoHeader-${this.props.webcamTarget}`;
-    const webcamId = `webcam-${this.props.webcamTarget}`;
+    const uniqueLocalVidId = `localVideo-${this.props.target}`;
+    const uniqueHeaderId = `localVideoHeader-${this.props.target}`;
+    const webcamId = `webcam-${this.props.target}`;
+    const pos = this.props.pos ? this.props.pos : { top: "0px" };
+    const { width, height } = this.dimensions;
 
     return (
       <div>
-        <div ref={ this.myRef } className="localVideo" id={ uniqueLocalVidId }>
-          <video width="800px" height="450px" id={ webcamId } ref={ this.videoRef }>
+        <div ref={ this.myRef } 
+             className="localVideo" 
+             id={ uniqueLocalVidId } 
+             style={ pos }>
+          <video width={`${width}px`} height={`${height}px`} id={ webcamId } ref={ this.videoRef }>
             No video stream available
           </video>
           <div className="localVideoHeader" id={ uniqueHeaderId }>
@@ -193,7 +205,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
               <button className="webcam-button" onClick={ this.disableCam }>
                 Turn Off
               </button>
-              { this.props.webcamTarget } Click here to move
+              { this.props.target } Click here to move
             </div>
 
             <div className="video-header-section webcam-resize justify-right">

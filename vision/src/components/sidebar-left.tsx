@@ -7,7 +7,6 @@ import {loginReducer} from "../state/reducers";
 const logger = console;
 
 const mapPropsToState = (state: State) => {
-  logger.log("in user-list mapPropsToState", state);
   return {
     connectState: state.connectState,
     socket: state.websocket.socket

@@ -12,8 +12,10 @@ const dragElement = (elmnt: HTMLDivElement, id: string) => {
   const helem = document.getElementById(id);
   logger.log("helem is ", helem);
   if (!helem) {
+    logger.log("Setting handler for base element", elmnt);
     elmnt.onmousedown = dragMouseDown;
   } else {
+    logger.log(`Setting handler for ${helem.className}`, helem);
     helem.onmousedown = dragMouseDown;
   }
 
@@ -23,6 +25,7 @@ const dragElement = (elmnt: HTMLDivElement, id: string) => {
     // get the mouse cursor position at startup:
     pos3 = e.clientX;
     pos4 = e.clientY;
+    logger.log("drag mouse event", e);
     document.onmouseup = closeDragElement;
     // call a function whenever the cursor moves:
     document.onmousemove = elementDrag;
@@ -128,6 +131,34 @@ export const take = <T>(gen: Iterable<T>) => (amt: number) => {
 		start++;
 	}
 	return result;
+}
+
+export function zip<T1, T2>(seq1: Iterable<T1>, seq2: Iterable<T2>) {
+  const iterables = [seq1, seq2];
+  const iterators = iterables.map(i => i[Symbol.iterator]());
+  let done = false;
+  return {
+      [Symbol.iterator]() {
+          return this;
+      },
+      next() {
+          if (!done) {
+              const items = iterators.map(i => i.next());
+              done = items.some(item => item.done);
+              if (!done) {
+                  return { value: items.map(i => i.value) };
+              }
+              // Done for the first time: close all iterators
+              for (const iterator of iterators) {
+                  if (typeof iterator.return === 'function') {
+                      iterator.return();
+                  }
+              }
+          }
+          // We are done
+          return { done: true };
+      }
+  }
 }
 
 export class Fn {

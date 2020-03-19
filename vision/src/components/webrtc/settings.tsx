@@ -85,7 +85,6 @@ const webcamSettings = (props: MediaSettingsState) => {
         {
           devices.videoIn.map((dev) => {
             const val = dev.label || dev.deviceId;
-            logger.log("video: ", val);
             return(
               <option value={ val }>
                 { val }
