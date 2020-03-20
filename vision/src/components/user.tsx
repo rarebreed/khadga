@@ -161,7 +161,7 @@ const PopupMenu = (props: PopupProps) => {
     props.disable();
   };
 
-    /**
+  /**
    * Sets up the MediaStream by adding tracks to the RTCPeerConnection
    */
   const setupMediaStream = (stream: MediaStream) => {
@@ -174,7 +174,7 @@ const PopupMenu = (props: PopupProps) => {
       if(!webcomm.peer) {
         return false;
       }
-      logger.log(`Adding track to stream`, track);
+      logger.log(`Adding track to stream for user ${props.name}`, track);
       try {
         webcomm.peer.addTrack(track, stream);
       } catch (ex) {

@@ -29,7 +29,7 @@ const mapPropsToDispatch = {
   setVideo: videoRefAction
 };
 
-interface LocalProps {
+export interface StreamProps {
   kind: "local" | "remote",
   target: string,
   stream?: MediaStream,
@@ -37,7 +37,7 @@ interface LocalProps {
 }
 
 const connector = connect(mapStateToProps, mapPropsToDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector> & LocalProps;
+type PropsFromRedux = ConnectedProps<typeof connector> & StreamProps;
 
 /**
  * This component is for the local and remote webcam streams
@@ -65,6 +65,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
    * element
    */
   async componentDidMount() {
+    logger.info("In componentDidMount for VideoStream")
     const uniqueHeaderId = `localVideoHeader-${this.props.target}`;
     const webcamId = `webcam-${this.props.target}`;
 
@@ -99,7 +100,7 @@ class VideoStream extends React.Component<PropsFromRedux> {
       if (video !== null) {
         video.srcObject = this.stream;
         video.play();
-        logger.log("Attached video.srcObject to MediaStream for", this.props.target);
+        logger.log("Attached video.srcObject to MediaStream for", this.props.target, this.stream);
       } else {
         alert("Video not available");
       }

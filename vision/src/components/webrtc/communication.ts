@@ -137,8 +137,13 @@ export class WebComm {
     this.evtMediaStream$.pipe(
       withLatestFrom(this.targets$)
     ).subscribe({
-      next: ([stream, target]) => {
-        logger.info("Got track event for remote: ", target, stream);
+      next: ([stream, target]) => {  
+        const localStream = this.streamLocal$.value.stream;
+        if (localStream && localStream.id === stream.id) {
+          logger.log("Event was for local stream, returning");
+          return;
+        }
+        logger.info("Got track event for", target, stream);
         let obj: Map<string, MediaStream> = new Map();
         obj.set(target, stream);
         // Send event to dispatch so that the VideoStream component will update
@@ -255,7 +260,7 @@ export class WebComm {
       "stun:stun4.l.google.com:19305",
     ];
 
-    // pick 2 at random
+    // pick 2 at random since you get a warning in the DOM if you use more than 2
     shuffle(urls);
     urls = take(urls)(2)
 
@@ -332,7 +337,6 @@ export class WebComm {
       flatMap(([_, sender]) => {
         logger.log("Creating offer for: ", sender);
         return peer.createOffer().then((offer) => {
-          logger.log("SDPOffer to be sent is", offer);
           return { sender, offer };
         });
       }),
@@ -354,12 +358,12 @@ export class WebComm {
         const { sender } = state;
         // Send the offer to the remote peer.  This will be received by the remote websocket
         logger.log(`---> Sending the offer to the remote peer ${sender}`);
-        logger.log("---> peer.localDescription", peer.localDescription);
+        logger.debug("---> peer.localDescription", peer.localDescription);
         let sdp = new RTCSessionDescription({
           type: "offer",
           sdp: JSON.stringify(peer.localDescription)
         });
-        logger.log("---> sdp is ", sdp);
+        logger.debug("---> sdp is ", sdp);
         const msg = makeWsSDPMessage(this.user, sender, sdp);
         socket.send(JSON.stringify(msg));
         return true;
@@ -462,7 +466,9 @@ export class WebComm {
     // Here, we add the stream to the remote-video html element.  We need to tell the chat container
     // to add the remote-video element and display it and add the stream
     logger.log("Handling track event.  Sending MediaStream to remote", event.type);
-    this.evtMediaStream$.next(event.streams[0]);
+    event.streams.forEach(stream => {
+      this.evtMediaStream$.next(stream);
+    });
   }
 
   /**
@@ -577,7 +583,7 @@ export const makeWsSDPMessage = (
     }),
     time: Date.now()
   };
-  logger.log("Created SDPOffer message", msg);
+  logger.debug("Created SDPOffer message", msg);
   return msg;
 };
 
@@ -661,8 +667,7 @@ class CommandHandler {
         let args = JSON.parse(msg.body.args);
         let sdp = JSON.parse(args.sdp);
     
-        logger.log("Args in message from SDPOffer", args);
-        logger.log("sdp in message from SDPOffer", sdp);
+        logger.debug("Args in message from SDPOffer", args);
         const desc = new RTCSessionDescription(sdp);
     
         if (peer.signalingState !== "stable") {
@@ -701,7 +706,7 @@ class CommandHandler {
           // Add this to our strealLocal so that <VideoStream /> can pick it up
           this.webcomm.streamLocal$.next(new LocalMediaStream(res.stream));
           this.webcomm.webcamDispatch({ active: true }, "WEBCAM_ENABLE");
-          logger.log("Resetting media stream");
+          logger.debug("Resetting media stream");
         }
         return res
       }),
@@ -754,7 +759,7 @@ class CommandHandler {
           logger.error("RTCPeerConnection does not have a local description yet");
           return;
         }
-        logger.log("Sending SDPAnswer with peer description: ", finalPeer.localDescription)
+        logger.debug("Sending SDPAnswer with peer description: ", finalPeer.localDescription)
         // Create the SDPMessage with the SDPAnswer
         const mesg = makeWsSDPMessage(
           this.webcomm.user,
@@ -785,7 +790,7 @@ class CommandHandler {
       peer = this.webcomm.createPeerConnection();
     }
     if (!this.streamLocalConfigured) {
-      logger.log("Calling streamLocalConfig()");
+      logger.debug("Calling streamLocalConfig()");
       this.streamLocalConfig(peer)
     }
 
@@ -814,7 +819,7 @@ class CommandHandler {
   
     // Configure the remote description, which is the SDP payload in our "video-answer" message.
     const sdp: RTCSessionDescription = JSON.parse(msg.body.args) as RTCSessionDescription;
-    logger.log("SDP Answer is: ", sdp);
+    logger.debug("SDP Answer is: ", sdp);
   
     var desc = new RTCSessionDescription(sdp);
     await this.webcomm.peer.setRemoteDescription(desc).catch(logger.error);
@@ -829,9 +834,8 @@ class CommandHandler {
     let candidate = JSON.parse(msg.body.args);
     candidate = JSON.parse(candidate.candidate);
     candidate = new RTCIceCandidate(candidate);
-    logger.log("type of candidate", typeof candidate);
   
-    logger.log("*** Adding received ICE candidate: ", candidate);
+    logger.debug("*** Adding received ICE candidate: ", candidate);
     try {
       await this.webcomm.peer.addIceCandidate(candidate)
     } catch(err) {
@@ -839,3 +843,46 @@ class CommandHandler {
     }
   }
 }
+
+/**
+ this.evtTrack$.pipe(
+      withLatestFrom(this.targets$)
+    ).subscribe({
+      next: ([event, target]) => {
+        const { track } = event;
+
+        const fn = (s: MediaStream, kind: string) => {
+          logger.log(`Got track event for ${kind} MediaStream`, s.id);
+            log("Checking stream", s.id);
+            if(s.getTracks().filter(t => t.id === track.id).length) {
+              logger.log("Track already exists on ", s.id);
+              return false;
+            }
+            if (this.peer) {
+              logger.log("Adding track to peer", track);
+              this.peer.addTrack(track);
+              return true
+            } else {
+              logger.error("No RTCPeerConnection to add Track to");
+              return false
+            }
+        }
+
+        event.streams.forEach(stream => {
+          const localStream = this.streamLocal$.value.stream;
+          if (localStream && localStream.id === stream.id) {
+            // FIXME: Do we need to update the VideoStream component if fn returns true?
+            fn(stream, "local");
+          } else {
+            // Check the new track, and if we added it, send a new REMOTE_EVENT to update component
+            if (fn(stream, "remote")) {
+              let obj: Map<string, MediaStream> = new Map();
+              obj.set(target, stream);
+              // Send event to dispatch so that the VideoStream component will update
+              this.remoteVideoDispatch(obj, "REMOTE_EVENT");
+            }
+          }
+        })
+      }
+    });
+ */

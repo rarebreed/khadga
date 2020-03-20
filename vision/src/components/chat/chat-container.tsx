@@ -2,11 +2,10 @@ import React from "react";
 import {connect, ConnectedProps} from "react-redux";
 
 import {ChatMessage} from "./message";
-import VideoStream from "../webrtc/webcam";
+import VideoStream, { StreamProps } from "../webrtc/webcam";
 import {State} from "../../state/store";
 import {logger} from "../../logger";
 import { webcommAction } from "../../state//action-creators";
-import { take, range, zip } from "../../utils/utils";
 
 const mapStateToProps = (state: State) => {
   return {
@@ -57,7 +56,7 @@ class ChatContainer extends React.Component<PropsFromRedux> {
   }
 
   addRemoteVideo = () => {
-    logger.log("Checking for remote video");
+    logger.debug("Checking for remote video");
     // This should never happen.  The webcomm is added when user selects "Chat".  We can't get a
     // video call offer unless we've logged into chat.  But this makes the compiler happy
     if (!this.props.webcomm) {
@@ -72,16 +71,17 @@ class ChatContainer extends React.Component<PropsFromRedux> {
         remoteStreams.push([key, val])
       }
     });
-    logger.debug(`There are ${remoteStreams.length} number of remote streams`, remoteStreams);
+    logger.info(`There are ${remoteStreams.length} number of remote streams`, remoteStreams);
 
     // This is a hack.  Shouldn't be mutating inside a map
     let offsetIdx = 1;
     const offset = (offset: number) => (360 * offset) + 10;
     return remoteStreams.map(([key, val]) => {
       const pos = { top: `${offset(offsetIdx)}px` };
+      const vidprops: StreamProps = { kind: "remote", target: key, stream: val, pos };
       offsetIdx++;
       return (
-        <VideoStream kind="remote" target={ key } stream={ val } pos={ pos }></VideoStream>
+        <VideoStream { ...vidprops }></VideoStream>
       )
     })
   }
