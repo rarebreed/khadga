@@ -1,7 +1,8 @@
 /**
  * Reducers for our UI and models
  */
-import {ModalState
+import {
+  ModalState
   , ModalAction
   , SignUp
   , UserLogin
@@ -203,8 +204,10 @@ const latestName = (conn: string[], user: string) => {
  * @param previous
  * @param action
  */
-export const loginReducer = ( previous: LoginReducerState = defaultLoginState
-  , action: LoginAction) => {
+export const loginReducer = (
+  previous: LoginReducerState = defaultLoginState,
+  action: LoginAction
+) => {
   const newstate = Object.assign({}, previous);
 
   switch (action.type) {
@@ -259,8 +262,10 @@ export const loginReducer = ( previous: LoginReducerState = defaultLoginState
 /**
  * Sets new Message components in the chat container (the middle part)
  */
-export const messageReducer = ( previous: ChatMessage[] = []
-  , action: MessageAction) => {
+export const messageReducer = ( 
+  previous: ChatMessage[] = [],
+  action: MessageAction
+) => {
   let newstate = Array.from(previous);
 
   switch (action.type) {
@@ -311,9 +316,10 @@ export const webcamReducer = (
   return newstate;
 };
 
-export const websocketReducer = ( previous: WebSocketState = {socket: null}
-  , action: WebSocketAction)
-                                : WebSocketState => {
+export const websocketReducer = ( 
+  previous: WebSocketState = {socket: null},
+  action: WebSocketAction
+): WebSocketState => {
   const sockState: WebSocketState = {
     socket: null
   };
@@ -332,8 +338,10 @@ export const websocketReducer = ( previous: WebSocketState = {socket: null}
   }
 };
 
-export const chatMessageReducer = ( previous: ChatMessageState[] = []
-  , action: ChatMessageAction) => {
+export const chatMessageReducer = ( 
+  previous: ChatMessageState[] = [],
+  action: ChatMessageAction
+) => {
   switch(action.type) {
   case CHAT_MESSAGE_ADD:
     const newstate = Object.assign([], previous);
@@ -353,8 +361,10 @@ export const chatMessageReducer = ( previous: ChatMessageState[] = []
   }
 };
 
-export const selectedUsersReducer = ( previous: string[] = []
-  , action: SelectUsersAction) => {
+export const selectedUsersReducer = ( 
+  previous: string[] = [],
+  action: SelectUsersAction
+) => {
   switch(action.type) {
   case "ADD_USER":
     const newState = Array.from(previous);

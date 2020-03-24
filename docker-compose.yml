@@ -1,7 +1,25 @@
+# This compose file is for testing purposes only.
 version: "3.7"
 services:
   postgres:
     image: postgres:latest
+    environment: 
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-secret
+    secrets:
+      - postgres-secret
+    #volumes:
+    #  - db_data:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
+    #volumes:
+    #  - pga4volume:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: placeoftheway@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: pgadmin-secret
+    secrets:
+      - pgadmin-secret
+    links:
+      - postgres
   khadga:
     build:
       context: .
@@ -10,5 +28,18 @@ services:
       - 7001:7001
     links:
       - postgres
+      - mimir
     volumes:
       - ./vision/dist:/apps/vision/dist
+  mimir:
+    build:
+      context: .
+      dockerfile: ./docker/mimir/Dockerfile
+    links:
+      - khadga
+
+secrets:
+  postgres-secret:
+    external: true
+  pgadmin-secret:
+    external: true

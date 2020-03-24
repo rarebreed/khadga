@@ -132,11 +132,18 @@ pub async fn make_verify_request(
     let (params, user) = args;
 
     // Get the mimir host and port from the kube env vars
-    let mimir_host = std::env::var("MIMIR_NODE_IP_SERVICE_SERVICE_HOST")
-        .expect("Please startup mimir-node-ip-service");
-    let mimir_port = std::env::var("MIMIR_NODE_IP_SERVICE_SERVICE_PORT")
-        .expect("Please startup mimir-node-ip-service");
+    let mimir_host = match std::env::var("MIMIR_NODE_IP_SERVICE_SERVICE_HOST") {
+        Ok(val) => val,                  // If it exists, we're running under kubernetes
+        Err(_) => String::from("mimir")  // assume we're running from docker stack
+    };
+        
+    let mimir_port = match std::env::var("MIMIR_NODE_IP_SERVICE_SERVICE_PORT") {
+        Ok(val) => val,
+        Err(_) => "80".into()
+    };
+    
     let mimir = format!("http://{}:{}/auth", mimir_host, mimir_port);
+    info!("Making request to {}", mimir);
 
     let builder = Response::builder();
     let post_data = AuthPost { token: params.token };
