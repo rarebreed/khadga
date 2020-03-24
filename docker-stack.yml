@@ -1,0 +1,57 @@
+# This compose file is for testing purposes only.
+version: "3.7"
+services:
+  postgres:
+    image: postgres:latest
+    environment: 
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-secret
+    secrets:
+      - postgres-secret
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  pgadmin:
+    image: dpage/pgadmin4
+    volumes:
+      - pga4volume:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: placeoftheway@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: pgadmin-secret
+    secrets:
+      - pgadmin-secret
+    links:
+      - postgres
+    ports:
+      - "8001:80"
+  khadga:
+    image: rarebreed/khadga:latest
+    build:
+      context: .
+      dockerfile: ./docker/builder/Dockerfile
+    ports:
+      - "7001:7001"
+    links:
+      - postgres
+      - mimir
+    volumes:
+      - ./vision/dist:/apps/vision/dist
+    environment:
+      KHADGA_DEV: "true"
+  mimir:
+    image: rarebreed/mimir:latest
+    build:
+      context: .
+      dockerfile: ./docker/mimir/Dockerfile
+
+secrets:
+  postgres-secret:
+    external: true
+  pgadmin-secret:
+    external: true
+
+volumes:
+  db_data:
+    driver: local
+  pga4volume:
+    driver: local

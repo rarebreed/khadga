@@ -1,0 +1,14 @@
+{
+  "sqltools.connections": [
+    {
+      "connectionTimeout": 30,
+      "database": "diesel_demo",
+      "dialect": "PostgreSQL",
+      "name": "postgres",
+      "password": "dM9exh4NtbokhghQ",
+      "port": 5432,
+      "server": "localhost",
+      "username": "postgres"
+    }
+  ]
+}
