@@ -1,6 +1,8 @@
 use serde::{Deserialize,
             Serialize};
 use chrono::{Utc};
+use std::{fmt::{self, Display, Formatter},
+          convert::{From}};
 
 /// Message that is sent to/from websocket
 ///
@@ -23,7 +25,7 @@ use chrono::{Utc};
 ///   },
 ///   event_type: MessageEvent::Data
 /// }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Message<T> {
     pub sender: String,
     pub recipients: Vec<String>,
@@ -53,7 +55,7 @@ impl<T> Message<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum MessageEvent {
     Connect,
     Disconnect,
@@ -62,6 +64,60 @@ pub enum MessageEvent {
     Message,
     Data,
 }
+
+impl Display for MessageEvent {
+    fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        match self {
+            MessageEvent::Connect => write!(fmt, "{}", "Connect"),
+            MessageEvent::Disconnect => write!(fmt, "{}", "Disconnect"),
+            MessageEvent::CommandRequest => write!(fmt, "{}", "CommandRequest"),
+            MessageEvent::CommandReply => write!(fmt, "{}", "CommandReply"),
+            MessageEvent::Message => write!(fmt, "{}", "Message"),
+            MessageEvent::Data => write!(fmt, "{}", "Data")
+        }
+    }
+}
+
+impl From<MessageEvent> for String {
+    fn from(name: MessageEvent) -> String {
+        match name {
+            MessageEvent::Connect => "Connect".into(),
+            MessageEvent::Disconnect => "Disconnect".into(),
+            MessageEvent::CommandRequest => "CommandRequest".into(),
+            MessageEvent::CommandReply => "CommandReply".into(),
+            MessageEvent::Message => "Message".into(),
+            MessageEvent::Data => "Data".into()
+        }
+    }
+}
+
+impl From<&str> for MessageEvent {
+    fn from(name: &str) -> MessageEvent {
+        match name {
+            "Connect" => MessageEvent::Connect,
+            "Disconnect" => MessageEvent::Disconnect,
+            "CommandRequest" => MessageEvent::CommandRequest,
+            "CommandReply" => MessageEvent::CommandReply,
+            "Message" => MessageEvent::Message,
+            "Data" => MessageEvent::Data,
+            _ => panic!("")
+        }
+    }
+}
+
+impl From<String> for MessageEvent {
+    fn from(name: String) -> MessageEvent {
+        match name.as_str() {
+            "Connect" => MessageEvent::Connect,
+            "Disconnect" => MessageEvent::Disconnect,
+            "CommandRequest" => MessageEvent::CommandRequest,
+            "CommandReply" => MessageEvent::CommandReply,
+            "Message" => MessageEvent::Message,
+            "Data" => MessageEvent::Data,
+            _ => panic!("")
+        }
+    }
+} 
 
 #[derive(Serialize, Deserialize)]
 pub struct ConnectionMsg {
@@ -76,13 +132,16 @@ impl ConnectionMsg {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum CommandTypes {
     Ping,
     Pong,
+    SDPOffer,
+    SDPAnswer,
+    IceCandidate,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Command {
     pub op: CommandTypes,
     pub ack: bool,
@@ -105,7 +164,7 @@ impl Default for Command {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CommandRequestMsg<T> {
     pub cmd: Command,
     pub args: T,
@@ -141,5 +200,63 @@ impl<T> CommandReplyMsg<T> {
             cmd: Command::new(op, ack, id),
             response,
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sdp_message() {
+        let msg: Message<String> = Message::new(
+            "placeoftheway".into(),
+            vec!["manjusri".into()],
+            MessageEvent::CommandRequest,
+            r#"{ 
+                "sender": "placeoftheway",
+                "recipients": ["manjusri"],
+                "event_type: "CommandRequest",
+                "time": 150000000,
+                "body": {
+                    "cmd": {
+                        "op": "offer",
+                        "ack": false,
+                        "id": "noone"
+                    }
+                },
+                args: ["something"]
+            }"#.into()
+        );
+        
+        let from_str_msg: String = serde_json::to_string(&msg).expect("Could not deserilaize");
+        println!("CommandRequest Message as str: {}", from_str_msg);
+
+        let strmsg = r#"{ 
+            "sender": "placeoftheway",
+            "time": 150000000,
+            "event_type": "CommandRequest",
+            "body": {
+                "cmd": {
+                    "op": "SDPOffer",
+                    "ack": false,
+                    "id": "noone"
+                },
+                "args": "Seomthing"
+            },
+            "recipients": ["manjusri"]
+        }"#;
+
+        let msg: Message<CommandRequestMsg<String>> = serde_json::from_str(strmsg).expect("Could not parse");
+        println!("CommandRequest Message: {:#?}", msg);
+
+        let cmsg: Message<String> = serde_json::from_str(&from_str_msg).expect("Failed to parse");
+        println!("Back from conversion: {:#?}", cmsg);
+        
+        let ping_msg = r#"{"sender":"khadga","recipients":[],"event_type":"CommandReply","time":1584316937601,"body":"{\"cmd\":{\"op\":\"pong\",\"ack\":false,\"id\":\"placeoftheway\"},\"args\":[]}"}"#;
+        
+        let msg: Message<String> = serde_json::from_str(ping_msg).expect("Could not serialize");
+        println!("Ping Message: {:#?}", msg);
     }
 }

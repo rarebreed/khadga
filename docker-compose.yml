@@ -1,9 +1,7 @@
 version: "3.7"
 services:
-  mongodb:
-    image: "mongo:4.2-bionic"
-    ports:
-      - 27017:27017
+  postgres:
+    image: postgres:latest
   khadga:
     build:
       context: .
@@ -11,6 +9,6 @@ services:
     ports:
       - 7001:7001
     links:
-      - mongodb
+      - postgres
     volumes:
       - ./vision/dist:/apps/vision/dist

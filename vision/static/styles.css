@@ -185,6 +185,7 @@ head {
   grid-column: 2 / 3;
   grid-row: 2 / 3;
   overflow-anchor: none;
+  align-self: end;
 }
 
 /* End grid layouyt
@@ -284,7 +285,7 @@ html, body {
   align-items: stretch;
 }
 
-#localVideo {
+.localVideo {
   position: absolute;
   z-index: 9;
   background-color: #f1f1f1;
@@ -292,7 +293,7 @@ html, body {
   text-align: center;
 }
 
-#localVideoHeader {
+.localVideoHeader {
   display: flex;   /* Span the contents across the header horizontally */
   flex-grow: 1;    /* Make sure we fill up available space */
   padding: 10px;
@@ -312,7 +313,7 @@ html, body {
   padding: 0 8px;
 }
 
-#webcam-resize {
+.webcam-resize {
   cursor: nwse-resize;
 }
 

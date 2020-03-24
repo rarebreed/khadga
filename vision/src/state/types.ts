@@ -1,7 +1,8 @@
 /**
  * This module will store the various Actions and data types used in the Action
  */
-import { MessageEvent } from "./message-types";
+
+import {WebComm} from "../components/webrtc/communication";
 
 export const SET_SIGNUP_ACTIVE = "SET_SIGNUP_ACTIVE";
 export const SET_LOGIN_ACTIVE = "SET_LOGIN_ACTIVE";
@@ -12,9 +13,9 @@ export const SET_SIGNUP_EMAIL = "SET_SIGNUP_EMAIL";
 export const SET_SIGNUP_PASSWORD = "SET_SIGNUP_PASSWORD";
 export const SET_SIGNUP_CLEAR = "SET_SIGNUP_CLEAR";
 export type SET_SIGNUP = "SET_SIGNUP_USERNAME"
-											 | "SET_SIGNUP_PASSWORD"
-											 | "SET_SIGNUP_EMAIL"
-											 | "SET_SIGNUP_CLEAR";
+	| "SET_SIGNUP_PASSWORD"
+	| "SET_SIGNUP_EMAIL"
+	| "SET_SIGNUP_CLEAR";
 
 export const SET_LOGIN_USERNAME = "SET_LOGIN_USERNAME";
 export const SET_LOGIN_PASSWORD = "SET_LOGIN_PASSWORD";
@@ -42,12 +43,15 @@ export const USER_CONNECTION_EVT = "USER_CONNECTION_EVT";
 export const AUTH_CREATED = "AUTH_CREATED";
 export const AUTH_EXPIRED = "AUTH_EXPIRED";
 export type LOGIN_ACTIONS = "USER_LOGIN"
-													| "USER_LOGOUT"
-													| "USER_TEST"
-													| "USER_CONNECTION_EVT"
-													| "AUTH_CREATED"
-													| "AUTH_EXPIRED";
+	| "USER_LOGOUT"
+	| "USER_TEST"
+	| "USER_CONNECTION_EVT"
+	| "AUTH_CREATED"
+	| "AUTH_EXPIRED";
 export type SELECT_USERS_ACTION = "ADD_USER" | "REMOVE_USER" | "CLEAR_ALL";
+export const SET_PEER_CONNECTION = "SET_PEER_CONNECTION";
+export const REMOVE_PEER_CONNECTION = "REMOVE_PEER_CONNECTION";
+export type PEER_CONNECTION_ACTIONS = "SET_PEER_CONNECTION" | "REMOVE_PEER_CONNECTION";
 
 export interface ActiveState {
 	isActive: boolean
@@ -116,10 +120,9 @@ export interface LoginReducerState {
 	auth2: any | null
 }
 
-export const makeLoginArgs = ( props: LoginReducerState)
-														 : [string[], string, any] => {
-	const { connected, username, auth2 } = props;
-	return [connected, username, auth2];
+export const makeLoginArgs = (props: LoginReducerState): [string[], string, any] => {
+  const {connected, username, auth2} = props;
+  return [ connected, username, auth2 ];
 };
 
 export interface ChatMessage {
@@ -137,6 +140,7 @@ export interface MessageAction {
 
 export interface WebcamState {
 	active: boolean,
+	target?: string,
 	size?: {
 		height: number,
 		width: number
@@ -195,3 +199,39 @@ export interface SelectUsersAction {
 export type ClickEvent<T extends HTMLElement> = React.MouseEvent<T, MouseEvent>;
 export type AnchorEvent = ClickEvent<HTMLAnchorElement>;
 export type InputEvent = ClickEvent<HTMLInputElement>;
+
+export interface PeerConnState {
+	peer: RTCPeerConnection | null
+}
+
+export interface PeerConnAction {
+	type: PEER_CONNECTION_ACTIONS,
+	peer: RTCPeerConnection | null
+}
+
+export interface VideoRefReducerState {
+	videoRefId: React.RefObject<HTMLVideoElement> | null;
+}
+
+export type VIDEO_REF_ACTION = "SET_VIDEO_REF" | "REMOVE_VIDEO_REF";
+export interface VideoRefAction {
+	type: VIDEO_REF_ACTION
+	ref: VideoRefReducerState
+}
+
+export interface WebCommReducerState {
+	webcomm: WebComm | null
+}
+
+export type WebCommActions = "CREATE_WEBCOMM" | "DELETE_WEBCOMM";
+export interface WebCommAction {
+	type: WebCommActions,
+	data?: WebComm
+}
+
+export type VideoReducerActions = "REMOTE_EVENT";
+
+export interface VideoReducerAction {
+  type: VideoReducerActions,
+  data: Map<string, MediaStream>
+}

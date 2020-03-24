@@ -1,5 +1,5 @@
 import React from "react";
-import { connect, ConnectedProps } from "react-redux";
+import {connect, ConnectedProps} from "react-redux";
 
 export interface MessageBody {
 	body: string;
@@ -13,17 +13,17 @@ type MediaProps = MessageBody & {
 };
 
 export class ChatMessage extends React.Component<MediaProps> {
-	render() {
-		const style = this.props.highlight ? "message" + this.props.highlight : "message";
+  render() {
+    const style = this.props.highlight ? "message" + this.props.highlight : "message";
 
-		return (
-			<div className={ style }>
-				<strong>{ this.props.sender }</strong> <small>{ this.props.time }</small>
-				<br />
+    return (
+      <div className={ style }>
+        <strong>{ this.props.sender }</strong> <small>{ this.props.time }</small>
+        <br />
         <p>
-					{ this.props.body }
-				</p>
-			</div>
-		);
-	}
+          { this.props.body }
+        </p>
+      </div>
+    );
+  }
 }
