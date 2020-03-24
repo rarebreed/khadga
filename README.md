@@ -39,12 +39,12 @@ another mqtt client that IoT devices can send data to.
 The front is a react + typescript based project that will act as the primary means for a human agent
 to interact with.
 
-### Firestore
+### Database
 
-Firestore will be used to store data for scenarios where we need to persist data as not all data might
+Postgresql will be used to store data for scenarios where we need to persist data as not all data might
 be consumed and used in real time.
 
-It will also be used for things like user accounts and logins.
+It will also be used for things like user blogs, accounts and logins.
 
 ### Webassembly library: noesis
 
@@ -108,18 +108,22 @@ There is a build.sh script will set everything up, including building the noesis
 library, and the vision front end.  There are 2 ways to use the script:
 
 ```bash
-./build.sh  # Will build all sub projects, and then do a docker build
+cd /path/to/khadga
+docker build -f ./docker/khadga/Dockerfile -t rarebreed/khadga:<tag>   # Will build khadga and vision
+docker build -f ./docker/mimir/Dockerfile -t rarebreed/mimir:<tag>  # Will build mimir auth service
 ./build.sh <CLUSTER_NAME> <ZONE> <PROJECT> <TAG>  # Will do above + auth docker with gcloud and push image to GCR
 ```
 
-### Using docker-compose for testing
+### Using docker stack for testing
 
-I find docker-compose easier for testing than using minikube.
+I find docker stack easier for testing than using minikube.
 
 After running the build.sh script, you can bring up the app by running:
 
 ```bash
-sudo docker-compose up
+# If you haven't built in awhile
+# docker-compose -f docker-stack.yml build
+docker stack deploy -c docker-stack.yml khadga
 ```
 
 Then in your browser, you can go to http://localhost:7001
