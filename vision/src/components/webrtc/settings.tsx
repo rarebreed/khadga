@@ -54,26 +54,31 @@ const webcamSettings = (props: MediaSettingsState) => {
 
   /**
    * Handles what happens when the user selects a choice
+   * 
+   * This is a higher order function (HOF) that takes some arguments that will be closed over in the
+   * returned function.  We use the returned function as handlers for various events.
    */
-  const selected = ( opt: string
-    , devs: MediaDeviceInfo[]
-    , subj: Subject<MediaDeviceInfo>) =>
-    (evt: React.SyntheticEvent<HTMLSelectElement, Event>) => {
-      logger.log(`For ${opt} you selected: `, evt.currentTarget.value);
-      let dev = devs.filter(d => d.label === evt.currentTarget.value);
-      if (dev.length !== 1) {
-        logger.error("More than one device found with same label,");
-      }
-      if (dev.length === 0) {
-        logger.warn("No device with label.  Trying deviceId");
-        dev = devs.filter(d => d.deviceId === evt.currentTarget.value);
-      }
-      if (dev.length !== 1) {
-        logger.error("Incorrect number of devices: ", dev);
-        return;
-      }
-      subj.next(dev[0]);
-    };
+  const selected = ( 
+    opt: string,
+    devs: MediaDeviceInfo[],
+    subj: Subject<MediaDeviceInfo>
+  ) => (evt: React.SyntheticEvent<HTMLSelectElement, Event>) => {
+    logger.log(`For ${opt} you selected: `, evt.currentTarget.value);
+    let dev = devs.filter(d => d.label === evt.currentTarget.value);
+    if (dev.length !== 1) {
+      logger.error("More than one device found with same label,");
+    }
+    if (dev.length === 0) {
+      logger.warn("No device with label.  Trying deviceId");
+      dev = devs.filter(d => d.deviceId === evt.currentTarget.value);
+    }
+    if (dev.length !== 1) {
+      logger.error("Incorrect number of devices: ", dev);
+      return;
+    }
+    subj.next(dev[0]);
+  };
+
   const selectedVideo = selected("video", kinds.videoIn, props.videoSubj);
   const selectedAudioOut = selected("speakers", kinds.audioOut, props.speakerSubj);
   const selectedAudioIn = selected("microphone", kinds.audioIn, props.microphoneSubj);

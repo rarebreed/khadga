@@ -2,7 +2,7 @@ FROM fedora:31 as builder
 
 RUN dnf update -y \
     && dnf upgrade -y \
-    && dnf install -y curl openssl-devel  libpq-devel \
+    && dnf install -y curl openssl-devel libpq-devel libpq \
     && dnf groupinstall -y "Development Tools" \
     && dnf groupinstall -y "C Development Tools and Libraries" \
     && dnf clean all -y \
@@ -43,6 +43,10 @@ RUN source ~/.bashrc \
 RUN rm -rf /src
 
 FROM fedora:31
+
+RUN dnf update -y \
+    && dnf upgrade -y \
+    && dnf install -y libpq
 
 RUN mkdir -p /apps/vision
 

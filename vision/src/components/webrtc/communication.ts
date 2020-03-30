@@ -9,7 +9,6 @@ import {
   flatMap,
   catchError,
   withLatestFrom,
-  retry,
   tap
 } from "rxjs/operators";
 
@@ -45,9 +44,7 @@ export interface ConnectionEvent {
 /** Type alias for a function that handles incoming WsMessages */
 type Hdlr = (msg: WsMessage<any>) => void;
 
-/**
- * Type alias for the remote media streams
- */
+/** Type alias for the remote media streams */
 type RemoteMediaStreams = Map<string, MediaStream | null>
 
 export class LocalMediaStream {
@@ -190,20 +187,19 @@ export class WebComm {
       const msg: WsMessage<any> = JSON.parse(evt.data);
       const auth = props.auth;
   
-      logger.debug("Got message: ", msg);
-  
+      // Log the events separately, so we dont get a flood of messages from Ping/Pong events
       switch (msg.event_type) {
       case "Disconnect":
       case "Connect":
-        logger.log("Got websocket event", msg);
+        logger.log(`Got ${msg.event_type} websocket event`, msg);
         const {connected_users} = msg.body as ConnectionEvent;
         props.loginAction(connected_users, "", auth, USER_CONNECTION_EVT);
         break;
       case "Data":
-        logger.log("Got websocket event", msg);
+        logger.log(`Got ${msg.event_type} websocket event`, msg);
         break;
       case "Message":
-        logger.log("Got websocket event", msg);
+        logger.log(`Got ${msg.event_type} websocket event`, msg);
         props.chatAction(makeChatMessage(msg), CHAT_MESSAGE_ADD);
         break;
       case "CommandRequest":
@@ -238,7 +234,8 @@ export class WebComm {
   /**
    * Sets up our initial commandHandlers
    * 
-   * Later, we can dynamically add handlers
+   * Later, we can dynamically add handlers.  This is why we do it this way instead of as a switch
+   * statement.
    */
   setupCmdHandlers = () => {
     this.addCmdHdlr("Ping", this.cmdHandler.initPingRequestHandler);
@@ -760,6 +757,7 @@ class CommandHandler {
           return;
         }
         logger.debug("Sending SDPAnswer with peer description: ", finalPeer.localDescription)
+        
         // Create the SDPMessage with the SDPAnswer
         const mesg = makeWsSDPMessage(
           this.webcomm.user,

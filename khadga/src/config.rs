@@ -138,18 +138,32 @@ impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
         let mut config = Config::default();
 
+        let assign = |hostname: &str| {
+            std::env::set_var("MIMIR_NODE_IP_SERVICE_SERVICE_HOST", hostname);
+            std::env::set_var("MIMIR_NODE_IP_SERVICE_SERVICE_PORT", "3000");
+            
+            for (k, v) in std::env::vars().filter(|(key, _)| {
+                return key.starts_with("MIMIR_NODE_IP_SERVICE_SERVICE")
+            }) {
+                println!("{} = {}", k, v);
+            }
+        };
+
         match std::env::var("KHADGA_DEV") {
             Ok(val) if val.to_lowercase() == "true" => {
                 config.merge(File::with_name("config/khadga-dev.yml"))?;
-                std::env::set_var("MIMIR_NODE_IP_SERVICE_SERVICE_HOST", "localhost");
-                std::env::set_var("MIMIR_NODE_IP_SERVICE_SERVICE_PORT", "3000");
-                
-                for (k, v) in std::env::vars().filter(|(key, _)| {
-                    return key.starts_with("MIMIR_NODE_IP_SERVICE_SERVICE")
-                }) {
-                    println!("{} = {}", k, v);
-                }
+                assign("localhost");
+                config.merge(config::Environment::with_prefix("MIMIR_NODE_IP_SERVICE_SERVICE"))?;
+            }
+            _ => {
+                config.merge(File::with_name("config/dev.yml"))?;
+            }
+        }
 
+        match std::env::var("KHADGA_STACK") {
+            Ok(val) if val.to_lowercase() == "true" => {
+                config.merge(File::with_name("config/khadga-stack.yml"))?;
+                assign("mimir");
                 config.merge(config::Environment::with_prefix("MIMIR_NODE_IP_SERVICE_SERVICE"))?;
             }
             _ => {
@@ -190,7 +204,7 @@ mod tests {
         assert_eq!(true, settings.tls.set);
 
         std::env::remove_var("KHADGA_DEV");
-        let settings = Settings::new()?;
+        let _settings = Settings::new()?;
         //assert_eq!(false, settings.tls.set);
 
         Ok(())
