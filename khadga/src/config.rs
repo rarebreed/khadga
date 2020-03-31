@@ -148,26 +148,21 @@ impl Settings {
                 println!("{} = {}", k, v);
             }
         };
+        config.merge(File::with_name("config/dev.yml"))?;
 
-        match std::env::var("KHADGA_DEV") {
-            Ok(val) if val.to_lowercase() == "true" => {
+        if let Ok(val) = std::env::var("KHADGA_DEV") {
+            if val.to_lowercase() == "true" {
                 config.merge(File::with_name("config/khadga-dev.yml"))?;
                 assign("localhost");
                 config.merge(config::Environment::with_prefix("MIMIR_NODE_IP_SERVICE_SERVICE"))?;
             }
-            _ => {
-                config.merge(File::with_name("config/dev.yml"))?;
-            }
         }
 
-        match std::env::var("KHADGA_STACK") {
-            Ok(val) if val.to_lowercase() == "true" => {
+        if let Ok(val) = std::env::var("KHADGA_STACK") {
+            if val.to_lowercase() == "true" {
                 config.merge(File::with_name("config/khadga-stack.yml"))?;
                 assign("mimir");
                 config.merge(config::Environment::with_prefix("MIMIR_NODE_IP_SERVICE_SERVICE"))?;
-            }
-            _ => {
-                config.merge(File::with_name("config/dev.yml"))?;
             }
         }
 
