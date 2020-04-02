@@ -1,4 +1,5 @@
 use tokio_postgres;
+use tokio::process::{Command};
 
 use khadga::pgdb;
 
@@ -20,6 +21,12 @@ pub async fn establish_connection_test() -> Result<ConnectReturn, Error> {
   Ok((client, connection))
 }
 
+/// Starts up docker swarm for testing
+/// 
+/// TODO: We need to make commander crate use async
+pub fn startup_docker_swarm() {
+  let cmd = Command::new();
+}
 
 pub async fn fixtures() -> Result<ConnectReturn, Error> {
   let (client, conn) = establish_connection_test().await?;

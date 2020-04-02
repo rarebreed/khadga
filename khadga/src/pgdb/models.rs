@@ -7,12 +7,6 @@ pub struct User {
     pub email: String,
 }
 
-pub struct NewUser<'a> {
-    pub first_name: &'a str,
-    pub last_name: &'a str,
-    pub email: &'a str
-}
-
 pub struct Post {
     pub post_id: i32,
     pub author_id: i32,
