@@ -80,9 +80,6 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.audioOutSubj = new Subject();
     this.audioInSubj =  new Subject();
 
-    // make sure the videoRef is available if user clicks Webcam
-    // this.props.video(this.videoRef, "SET_VIDEO_REF");
-
     // Rx-ify our state.  When webcam settings changes, it will call next(), so we subscribe here
     this.videoSubj.subscribe({
       next: (val) => {
@@ -101,11 +98,9 @@ class NavBar extends React.Component<PropsFromRedux> {
   /**
    * Sets up webcam
    *
-   * Currently, this is not hooked up to the Signaling service at all.  This will only get the local
-   * webcam video stream, not another user's webcam stream.  This sets off a chain of events that
-   * will launch the webcam.  By calling this.props.webcam, it sets the state of the webcam.active
-   * to true.  That in turn causes the ChatContainer component to react to the new state, and create
-   * the VideoCam component.
+   * This sets off a chain of events that will launch the webcam.  By calling this.props.webcam, it
+   * sets the state of the webcam.active to true.  That in turn causes the ChatContainer component 
+   * to react to the new state, and create the VideoCam component.
    */
   launchWebCam = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     if (!this.props.loggedIn) {
@@ -122,7 +117,13 @@ class NavBar extends React.Component<PropsFromRedux> {
   }
 
   /**
+   * Creates the WebComm object that handles the state for the websocket and MediaStreams
    * 
+   * FIXME: Probably not the best place to put the WebComm object in the redux store.  Ideally this
+   * should be a top-level variable in <App> and then use React Context to "share" it.  The only
+   * problem with this is that we need to know the username to fully instantiate it.  This could be
+   * solved with rxjs and making it a Subject, but that will add a ton of complexity for something
+   * that should only happen when the user logs out and back in as a different.
    */
   createWebComm = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     if (!this.props.loggedIn) {

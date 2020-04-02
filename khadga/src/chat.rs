@@ -2,7 +2,6 @@
 use crate::message::{self,
                      CommandRequestMsg,
                      ConnectionMsg,
-                     CommandTypes,
                      Message as KMessage,
                      MessageEvent::{self,
                                     CommandRequest}};

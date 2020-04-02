@@ -2,7 +2,7 @@ FROM fedora:31 as builder
 
 RUN dnf update -y \
     && dnf upgrade -y \
-    && dnf install -y curl openssl-devel  libpq-devel \
+    && dnf install -y curl openssl-devel libpq-devel libpq \
     && dnf groupinstall -y "Development Tools" \
     && dnf groupinstall -y "C Development Tools and Libraries" \
     && dnf clean all -y \
@@ -27,29 +27,26 @@ RUN source ~/.bashrc \
     && mkdir -p /apps/bundle \
     && mkdir -p /src
 
-# TODO: either clone the remote repo, or copy the entire khadga project over.
-# In the "build locally" version, we assume that we've built khadga on our dev machine
-# but we could also build it in the docker container itself.  Instead of doing a COPY
-# we could do a MOUNT
+# Copy all the source needed for building
 COPY ./khadga /src/khadga
 COPY ./vision /src/vision
 COPY ./noesis /src/noesis
 COPY ./build-docker.sh /src
 WORKDIR /src
 
-# TODO: If we need to publish a new noesis library, we need to 
-
 RUN source ~/.bashrc \
     && source ~/.cargo/env \
     && ./build-docker.sh \
     && ls -al
 
-# COPY vision/dist /apps/vision/dist
-# COPY khadga/config /apps/vision/config
-# COPY target/release/khadga /apps/vision
+# Clean up the source to reduce image size
 RUN rm -rf /src
 
 FROM fedora:31
+
+RUN dnf update -y \
+    && dnf upgrade -y \
+    && dnf install -y libpq
 
 RUN mkdir -p /apps/vision
 

@@ -37,7 +37,7 @@ services:
     volumes:
       - ./vision/dist:/apps/vision/dist
     environment:
-      KHADGA_DEV: "true"
+      KHADGA_STACK: "true"
   mimir:
     image: rarebreed/mimir:latest
     build:
