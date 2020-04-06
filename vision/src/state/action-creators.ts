@@ -76,23 +76,6 @@ export const webcamCamAction = (state: WebcamState, action: WEBCAM_ACTIONS): Web
   };
 };
 
-/**
- * Action creator for Websockets
- *
- * If called with WEBSOCKET
- * @param ws
- * @param action
- */
-export const websocketAction = ( ws: WebSocket | any | null)
-                               : WebSocketAction => {
-  return {
-    type: ws !== null ? "WEBSOCKET_CREATE" : "WEBSOCKET_CLOSE",
-    socket: {
-      socket: ws
-    }
-  };
-};
-
 export const chatMessageAction = (message: ChatMessageState, action: CHAT_MESSAGE_ACTIONS) => {
   return {
     type: action,

@@ -5,12 +5,9 @@ import {State} from "../state/store";
 import {loginReducer} from "../state/reducers";
 import { WebComm } from "../state/communication";
 
-const logger = console;
-
 const mapPropsToState = (state: State) => {
   return {
     connectState: state.connectState,
-    socket: state.websocket.socket
   };
 };
 
@@ -38,13 +35,15 @@ class SideBar extends React.Component<PropsFromRedux>  {
                                 name={ user } />;
         return item2;
       });
+    
+    const show = this.props.connectState.connected.length > 0;
 
     return (
       <div className="user-sidebar">
         <div className="user-section">
           <h2 className="user-header">Users</h2>
           <ul className="users">
-            { this.props.socket ? listItems : null }
+            { show? listItems : null }
           </ul>
         </div>
       </div>

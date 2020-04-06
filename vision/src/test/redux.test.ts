@@ -10,10 +10,10 @@ import {USER_LOGIN
   , USER_CONNECTION_EVT
   , WEBCAM_DISABLE
 } from "../state/types";
-import {websocketAction
-  , createLoginAction
-  , webcamCamAction
-  , selectUserAction
+import {
+  createLoginAction,
+  webcamCamAction,
+  selectUserAction
 } from "../state/action-creators";
 
 test("Tests adding user to connectedUsers", () => {
@@ -98,9 +98,6 @@ test.skip("Tests that user signs in, clicks Chat, then logs out", async () => {
 
   await prom;
 
-  const sockaction = websocketAction(sock);
-  stateStore.dispatch(sockaction);
-
   let stateNow = stateStore.getState();
   logger.log("State is now: ", stateNow);
 
@@ -127,8 +124,6 @@ test.skip("Tests that user signs in, clicks Chat, then logs out", async () => {
       logger.log(ex);
     }
   }
-  const sockAction = websocketAction(null);
-  stateStore.dispatch(sockAction);
 
   logger.log("After WEBSOCKET_DISABLE action");
   stateNow = stateStore.getState();

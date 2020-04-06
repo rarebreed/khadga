@@ -16,8 +16,10 @@ interface TabProps {
  * @param props 
  */
 export const Tab: React.FC<TabProps> = (props) => {
-  const activeTab = useSelector((state: State) => state.tab);
-
+  const activeTab = useSelector((state: State) => {
+    return state.tab
+  });
+  
   return (
     <div className={ activeTab === props.name ? "active-tab" : "inactive-tab" }>
       { props.children }

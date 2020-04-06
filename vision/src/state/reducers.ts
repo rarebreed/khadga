@@ -28,12 +28,8 @@ import {
   , WEBCAM_ENABLE
   , WEBCAM_RESIZE
   , USER_CONNECTION_EVT
-  , WebSocketAction
-  , WebSocketState
   , AUTH_CREATED
   , AUTH_EXPIRED
-  , WEBSOCKET_CLOSE
-  , WEBSOCKET_CREATE
   , SelectUsersAction
   , PeerConnState
   , PeerConnAction
@@ -313,28 +309,6 @@ export const webcamReducer = (
   }
 
   return newstate;
-};
-
-export const websocketReducer = ( 
-  previous: WebSocketState = {socket: null},
-  action: WebSocketAction
-): WebSocketState => {
-  const sockState: WebSocketState = {
-    socket: null
-  };
-
-  switch(action.type) {
-  case WEBSOCKET_CLOSE:
-    logger.log("Got a WEBSOCKET_CLOSE action");
-    return sockState;
-  case WEBSOCKET_CREATE:
-    logger.log("Got a WEBSOCKET_CREATE action");
-    logger.log(`socket is ${action.socket.socket}`);
-    sockState.socket = action.socket.socket;
-    return sockState;
-  default:
-    return previous;
-  }
 };
 
 export const chatMessageReducer = ( 

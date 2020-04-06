@@ -25,10 +25,12 @@ services:
     ports:
       - "8001:80"
   khadga:
+    deploy:
+      replicas: 1
     image: rarebreed/khadga:latest
     build:
       context: .
-      dockerfile: ./docker/builder/Dockerfile
+      dockerfile: ./docker/khadga/Dockerfile
     ports:
       - "7001:7001"
     links:

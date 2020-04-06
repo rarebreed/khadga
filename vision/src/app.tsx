@@ -1,8 +1,7 @@
-
 import * as React from "react";
 import * as ReactDom from "react-dom";
 import { Provider } from "react-redux";
-import {createStore, StoreEnhancer} from "redux";
+import { createStore, StoreEnhancer } from "redux";
 
 import { reducers } from "./state/store";
 import NavBar from "./components/navbar";
@@ -18,7 +17,8 @@ import {
   createLoginAction,
   chatMessageAction
 } from "./state/action-creators";
-import { Subject } from "rxjs";
+import { LOGIN_ACTIONS } from "./state/types";
+import { ChatMessageState, CHAT_MESSAGE_ACTIONS } from "./state/message-types";
 
 type WindowWithDevTools = Window & {
   __REDUX_DEVTOOLS_EXTENSION__: () => StoreEnhancer<unknown, {}>
@@ -32,7 +32,8 @@ const isReduxDevtoolsExtenstionExist = (
 
 const foo = isReduxDevtoolsExtenstionExist(window) ?
   window.__REDUX_DEVTOOLS_EXTENSION__() : undefined;
-const store = createStore( reducers, foo);
+const store = createStore(reducers, foo);
+type StoreType = typeof store;
 
 class App extends React.Component<{}> {
   webcomm: WebComm;
@@ -43,12 +44,27 @@ class App extends React.Component<{}> {
     // Create and initialize our WebComm object
     this.webcomm = new WebComm(
       webcamCamAction,
-      remoteVideoAction
+      remoteVideoAction,
+      //store
     );
     const wssetup: WSSetup = {
       auth: null,
-      loginAction: createLoginAction,
-      chatAction: chatMessageAction,
+      loginAction: (
+        connected: string[],
+        uname: string,
+        auth: any,
+        action_type: LOGIN_ACTIONS
+      ) => {
+        const action = createLoginAction(connected, uname, auth, action_type);
+        return store.dispatch(action)
+      },
+      chatAction: (
+        message: ChatMessageState,
+        actionType: CHAT_MESSAGE_ACTIONS
+      ) => {
+        const action = chatMessageAction(message, actionType);
+        return store.dispatch(action)
+      },
     };
     this.webcomm.socketSetup(wssetup);
   }
@@ -59,7 +75,7 @@ class App extends React.Component<{}> {
         <NavBar webcomm={ this.webcomm } />
         <SideBar webcomm={ this.webcomm }/>
         <TabNav webcomm={ this.webcomm }/>
-        <ChatInput />
+        <ChatInput webcomm={ this.webcomm }/>
         <SideBarRight />
       </div>
     );

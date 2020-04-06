@@ -3,7 +3,9 @@
  */
 
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
+
+import { State } from "../state/store";
 
 interface BlogProps {
   active: boolean;
@@ -25,7 +27,14 @@ interface BlogProps {
  * @param props 
  */
 export const Blog: React.FC<BlogProps> = (props) => {
+  const user = useSelector((state: State) => {
+    return state.connectState.username
+  });
+
   // TODO: Make a request to the database if we are active
+  if (props.active) {
+    console.log("TODO: get blogs from this user from db");
+  }
 
   return (
     <div className="blog-posts">

@@ -8,7 +8,6 @@ import {
   createLoginAction,
   setLoginFormAction,
   webcamCamAction,
-  websocketAction,
   chatMessageAction,
   videoRefAction,
   remoteVideoAction
@@ -20,7 +19,7 @@ import {
 import {NavBarItem, NavBarDropDown} from "./navbar-item";
 import GoogleAuth from "./google-signin";
 import WebCamSettings from "../components/webrtc/settings";
-import {WebComm, WSSetup} from "../state/communication";
+import {WebComm} from "../state/communication";
 
 const logger = console;
 
@@ -39,7 +38,6 @@ const mapState = (state: State) => {
     loggedIn: state.connectState.loggedIn,
     connected: state.connectState.connected,
     auth: state.connectState.auth2,
-    socket: state.websocket.socket,
     camState: state.webcam,
     videoRef: state.videoRef.videoRefId
   };
@@ -50,7 +48,6 @@ const mapDispatch = {
   connection: createLoginAction,
   setLoginForm: setLoginFormAction,
   webcam: webcamCamAction,
-  websocket: websocketAction,
   chatMessage: chatMessageAction,
   video: videoRefAction,
   remoteVideo: remoteVideoAction
@@ -132,8 +129,11 @@ class NavBar extends React.Component<PropsFromRedux> {
       return;
     }
 
-    // Set our state in the redux store
-    this.props.websocket(this.webcomm.socket$);
+    // At this point, we should be logged in, so pass the username to webcomm
+    // This will generate the websocket for this user.  This is why we are calling user$.next()
+    // here, rather than in the GoogleAuth component.  We only need the websocket if the user wants
+    // to chat
+    this.webcomm.user$.next(this.props.user);
   }
 
   render() {
@@ -163,7 +163,7 @@ class NavBar extends React.Component<PropsFromRedux> {
             </NavBarDropDown>
           </div>
           <div className="navsection justify-right">
-            <GoogleAuth />
+            <GoogleAuth webcomm={ this.webcomm }/>
           </div>
         </div>
 

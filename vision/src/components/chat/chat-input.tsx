@@ -4,6 +4,7 @@ import {connect, ConnectedProps} from "react-redux";
 import {WsMessage} from "../../state/message-types";
 import {State} from "../../state/store";
 import {chatMessageAction} from "../../state/action-creators";
+import { WebComm } from "../../state/communication";
 
 const logger = console;
 
@@ -14,7 +15,6 @@ interface TextState {
 
 const mapPropsToState = (store: State) => {
   return {
-    socket: store.websocket.socket,
     loggedIn: store.connectState.loggedIn,
     connected: store.connectState.connected,
     username: store.connectState.username,
@@ -27,7 +27,9 @@ const mapPropsToDispatch = {
 };
 
 const textInputConnector = connect(mapPropsToState, mapPropsToDispatch);
-type PropsFromReduxLogin = ConnectedProps<typeof textInputConnector>;
+type PropsFromReduxLogin = ConnectedProps<typeof textInputConnector> & {
+  webcomm: WebComm
+};
 
 class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
   message: string;
@@ -103,12 +105,7 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
     msg.recipients = recipients;
 
     logger.log("sending", msg);
-    if (this.props.socket) {
-      this.props.socket.send(JSON.stringify(msg));
-    } else {
-      logger.log("this.ws:", this.props);
-      alert("No websocket connection.\nLog out and back in");
-    }
+    this.props.webcomm.send$.next(JSON.stringify(msg));
 
     if (this.target.current) {
       this.target.current.value = "";

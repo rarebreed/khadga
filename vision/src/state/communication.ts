@@ -3,8 +3,7 @@ import {
   Subject,
   Subscription,
   of,
-  BehaviorSubject,
-  fromEvent
+  BehaviorSubject
 } from "rxjs";
 import {
   map,
@@ -13,6 +12,7 @@ import {
   withLatestFrom,
   tap
 } from "rxjs/operators";
+// import { createStore, StoreEnhancer } from "redux";
 
 import {
   WsMessage,
@@ -30,17 +30,27 @@ import {
 import { USER_CONNECTION_EVT } from "./types";
 import { shuffle, take } from "../utils/utils";
 
+// import { reducers } from "../state/store";
+// type WindowWithDevTools = Window & {
+//   __REDUX_DEVTOOLS_EXTENSION__: () => StoreEnhancer<unknown, {}>
+//  };
+
+// const isReduxDevtoolsExtenstionExist = (
+//   arg: Window | WindowWithDevTools
+// ): arg is WindowWithDevTools  => {
+//   return  "__REDUX_DEVTOOLS_EXTENSION__" in arg;
+// };
+
+// const foo = isReduxDevtoolsExtenstionExist(window) ?
+//   window.__REDUX_DEVTOOLS_EXTENSION__() : undefined;
+// const store = createStore(reducers, foo);
+// type StoreType = typeof store;
+
 const logger = console;
 const log = logger.log;
 
 export interface WSSetup {
   auth: any,
-  loginAction: typeof createLoginAction,
-  chatAction: typeof chatMessageAction,
-}
-
-export interface WSSetupLazy {
-  auth: Subject<any>,
   loginAction: typeof createLoginAction,
   chatAction: typeof chatMessageAction,
 }
@@ -66,15 +76,15 @@ export class LocalMediaStream {
 /**
  * This class holds all the data and functionality for communication between clients
  * 
- * @field user: Holds username
+ * @field user$: Holds username
  * @field targets$: usernames that user clicks to do video chat with
- * @field socket: websocket object
+ * @field socket$: websocket object
  * @field send$: Helper to let other clients send to websocket
  * @field peer: FIXME make this a map of RTCPeerConnections
  * @field #commHandlers: Map of handlers for CommandRequest messages
  * @field streamLocal$: stream of local videocam streams
  * @field streamRemotes$: stream of remote videocam streams
- * @field cmdHandler: A map of string to handler functions
+ * @field cmdHandler: A map of string to handler functions to handle websocket messages
  * @field transceiver: transceiver to control send/rcv messages
  * @field videoOfferSubscription: Subscription to cancel Video Offer
  * @field webcamDispatch: dispatch function to set webcam state in redux
@@ -103,10 +113,14 @@ export class WebComm {
   evtVideoOffer$: Subject<WsMessage<WsCommand<string>>>;
   evtIceCandidate$: Subject<RTCIceCandidate | null>
   iceEvtSub: Subscription;
+  signout$: Subject<boolean>;
+  ping$: Subject<WsMessage<any>>;
+  //store: StoreType;
 
   constructor(
     webcamDispath: typeof webcamCamAction,
     remoteVideoDispatch: typeof remoteVideoAction,
+    //store: StoreType
   ) {
     this.user$ = new Subject();
     this.targets$ = new Subject();  // Stream of remote usernames
@@ -116,6 +130,9 @@ export class WebComm {
     this.streamLocal$ = new BehaviorSubject(new LocalMediaStream(null));
     this.transceiver = null;
     this.videoOfferSubscription = null;
+    this.signout$ = new Subject();
+    this.ping$ = new Subject();
+    //this.store = store;
 
     /** Helper for sending over the websocket */
     const { sock$, subscription: socksub } = this.makeSocketStream();
@@ -159,11 +176,24 @@ export class WebComm {
       }
     });
 
+    // Once we get a new user pushed to user$, we need to create a websocket
     this.user$.subscribe({
       next: (user) => {
+        if (user === "") return
         this.createSocket(user);
+        
       }
-    })
+    });
+
+    this.signout$.pipe(
+      withLatestFrom(this.socket$)
+    ).subscribe({
+      next: ([res, socket]) => {
+        if (!res) return
+        socket.close();
+        this.user$.next("")
+      }
+    });
   }
 
   createSocket = (user: string) => {
@@ -210,7 +240,9 @@ export class WebComm {
           case "Connect":
             logger.log(`Got ${msg.event_type} websocket event`, msg);
             const {connected_users} = msg.body as ConnectionEvent;
+            logger.log("Connected users: ", connected_users);
             props.loginAction(connected_users, "", auth, USER_CONNECTION_EVT);
+            logger.log(`loginAction is`, props.loginAction);
             break;
           case "Data":
             logger.log(`Got ${msg.event_type} websocket event`, msg);
@@ -645,6 +677,34 @@ class CommandHandler {
   constructor(wc: WebComm) {
     this.webcomm = wc;
     this.streamLocalConfigured = false;
+    this.setupPingSubscription();
+  }
+
+  private setupPingSubscription = () => {
+    this.webcomm.ping$.pipe(
+      withLatestFrom(this.webcomm.user$)
+    ).subscribe({
+      next: ([msg, user]) => {
+        const cmd = msg.body as WsCommand<any>;
+        const args = cmd.args as string[];
+        const replyMsg: WsMessage<string> = {
+          sender: msg.sender,
+          recipients: msg.recipients,
+          event_type: "CommandReply",
+          time: Date.now(),
+          body: JSON.stringify({
+            cmd: {
+              op: "pong",
+              ack: false,
+              id: user
+            },
+            args
+          })
+        };
+        this.webcomm.send$.next(JSON.stringify(replyMsg));
+        logger.debug("Sent reply: ", replyMsg);
+      }
+    });
   }
 
   /**
@@ -653,24 +713,7 @@ class CommandHandler {
    * @param socket
    */
   initPingRequestHandler = async (msg: WsMessage<any>) => {
-    const cmd = msg.body as WsCommand<any>;
-    const args = cmd.args as string[];
-    const replyMsg: WsMessage<string> = {
-      sender: msg.sender,
-      recipients: msg.recipients,
-      event_type: "CommandReply",
-      time: Date.now(),
-      body: JSON.stringify({
-        cmd: {
-          op: "pong",
-          ack: false,
-          id: this.webcomm.user$
-        },
-        args
-      })
-    };
-    this.webcomm.send$.next(JSON.stringify(replyMsg));
-    logger.debug("Sent reply: ", replyMsg);
+    this.webcomm.ping$.next(msg);
   }
 
   /**

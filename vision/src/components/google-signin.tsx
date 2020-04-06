@@ -6,7 +6,6 @@ import {State} from "../state/store";
 import {logger} from "../logger";
 import {
   createLoginAction,
-  websocketAction,
   webcamCamAction,
 } from "../state/action-creators";
 import {
@@ -16,6 +15,7 @@ import {
   makeLoginArgs,
   WEBCAM_DISABLE
 } from "../state/types";
+import { WebComm } from "../state/communication";
 
 interface JWTResponse {
   token: string,
@@ -55,19 +55,19 @@ const mapPropsToState = (state: State) => {
   logger.debug("state is: ", state);
   return {
     connectState: state.connectState,
-    socket: state.websocket.socket,
     webcam: state.webcam
   };
 };
 
 const mapPropsToDispatch = {
   setConnectedUsers: createLoginAction,
-  setWebsocket: websocketAction,
   setWebcam: webcamCamAction
 };
 
 const connector = connect(mapPropsToState, mapPropsToDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector>;
+type PropsFromRedux = ConnectedProps<typeof connector> & {
+  webcomm: WebComm
+};
 
 class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
   constructor(props: PropsFromRedux) {
@@ -271,7 +271,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
         this.setState({timeout});
       }
     } else {
-      logger.log("No this.auth2 instance");
+      alert("No Google Auth instance. Please refresh the page");
     }
   }
 
@@ -292,11 +292,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 
           // Disconnect the websocket and webcam.  We have to do cleanup here, because the reducer
           // is supposed to be side-effect free
-          if (this.props.socket) {
-            this.props.socket.close();
-          }
-          this.props.setWebsocket(null);
-
+          this.props.webcomm.signout$.next(true);
           this.props.setWebcam({active: false}, WEBCAM_DISABLE);
         });
     }

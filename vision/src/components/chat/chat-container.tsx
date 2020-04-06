@@ -12,7 +12,6 @@ const mapStateToProps = (state: State) => {
     webcam: state.webcam,
     connected: state.connectState.loggedIn,
     user: state.connectState.username,
-    websocket: state.websocket,
     messages: state.messages,
     remoteVideo: state.remoteVideo
   };
