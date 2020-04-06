@@ -4,18 +4,18 @@ import {connect, ConnectedProps} from "react-redux";
 import {NavBarItem} from "../components/navbar-item";
 import {State} from "../state/store";
 import {logger} from "../logger";
-import {createLoginAction
-  , websocketAction
-  , webcamCamAction
-  , webcommAction
+import {
+  createLoginAction,
+  websocketAction,
+  webcamCamAction,
 } from "../state/action-creators";
-import {USER_LOGIN
-  , USER_LOGOUT
-  , AUTH_CREATED
-  , makeLoginArgs,
+import {
+  USER_LOGIN,
+  USER_LOGOUT,
+  AUTH_CREATED,
+  makeLoginArgs,
   WEBCAM_DISABLE
 } from "../state/types";
-import {WebComm, WSSetup} from "../components/webrtc/communication";
 
 interface JWTResponse {
   token: string,
@@ -63,8 +63,7 @@ const mapPropsToState = (state: State) => {
 const mapPropsToDispatch = {
   setConnectedUsers: createLoginAction,
   setWebsocket: websocketAction,
-  setWebcam: webcamCamAction,
-  setWebcomm: webcommAction
+  setWebcam: webcamCamAction
 };
 
 const connector = connect(mapPropsToState, mapPropsToDispatch);
@@ -299,7 +298,6 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
           this.props.setWebsocket(null);
 
           this.props.setWebcam({active: false}, WEBCAM_DISABLE);
-          this.props.setWebcomm(null, "DELETE_WEBCOMM");
         });
     }
     if (this.state.timeout !== null) {

@@ -11,7 +11,6 @@ import {
   websocketAction,
   chatMessageAction,
   videoRefAction,
-  webcommAction,
   remoteVideoAction
 } from "../state/action-creators";
 import {
@@ -21,7 +20,7 @@ import {
 import {NavBarItem, NavBarDropDown} from "./navbar-item";
 import GoogleAuth from "./google-signin";
 import WebCamSettings from "../components/webrtc/settings";
-import {WebComm, WSSetup} from "../components/webrtc/communication";
+import {WebComm, WSSetup} from "../state/communication";
 
 const logger = console;
 
@@ -42,8 +41,7 @@ const mapState = (state: State) => {
     auth: state.connectState.auth2,
     socket: state.websocket.socket,
     camState: state.webcam,
-    videoRef: state.videoRef.videoRefId,
-    webcomm: state.webcomm.webcomm
+    videoRef: state.videoRef.videoRefId
   };
 };
 
@@ -55,12 +53,13 @@ const mapDispatch = {
   websocket: websocketAction,
   chatMessage: chatMessageAction,
   video: videoRefAction,
-  setWebComm: webcommAction,
   remoteVideo: remoteVideoAction
 };
 
 const connector = connect(mapState, mapDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector>;
+type PropsFromRedux = ConnectedProps<typeof connector> & {
+  webcomm: WebComm
+};
 
 interface AppSettings {
   videoSubj: Subject<MediaDeviceInfo>;
@@ -72,6 +71,7 @@ class NavBar extends React.Component<PropsFromRedux> {
   videoSubj: Subject<MediaDeviceInfo>;
   audioOutSubj: Subject<MediaDeviceInfo>;
   audioInSubj: Subject<MediaDeviceInfo>;
+  webcomm: WebComm;
 
   constructor(props: PropsFromRedux) {
     super(props);
@@ -79,6 +79,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.videoSubj = new Subject();
     this.audioOutSubj = new Subject();
     this.audioInSubj =  new Subject();
+    this.webcomm = props.webcomm;
 
     // Rx-ify our state.  When webcam settings changes, it will call next(), so we subscribe here
     this.videoSubj.subscribe({
@@ -131,22 +132,8 @@ class NavBar extends React.Component<PropsFromRedux> {
       return;
     }
 
-    // Create and initialize our WebComm object
-    const webcomm = new WebComm(
-      this.props.user,
-      this.props.webcam,
-      this.props.remoteVideo
-    );
-    const wssetup: WSSetup = {
-      auth: this.props.auth,
-      loginAction: this.props.connection,
-      chatAction: this.props.chatMessage,
-    };
-    webcomm.socketSetup(wssetup);
-
     // Set our state in the redux store
-    this.props.setWebComm(webcomm, "CREATE_WEBCOMM");
-    this.props.websocket(webcomm.socket);
+    this.props.websocket(this.webcomm.socket$);
   }
 
   render() {

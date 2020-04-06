@@ -1,9 +1,6 @@
 /**
  * This module will store the various Actions and data types used in the Action
  */
-
-import {WebComm} from "../components/webrtc/communication";
-
 export const SET_SIGNUP_ACTIVE = "SET_SIGNUP_ACTIVE";
 export const SET_LOGIN_ACTIVE = "SET_LOGIN_ACTIVE";
 export type SET_MODAL_ACTIVE = "SET_SIGNUP_ACTIVE" | "SET_LOGIN_ACTIVE";
@@ -219,19 +216,16 @@ export interface VideoRefAction {
 	ref: VideoRefReducerState
 }
 
-export interface WebCommReducerState {
-	webcomm: WebComm | null
-}
-
-export type WebCommActions = "CREATE_WEBCOMM" | "DELETE_WEBCOMM";
-export interface WebCommAction {
-	type: WebCommActions,
-	data?: WebComm
-}
-
 export type VideoReducerActions = "REMOTE_EVENT";
 
 export interface VideoReducerAction {
   type: VideoReducerActions,
   data: Map<string, MediaStream>
+}
+
+export type MainTabActions = "SET_ACTIVE_TAB";
+
+export interface MainTabAction {
+	type: MainTabActions,
+	data: string
 }

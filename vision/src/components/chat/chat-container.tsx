@@ -5,7 +5,7 @@ import {ChatMessage} from "./message";
 import VideoStream, { StreamProps } from "../webrtc/webcam";
 import {State} from "../../state/store";
 import {logger} from "../../logger";
-import { webcommAction } from "../../state//action-creators";
+import { WebComm } from "../../state/communication";
 
 const mapStateToProps = (state: State) => {
   return {
@@ -14,17 +14,14 @@ const mapStateToProps = (state: State) => {
     user: state.connectState.username,
     websocket: state.websocket,
     messages: state.messages,
-    webcomm: state.webcomm.webcomm,
     remoteVideo: state.remoteVideo
   };
 };
 
-const mapDispatchToProps = {
-  setWebcomm: webcommAction
-}
-
-const connector = connect(mapStateToProps, mapDispatchToProps);
-type PropsFromRedux = ConnectedProps<typeof connector>;
+const connector = connect(mapStateToProps);
+type PropsFromRedux = ConnectedProps<typeof connector> & {
+  webcomm: WebComm
+};
 
 class ChatContainer extends React.Component<PropsFromRedux> {
   constructor(props: PropsFromRedux) {
@@ -78,7 +75,13 @@ class ChatContainer extends React.Component<PropsFromRedux> {
     const offset = (offset: number) => (360 * offset) + 10;
     return remoteStreams.map(([key, val]) => {
       const pos = { top: `${offset(offsetIdx)}px` };
-      const vidprops: StreamProps = { kind: "remote", target: key, stream: val, pos };
+      const vidprops: StreamProps = { 
+        kind: "remote",
+        target: key,
+        stream: val,
+        pos,
+        webcomm: this.props.webcomm
+      };
       offsetIdx++;
       return (
         <VideoStream { ...vidprops }></VideoStream>
@@ -88,26 +91,27 @@ class ChatContainer extends React.Component<PropsFromRedux> {
 
   addLocalVideo = () => {
     const showCam = this.props.webcam.active /* && this.props.connected */;
-    if (!this.props.webcomm) {
-      if (showCam) {
-        logger.debug("Showing local video prompted by user");
-        return  <VideoStream kind="local" target={ this.props.user } />
-      }
-      return null;
+    const { webcomm, user } = this.props;
+    if (showCam) {
+      logger.debug("Showing local video prompted by user");
+      return <VideoStream kind="local" target={ user } webcomm={ webcomm} />
     }
     
     const { streamLocal$ } = this.props.webcomm;
     if (streamLocal$.value.stream === null) {
       if (showCam) {
         logger.debug(`Showing local video prompted by`, this.props.user);
-        return  <VideoStream kind="local" target={ this.props.user } />
+        return <VideoStream kind="local" target={ user } webcomm={ webcomm} />
       }
       return null;
     } else {
       logger.debug("Showing local video created by offer");
       const stream = streamLocal$.value.stream;
       return (
-        <VideoStream kind="local" target={ this.props.user } stream={ stream }></VideoStream>
+        <VideoStream kind="local"
+                     target={ this.props.user } 
+                     stream={ stream }
+                     webcomm={ webcomm } />
       )
     }
   }

@@ -417,3 +417,16 @@ html, body {
   border: 1px solid black;
   overflow: visible;
 }
+
+.tab-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.active-tab {
+
+}
+
+.inactive-tab {
+  display: none
+}

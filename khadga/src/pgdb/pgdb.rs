@@ -33,18 +33,18 @@ pub async fn establish_connection(dbname: &str) -> Result<ConnectReturn, Error> 
 }
 
 pub async fn drop_table(
-    dbname: &str,
+    table: &str,
     client: &Client,
 ) -> Result<(), Error> {
     let res = client.batch_execute(&format!("
     DROP TABLE IF EXISTS {};
-    ", dbname)).await?;
+    ", table)).await?;
 
     Ok(res)
 }
 
 pub async fn make_table_posts(
-    dbname: &str,
+    table: &str,
     refers_to: &str,
     client: &Client
 ) -> Result<(), Error> {
@@ -57,13 +57,13 @@ pub async fn make_table_posts(
         created_on TIMESTAMPTZ NOT NULL,
         published BOOLEAN NOT NULL DEFAULT 'f',
         FOREIGN KEY (author_id) REFERENCES {}(user_id)
-    )", dbname, refers_to)).await?;
+    )", table, refers_to)).await?;
 
     Ok(res)
 }
 
 pub async fn make_table_users(
-    dbname: &str,
+    table: &str,
     client: &Client
 ) -> Result<(), Error> {
     let res = client.batch_execute(&format!("
@@ -72,13 +72,13 @@ pub async fn make_table_users(
         first_name VARCHAR NOT NULL,
         last_name VARCHAR NOT NULL,
         email VARCHAR NOT NULL
-    )", dbname)).await?;
+    )", table)).await?;
 
     Ok(res)
 }
 
 pub async fn make_table_comments(
-    dbname: &str,
+    table: &str,
     refers_to: &str,
     client: &Client
 ) -> Result<(), Error> {
@@ -93,13 +93,13 @@ pub async fn make_table_comments(
         FOREIGN KEY (user_id) REFERENCES users(user_id),
         FOREIGN KEY (ref_post_id) REFERENCES posts(post_id),
         FOREIGN KEY (ref_comment_id) REFERENCES {}(comment_id)
-    )", dbname, refers_to)).await?;
+    )", table, refers_to)).await?;
 
     Ok(res)
 }
 
 pub async fn make_table_accounts(
-    dbname: &str,
+    table: &str,
     refers_to: &str,
     client: &Client
 ) -> Result<(), Error> {
@@ -112,13 +112,13 @@ pub async fn make_table_accounts(
         active BOOLEAN NOT NULL DEFAULT 'f',
         CHECK (account_type in ('free', 'premium_annual', 'premium_monthly')),
         FOREIGN KEY (user_id) REFERENCES {}(user_id) ON DELETE CASCADE
-    )", dbname, refers_to)).await?;
+    )", table, refers_to)).await?;
 
     Ok(res)
 }
 
 pub async fn make_table_uploads(
-    dbname: &str,
+    table: &str,
     refers_to: &str,
     client: &Client
 ) -> Result<(), Error> {
@@ -129,11 +129,10 @@ pub async fn make_table_uploads(
         file_name VARCHAR NOT NULL,
         user_id INTEGER NOT NULL,
         FOREIGN KEY (user_id) REFERENCES {}(user_id)
-    )", dbname, refers_to)).await?;
+    )", table, refers_to)).await?;
 
     Ok(res)
 }
-
 
 pub fn make_now() -> DateTime<Utc> {
     let now = Utc::now().naive_utc();
@@ -142,7 +141,7 @@ pub fn make_now() -> DateTime<Utc> {
 
 pub async fn insert_user(
     client: &Client,
-    dbname: &str,
+    table: &str,
     user: &models::User
 ) -> Result<u64, Error>{
     println!("Inserting user");
@@ -150,18 +149,18 @@ pub async fn insert_user(
     let cmd = format!("
     INSERT INTO {} (first_name, last_name, email) 
     VALUES ($1, $2, $3);
-    ", dbname);
+    ", table);
     let rows = client.execute(cmd.as_str(), &[&user.first_name, &user.last_name, &user.email]).await?;
 
     Ok(rows)
 }
 
 /**
- * Inserts a post into the database
+ * Inserts a post into the given table 
  */
 pub async fn insert_post(
     client: &Client,
-    dbname: &str,
+    table: &str,
     title: &str,
     body: &str,
     author_id: i32
@@ -169,11 +168,13 @@ pub async fn insert_post(
     let now = make_now();
     println!("Inserting post with time {}", now);
 
-    let cmd = format!("INSERT INTO {} (title, body, created_on, author_id)
+    let cmd = format!("
+    INSERT INTO {} (title, body, created_on, author_id)
     VALUES ($1, $2, $3, $4);
-    ", dbname);
+    ", table);
     println!("cmd is {}", cmd);
-    let rows = client.execute("INSERT INTO test_posts (title, body, created_on, author_id)
+    let rows = client.execute("
+    INSERT INTO test_posts (title, body, created_on, author_id)
     VALUES ($1, $2, $3, $4);
     ", &[&title, &body, &now, &author_id]).await?;
 
@@ -184,36 +185,16 @@ pub async fn insert_post(
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn test_drop_create_table() -> Result<(), Error> {
-        let (client, connection) = establish_connection("test_db").await?;
-
-        // The connection object performs the actual communication with the database,
-        // so spawn it off to run on its own.
-        tokio::spawn(async move {
-            if let Err(e) = connection.await {
-                eprintln!("connection error: {}", e);
-            }
-        });
-
-        drop_table("test_users", &client).await?;
-
-        let res = make_table_users("test_users", &client).await;
-        match res {
-            Err(e) => {
-                eprintln!("Error in database table creation: {}", e);
-            },
-            _ => {
-                println!("Successful");
-            }
-        }
-        // drop_table("test_users", &client).await?;
-        
-        assert!(true, "Async test");
-
-        Ok(())
-    }
-
+    /**
+     * Inserts a post into the database
+     * 
+     * This should actually be an integration test, as it does and tests the following: 
+     * 
+     * - Drops the test_posts and test_users database (in that order)
+     * - Creates the test_users and test_posts database (in that order)
+     * - Inserts a user into test_users
+     * - Inserts a post into test_posts 
+     */
     #[tokio::test]
     async fn test_insert_post() -> Result<(), Error> {
         let (client, connection) = establish_connection("test_db").await?;
@@ -231,7 +212,6 @@ mod tests {
         drop_table(db_posts, &client).await?;
         drop_table(db_users, &client).await?;
         
-
         make_table_users(db_users, &client).await?;
         println!("Created test_users table");
         make_table_posts(db_posts, db_users, &client).await?;
@@ -250,23 +230,33 @@ mod tests {
         let _res = insert_post(&client,
             db_posts,
             "Just a test",
-            r#"<html>
-            <head>
-            </head>
-            <body>
-                Just a simple html page
-            </body>
+            r#"
+            <html>
+                <head>
+                </head>
+                <body>
+                    Just a simple html page
+                </body>
             </html>"#, 1).await?;
         println!("Inserted post");
 
         // Now, make a query for this
-        let rows = client.query(
-            r#"SELECT * FROM test_posts
-            WHERE author_id=1"#,
+        let rows = client.query("
+            SELECT first_name, last_name, user_id
+            FROM test_posts
+            RIGHT JOIN test_users
+            ON test_posts.author_id=test_users.user_id",
             &[]
         ).await?;
         
         assert!(rows.len() == 1, "Async test");
+
+        for row in rows {
+            let first: &str = row.get("first_name");
+            let last: &str = row.get("last_name");
+            let id: i32 = row.get("user_id");
+            println!("name is {} {} with id {}", first, last, id);
+        }
 
         Ok(())
     }

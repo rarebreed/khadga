@@ -3,6 +3,7 @@ import {connect, ConnectedProps} from "react-redux";
 
 import {State} from "../state/store";
 import {loginReducer} from "../state/reducers";
+import { WebComm } from "../state/communication";
 
 const logger = console;
 
@@ -18,7 +19,9 @@ const mapPropsToDispatch = {
 };
 
 const connector = connect(mapPropsToState, mapPropsToDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector>;
+type PropsFromRedux = ConnectedProps<typeof connector> & {
+  webcomm: WebComm
+};
 
 import ListItem from "./user";
 
@@ -30,7 +33,9 @@ class SideBar extends React.Component<PropsFromRedux>  {
       .filter(user => user !== "")
       .map((user) => {
         // const item = <li key={user}>{user}</li>;
-        const item2 = <ListItem classStyle="username" name={ user } />;
+        const item2 = <ListItem webcomm={ this.props.webcomm }
+                                classStyle="username" 
+                                name={ user } />;
         return item2;
       });
 
