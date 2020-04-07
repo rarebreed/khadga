@@ -115,6 +115,7 @@ export class WebComm {
   iceEvtSub: Subscription;
   signout$: Subject<boolean>;
   ping$: Subject<WsMessage<any>>;
+  currentUser: string;
   //store: StoreType;
 
   constructor(
@@ -132,6 +133,7 @@ export class WebComm {
     this.videoOfferSubscription = null;
     this.signout$ = new Subject();
     this.ping$ = new Subject();
+    this.currentUser = "";
     //this.store = store;
 
     /** Helper for sending over the websocket */
@@ -155,9 +157,52 @@ export class WebComm {
     this.cmdHandler = new CommandHandler(this);
     this.setupCmdHandlers();
 
-    // When we get event from handleTrackEvent, it will push a MediaStream into evtMediaStream$.  We
-    // combine this with our latest target value.  Then, we push the map of {target:stream} to
-    // streamRemotes$.
+    this.initHandleTrackEvent();
+    this.initWebsockOnUser();
+    this.initSignoutStream();
+    
+  }
+
+  initSignoutStream = () => {
+    this.signout$.pipe(
+      withLatestFrom(this.socket$)
+    ).subscribe({
+      next: ([res, socket]) => {
+        if (!res) return
+        socket.close();
+        this.user$.next("");
+      }
+    });
+  }
+
+  /**
+   * Once we get a new user pushed to user$, we need to create a websocket
+   */
+  initWebsockOnUser = () => {
+    this.user$.subscribe({
+      next: (user) => {
+        logger.log("In user$, got user", user)
+        if (user === "") {
+          this.currentUser = user;
+          return;
+        }
+        if (user !== this.currentUser) {
+          logger.log("Setting user to ", user);
+          this.currentUser = user;
+          this.createSocket(user);
+        } else {
+          logger.warn("Same user, reusing existing socket");
+        }
+      }
+    });
+  }
+
+  /**
+   * When we get event from handleTrackEvent, it will push a MediaStream into evtMediaStream$.  We
+   * combine this with our latest target value.  Then, we push the map of {target:stream} to
+   * streamRemotes$.
+   */
+  initHandleTrackEvent = () => {
     this.evtMediaStream$.pipe(
       withLatestFrom(this.targets$)
     ).subscribe({
@@ -173,25 +218,6 @@ export class WebComm {
         
         // Send event to dispatch so that the VideoStream component will update
         this.remoteVideoDispatch(obj, "REMOTE_EVENT");
-      }
-    });
-
-    // Once we get a new user pushed to user$, we need to create a websocket
-    this.user$.subscribe({
-      next: (user) => {
-        if (user === "") return
-        this.createSocket(user);
-        
-      }
-    });
-
-    this.signout$.pipe(
-      withLatestFrom(this.socket$)
-    ).subscribe({
-      next: ([res, socket]) => {
-        if (!res) return
-        socket.close();
-        this.user$.next("")
       }
     });
   }
@@ -226,6 +252,8 @@ export class WebComm {
 
   /**
    * Handles Websocket intialization when the user selects Menu -> Chat
+   * 
+   * This is where we sort out the messages received by the websocket.
    */
   socketSetup = (props: WSSetup) => {
     this.socket$.subscribe({
@@ -295,6 +323,7 @@ export class WebComm {
     this.addCmdHdlr("SDPOffer", this.cmdHandler.handleVideoOfferMsg);
     this.addCmdHdlr("SDPAnswer", this.cmdHandler.handleVideoAnswerMsg);
     this.addCmdHdlr("IceCandidate", this.cmdHandler.handleNewICECandidateMsg);
+    
   }
 
   /**
@@ -619,6 +648,14 @@ export const makeWsICECandMsg = (sender: string, reciever: string, cand: ICECand
   return msg;
 };
 
+/**
+ * Creates Websocket messages to be sent to remote user
+ * 
+ * @param sender 
+ * @param receiver 
+ * @param sdp 
+ * @param kind 
+ */
 export const makeWsSDPMessage = (
   sender: string,
   receiver: string,
@@ -670,6 +707,9 @@ export const makeGenericMsg = <T>(
   return msg;
 }
 
+/**
+ * Handler for websocket messages
+ */
 class CommandHandler {
   webcomm: WebComm;
   streamLocalConfigured: boolean;
@@ -680,6 +720,11 @@ class CommandHandler {
     this.setupPingSubscription();
   }
 
+  /**
+   * Sets up the stream that receives CommandRequest of Ping type
+   * 
+   * We do all the setup of what the stream does here to avoid cluttering the constructor
+   */
   private setupPingSubscription = () => {
     this.webcomm.ping$.pipe(
       withLatestFrom(this.webcomm.user$)
@@ -922,6 +967,10 @@ class CommandHandler {
     } catch(err) {
       logger.warn(err);
     }
+  }
+
+  handleEditorMsg = (msg: WsMessage<WsCommand<string>>) => {
+
   }
 }
 

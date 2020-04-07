@@ -224,8 +224,8 @@ export interface VideoReducerAction {
 }
 
 export type MainTabActions = "SET_ACTIVE_TAB";
-
+export type MainTabData = "chat" | "blog" | "editor";
 export interface MainTabAction {
 	type: MainTabActions,
-	data: string
+	data: MainTabData
 }

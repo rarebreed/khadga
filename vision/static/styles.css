@@ -421,6 +421,8 @@ html, body {
 .tab-nav {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  width: 100%;
 }
 
 .active-tab {
@@ -429,4 +431,14 @@ html, body {
 
 .inactive-tab {
   display: none
+}
+
+.tab-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
+.editor-text {
+  width: 100%;
+  flex-grow: 1;
 }

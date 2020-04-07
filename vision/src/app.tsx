@@ -6,7 +6,7 @@ import { createStore, StoreEnhancer } from "redux";
 import { reducers } from "./state/store";
 import NavBar from "./components/navbar";
 import SideBar from "./components/sidebar-left";
-import ChatInput from "./components/chat/chat-input";
+import MainInput from "./components/main-input";
 // import ChatContainer from "./components/chat/chat-container";
 import { SideBarRight} from "./components/sidebar-right";
 import { TabNav } from "./components/tabnav";
@@ -74,8 +74,8 @@ class App extends React.Component<{}> {
       <div className="app">
         <NavBar webcomm={ this.webcomm } />
         <SideBar webcomm={ this.webcomm }/>
-        <TabNav webcomm={ this.webcomm }/>
-        <ChatInput webcomm={ this.webcomm }/>
+        <TabNav className="tab-nav" webcomm={ this.webcomm }/>
+        <MainInput webcomm={ this.webcomm }/>
         <SideBarRight />
       </div>
     );

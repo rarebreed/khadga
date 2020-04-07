@@ -20,7 +20,9 @@
     "last 2 Firefox versions"
   ],
   "devDependencies": {
+    "@types/highlight.js": "^9.12.3",
     "@types/jest": "^25.1.0",
+    "@types/markdown-it": "0.0.9",
     "@types/node": "^13.5.0",
     "@types/react": "^16.9.23",
     "@types/react-dom": "^16.9.5",
@@ -50,6 +52,10 @@
   "dependencies": {
     "@khadga/noesis": "^0.1.0",
     "@tensorflow/tfjs": "^1.5.2",
+    "@types/dompurify": "^2.0.1",
+    "dompurify": "^2.0.8",
+    "highlight.js": "^9.18.1",
+    "markdown-it": "^10.0.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "react-redux": "^7.2.0",

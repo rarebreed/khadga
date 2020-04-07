@@ -5,7 +5,6 @@ import {
   LoginFormAction,
   LOGIN_ACTIONS,
   LoginAction,
-  WebSocketAction,
   NamePropState,
   SET_SIGNUP,
   SET_LOGIN_FORM,
@@ -21,14 +20,14 @@ import {
   VideoReducerAction,
   VideoReducerActions,
   MainTabAction,
-  MainTabActions
+  MainTabActions,
+  MainTabData
 } from "./types";
 import {
   ChatMessageState,
   CHAT_MESSAGE_ACTIONS
 } from "./message-types";
 import {logger} from "../logger";
-import {WebComm} from "./communication";
 
 export const setActive = (isActive: boolean, action: SET_MODAL_ACTIVE): ModalAction => {
   return {
@@ -129,7 +128,7 @@ export const remoteVideoAction = (
  * @param action 
  */
 export const mainTabAction = (
-  data: string,
+  data: MainTabData,
   action: MainTabActions
 ): MainTabAction => {
   return {

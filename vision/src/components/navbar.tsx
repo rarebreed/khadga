@@ -10,7 +10,8 @@ import {
   webcamCamAction,
   chatMessageAction,
   videoRefAction,
-  remoteVideoAction
+  remoteVideoAction,
+  mainTabAction
 } from "../state/action-creators";
 import {
   WEBCAM_ENABLE,
@@ -50,7 +51,8 @@ const mapDispatch = {
   webcam: webcamCamAction,
   chatMessage: chatMessageAction,
   video: videoRefAction,
-  remoteVideo: remoteVideoAction
+  remoteVideo: remoteVideoAction,
+  activeTab: mainTabAction
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -116,12 +118,6 @@ class NavBar extends React.Component<PropsFromRedux> {
 
   /**
    * Creates the WebComm object that handles the state for the websocket and MediaStreams
-   * 
-   * FIXME: Probably not the best place to put the WebComm object in the redux store.  Ideally this
-   * should be a top-level variable in <App> and then use React Context to "share" it.  The only
-   * problem with this is that we need to know the username to fully instantiate it.  This could be
-   * solved with rxjs and making it a Subject, but that will add a ton of complexity for something
-   * that should only happen when the user logs out and back in as a different.
    */
   createWebComm = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     if (!this.props.loggedIn) {
@@ -134,6 +130,17 @@ class NavBar extends React.Component<PropsFromRedux> {
     // here, rather than in the GoogleAuth component.  We only need the websocket if the user wants
     // to chat
     this.webcomm.user$.next(this.props.user);
+
+    // We also need to tell the TabNav to make the chat Tab the active window.
+    this.props.activeTab("chat", "SET_ACTIVE_TAB");
+  }
+
+  setBlog = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    this.props.activeTab("blog", "SET_ACTIVE_TAB");
+  }
+
+  setCreate = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    this.props.activeTab("editor", "SET_ACTIVE_TAB");
   }
 
   render() {
@@ -150,6 +157,12 @@ class NavBar extends React.Component<PropsFromRedux> {
               <a className="dropdown-item"
                 href="#"
                 onClick={ this.createWebComm }>Chat</a>
+              <a className="dropdown-item"
+                href="#"
+                onClick={ this.setBlog }>Blog</a>
+              <a className="dropdown-item"
+                href="#"
+                onClick={ this.setCreate }>Create Blog</a>
               <a className="dropdown-item"
                 href="#"
                 onClick={ this.launchWebCam }>Webcam</a>

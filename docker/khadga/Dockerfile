@@ -46,13 +46,15 @@ FROM fedora:31
 
 RUN dnf update -y \
     && dnf upgrade -y \
-    && dnf install -y libpq
+    && dnf install -y libpq \
+    && dnf clean all
 
 RUN mkdir -p /apps/vision
 
 COPY --from=builder /apps/vision /apps/vision
 
 WORKDIR /apps/vision
+VOLUME /apps/vision
 
 EXPOSE 7001
 
