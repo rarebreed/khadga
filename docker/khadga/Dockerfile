@@ -35,6 +35,7 @@ COPY ./build-docker.sh /src
 WORKDIR /src
 
 RUN source ~/.bashrc \
+    && cat /src/khadga/Cargo.toml \
     && source ~/.cargo/env \
     && ./build-docker.sh \
     && ls -al

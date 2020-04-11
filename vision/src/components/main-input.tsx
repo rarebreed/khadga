@@ -192,11 +192,14 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
   }
 
   render() {
+    let cname = this.props.activeTab === "chat" ? "chat-input" : "disabled";
+
     return (
-      <div className="chat-input">
+      <div className={ cname }>
         <div className="field-group">
           <textarea className="chat-text"
             cols={1}
+            rows={ 2 }
             wrap={"hard"}
             ref={this.target}
             onKeyDown={this.onDown}

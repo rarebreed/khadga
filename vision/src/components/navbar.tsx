@@ -156,10 +156,10 @@ class NavBar extends React.Component<PropsFromRedux> {
             <NavBarDropDown value="Menu">
               <a className="dropdown-item"
                 href="#"
-                onClick={ this.createWebComm }>Chat</a>
+                onClick={ this.setBlog }>Welcome</a>
               <a className="dropdown-item"
                 href="#"
-                onClick={ this.setBlog }>Blog</a>
+                onClick={ this.createWebComm }>Chat</a>
               <a className="dropdown-item"
                 href="#"
                 onClick={ this.setCreate }>Create Blog</a>

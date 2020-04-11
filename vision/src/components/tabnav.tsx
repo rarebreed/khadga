@@ -49,9 +49,7 @@ export const TabNav: React.FC<TabNavProps> = (props) => {
 export const SubTabNav: React.FC<TabNavProps> = (props) => {
   return (
     <div className={ props.className }>
-      <div className="tabs-main">
-        { props.children }
-      </div>
+      { props.children }
     </div>
   )
 }

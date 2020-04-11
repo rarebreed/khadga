@@ -74,7 +74,7 @@ class App extends React.Component<{}> {
       <div className="app">
         <NavBar webcomm={ this.webcomm } />
         <SideBar webcomm={ this.webcomm }/>
-        <TabNav className="tab-nav" webcomm={ this.webcomm }/>
+        <TabNav className="main-body" webcomm={ this.webcomm }/>
         <MainInput webcomm={ this.webcomm }/>
         <SideBarRight />
       </div>
