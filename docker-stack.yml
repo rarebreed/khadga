@@ -40,6 +40,8 @@ services:
       - ./vision/dist:/apps/vision/dist
     environment:
       KHADGA_STACK: "true"
+    secrets:
+      - postgres-secret
   mimir:
     image: rarebreed/mimir:latest
     build:

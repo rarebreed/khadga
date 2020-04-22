@@ -1,5 +1,5 @@
 **/node_modules
 ./target
-./vision
+./vision/dist
 ./vision-test
 .git

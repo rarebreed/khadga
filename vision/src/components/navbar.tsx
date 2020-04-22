@@ -140,6 +140,9 @@ class NavBar extends React.Component<PropsFromRedux> {
   }
 
   setCreate = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    if (!this.props.loggedIn) {
+      alert("You are not logged in.  Blog will be saved in local indexed store")
+    }
     this.props.activeTab("editor", "SET_ACTIVE_TAB");
   }
 

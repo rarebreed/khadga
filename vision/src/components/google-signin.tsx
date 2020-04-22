@@ -41,14 +41,16 @@ interface GoogleProfile {
 
 interface LoginParams {
   uname: string,
+  first: string,
+  last: string,
   email: string,
   token: string
 }
 
 interface LoggedInState {
   username: string,
-  auth2: any | null,
-  timeout: number | null
+  timeout: number,
+  timerCB: number | null
 }
 
 const mapPropsToState = (state: State) => {
@@ -74,9 +76,9 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
     super(props);
 
     this.state = {
-      timeout: null,
-      auth2: null,
-      username: ""
+      timeout: 15 * 60 * 1000,
+      username: "",
+      timerCB: null
     };
   }
 
@@ -125,28 +127,34 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
       , action);
   }
 
-  validateCookie = () => {
-    const expires = this.checkCookie("expiry");
+  static cookieExpireTime = () => {
+    const expires = GoogleAuth.checkCookie("expiry");
     let expDate = Date.now() - 1;
     if (expires.length > 0) {
       logger.log(`Cookie expires at ${expires[0]}`);
       expDate = Date.parse(expires[0]);
     }
+    return expDate
+  }
 
-    const user = this.checkCookie("khadga_user");
+  validateCookie = () => {
+    let expDate = GoogleAuth.cookieExpireTime();
+
+    const user = GoogleAuth.checkCookie("khadga_user");
     let username = "";
     if (user.length > 0) {
-      logger.log(`Cookie expires at ${expires[0]}`);
       username = user[0];
     }
 
     if (expDate > Date.now()) {
       // TODO: make a call to /login to get a fresh JWT
       logger.log(`Calling USER_LOGIN action with username ${username}`);
-      this.props.setConnectedUsers( this.props.connectState.connected
-        , username.replace(/\s+/, "")
-        , this.props.connectState.auth2
-        , USER_LOGIN);
+      this.props.setConnectedUsers( 
+        this.props.connectState.connected,
+        username.replace(/\s+/, ""),
+        this.props.connectState.auth2,
+        USER_LOGIN
+      );
       logger.log("Session validated with existing JWT");
       return;
     }
@@ -155,7 +163,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
   /**
    * Looks at our cookie and sees if our JWT is still valid
    */
-  checkCookie = (cname: string) => {
+  static checkCookie = (cname: string) => {
     return document.cookie.split(";")
       .map(c => c.trim())
       .map((c) => {
@@ -175,6 +183,8 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
    */
   onSignIn = (googleUser: any) => {
     const profile = googleUser.getBasicProfile();
+    const firstName = profile.getGivenName() as string;
+    const lastName = profile.getFamilyName() as string;
     const username: string = profile.getName();
     const email: string = profile.getEmail();
     const id = profile.getId();
@@ -184,6 +194,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
     user = user.replace(/[.+]/, "_");
 
     logger.debug(`Name: ${username}\nEmail: ${email}\nId: ${id}\nURL: ${url}`);
+    logger.info(`Full name is ${firstName} ${lastName}`);
     const alreadyConnected = this.props.connectState.connected;
 
     logger.log("Getting auth response");
@@ -192,13 +203,14 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
       logger.log("auth: ", authResp);
       this.getJWT({
         uname: username,
+        first: firstName,
+        last: lastName,
         email,
         token: authResp.id_token
-      }).then((jwt) => {
-        this.checkCookie("expiry");
+      }).then((_) => {
+        GoogleAuth.checkCookie("expiry");
       }).catch((ex) => {
         logger.error(ex);
-        // TODO: Send action to logout.  If we don't get a JWT there's not much a user can do
         this.signOut();
       });
     } catch (ex) {
@@ -227,7 +239,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
    */
   async getJWT(login: LoginParams): Promise<string> {
     const origin = window.location.host;
-    const {uname, email, token} = login;
+    const {uname, email, token, first, last} = login;
 
     logger.log(`origin is: https://${origin}/login`);
     const resp = await fetch(`https://${origin}/login`, {
@@ -241,6 +253,8 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
       // Same as LoginParams in khadga code
       body: JSON.stringify({
         uname,
+        first,
+        last,
         email,
         token
       })
@@ -248,7 +262,7 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
 
     // Should have the JWT now if credentials now
     if (resp.status !== 200) {
-      throw new Error("Could not get JWT token");
+      throw new Error(`Could not get JWT token: ${await resp.text()}`);
     }
 
     const jwt = await resp.text();
@@ -262,14 +276,21 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
       this.props.connectState.auth2.signIn()
         .then(this.onSignIn);
 
-      if (!this.state.timeout) {
-        logger.log("Setting up jwt refresher");
-        const timeout = window.setInterval(() => {
-          logger.log("refreshing JWT");
-          this.signIn();
-        }, 1000 * 60 * 30);
-        this.setState({timeout});
-      }
+      // FIXME: This will keep refreshing the user forever.  We need to be able to stop this.  I
+      // think the best way to do this is through an Observable that watches activity on the page.
+      // If it doesn't get any activity within 15min, logout.
+      logger.log("Setting up jwt refresher");
+      const timeout = window.setInterval(() => {
+        logger.log("refreshing JWT");
+        this.signIn();
+      }, this.state.timeout);
+      this.setState({ timerCB: timeout });
+
+      // This is the workaround for now to stop infinite refreshes.  Ideally, we need a way to track
+      // activity, and if there is no activity then clear the interval
+      window.setTimeout(() => {
+        if (this.state.timerCB) window.clearInterval()
+      }, 60 * 60 * 1000)
     } else {
       alert("No Google Auth instance. Please refresh the page");
     }

@@ -53,12 +53,6 @@ impl LogLevels {
     }
 }
 
-impl fmt::Display for LogLevels {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "level: {}", self.repr())
-    }
-}
-
 #[derive(Deserialize, Serialize, Debug)]
 pub struct LogCfg {
     pub level: LogLevels,
@@ -69,6 +63,54 @@ pub struct TLS {
     pub set: bool,
     pub ca_path: String,
     pub key_path: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct Tables {
+    pub users: String,
+    pub posts: String,
+    pub accounts: String,
+    pub uploads: String,
+    pub comments: String
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct DataBase {
+    pub tables: Tables,
+    pub port: u16,
+    pub tls: bool
+}
+
+impl fmt::Display for Tables {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            r#"users: {}
+            posts: {}
+            accounts: {}
+            uploads: {}
+            comments: {}"#,
+            self.users, self.posts, self.accounts, self.uploads, self.comments
+        )
+    }
+}
+
+impl fmt::Display for DataBase {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            r#"port: {}
+            tls: {}
+            tables: {}"#,
+            self.port, self.tls, self.tables
+        )
+    }
+}
+
+impl fmt::Display for LogLevels {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "level: {}", self.repr())
+    }
 }
 
 impl fmt::Display for TLS {
@@ -119,7 +161,8 @@ pub struct Settings {
     pub logging: LogCfg,
     pub tls: TLS,
     pub host: String,
-    pub port: u16
+    pub port: u16,
+    pub db: DataBase
 }
 
 impl fmt::Display for Settings {
@@ -185,12 +228,13 @@ mod tests {
             khadga_host = "localhost".into();
         }
 
-        let Settings { host: mimir_host, .. } = settings;
+        let Settings { host: mimir_host, db, .. } = settings;
         println!(
             "khadga_host = {}, settings.services.khadga.host = {}", 
             khadga_host,
             mimir_host
         );
+        println!("database = {}", db);
         assert_eq!(khadga_host, mimir_host);
         assert_eq!("7001", settings.services.khadga.port);
         /* assert_eq!(mimir_host, settings.services.mimir.host); */

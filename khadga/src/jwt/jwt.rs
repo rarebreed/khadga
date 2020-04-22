@@ -36,8 +36,7 @@ mod jwt_numeric_date {
     
     /// Serializes a DateTime<Utc> to a Unix timestamp (milliseconds since 1970/1/1T00:00:00T)
     pub fn serialize<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer,
     {
         let timestamp = date.timestamp();
         serializer.serialize_i64(timestamp)
@@ -45,8 +44,7 @@ mod jwt_numeric_date {
 
     /// Attempts to deserialize an i64 and use as a Unix timestamp
     pub fn deserialize<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
-    where
-        D: Deserializer<'de>,
+        where D: Deserializer<'de>,
     {
         Utc.timestamp_opt(i64::deserialize(deserializer)?, 0)
             .single() // If there are multiple or no valid DateTimes from timestamp, return None
@@ -54,7 +52,8 @@ mod jwt_numeric_date {
     }
 }
 
-/// FIXME: This will eventually be some kind of secret key that will be stored in a Docker secret
+/// FIXME: This will eventually be some kind of secret key that will be stored in a Docker secret or
+/// perhaps pull it from the database
 pub static SECRET: &[u8;9] = b"secretkey";
 
 /// Generates a JSON web token using defaults

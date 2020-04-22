@@ -6,16 +6,37 @@ use tokio_postgres::{
     Connection, NoTls, Error, Socket, Client,
     tls::{NoTlsStream}
 };
-//use log::{info};
+use tokio::{fs::{File},
+            io::{AsyncReadExt}};
 use chrono::{Utc, DateTime};
 use crate::pgdb::{models};
 
 pub type DbConnection = Connection<Socket, NoTlsStream>;
 pub type ConnectReturn = (Client, DbConnection);
 
+
 /// Creates a connection to our postgres database
 pub async fn establish_connection(dbname: &str) -> Result<ConnectReturn, Error> {
     dotenv().ok();
+
+    // If we're running under docker stack, we need to look for the secrets file
+    // If we're running under kubernetes, we need to look at kubernetes secrets
+    match env::var("KHADGA_STACK") {
+        Ok(val) => if val.to_lowercase() == "true" { 
+            // Read the /run/secrets/postgres-secret file
+            match File::open("/run/secrets/postgres-secret").await {
+                Ok(mut f) => {
+                    let mut contents = vec![];
+                    f.read_to_end(&mut contents).await;
+                },
+                Err(e) => {
+
+                }
+            }
+            
+        },
+        Err(_) => { }
+    };
 
     let config = format!(
         "host=localhost user={} password={} dbname={}",
@@ -71,6 +92,7 @@ pub async fn make_table_users(
         user_id SERIAL PRIMARY KEY,
         first_name VARCHAR NOT NULL,
         last_name VARCHAR NOT NULL,
+        username VARCHAR NOT NULL,
         email VARCHAR NOT NULL
     )", table)).await?;
 
@@ -147,12 +169,36 @@ pub async fn insert_user(
     println!("Inserting user");
 
     let cmd = format!("
-    INSERT INTO {} (first_name, last_name, email) 
-    VALUES ($1, $2, $3);
+    INSERT INTO {} (first_name, last_name, username, email) 
+    VALUES ($1, $2, $3, $4);
     ", table);
-    let rows = client.execute(cmd.as_str(), &[&user.first_name, &user.last_name, &user.email]).await?;
+    let rows = client.execute(
+        cmd.as_str(), 
+        &[&user.first_name, &user.last_name, &user.username, &user.email]
+    ).await?;
 
     Ok(rows)
+}
+
+pub async fn lookup_user(
+    client: &Client,
+    table: &str,
+    user: &models::User
+) -> Result<Vec<i32>, Error> {
+    println!("Lookup up user {}", user.username);
+
+    let cmd = format!("
+    SELECT user_id FROM {table}
+    WHERE {table}.username='{name}';
+    ", table=table, name=user.username);
+    println!("Using command:\n{}", cmd);
+
+    let mut userids: Vec<i32> = vec![];
+    let rows = client.query(cmd.as_str(), &[]).await?;
+    for row in rows {
+        userids.push(row.get(0));
+    }
+    Ok(userids)
 }
 
 /**
@@ -218,13 +264,21 @@ mod tests {
         println!("Created test_posts table");
 
         // Create a user first, otherwise referential integrity won't hold
-        let rows = insert_user(&client, db_users, &models::User {
+        let user = models::User {
             user_id: -1,
             first_name: String::from("Sean"),
             last_name: String::from("Toner"),
+            username: String::from("stoner"),
             email: String::from("foo@bar.com")
-        }).await?;
+        };
+        let rows = insert_user(&client, db_users, &user).await?;
         println!("Inserted test user: {}", rows);
+
+        // Look up user
+        let userids = lookup_user(&client, db_users, &user).await?;
+        for id in userids.into_iter() {
+            println!("user id = {}", id);
+        }
 
         // Create a post
         let _res = insert_post(&client,

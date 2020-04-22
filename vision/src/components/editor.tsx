@@ -5,7 +5,8 @@
  * content for a blog or post
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
+import { useSelector, useStore } from "react-redux";
 import markdown from "markdown-it";
 import hljs from "highlight.js";
 import dp from "dompurify";
@@ -15,6 +16,7 @@ import { WebComm } from "../state/communication";
 import { SubTabNav } from "../components/tabnav";
 import { SubTab } from "../components/tab";
 import { logger } from "../logger";
+import { loginReducer } from "../state/reducers";
 
 const md = markdown("default", {
   highlight: (content: string, lang: string) => {
@@ -32,6 +34,7 @@ const md = markdown("default", {
 export const Editor: React.FC<{ webcomm: WebComm }> = (props) => {
   const [content, setContent] = useState("");
   const [activeSubTab, setSubTab] = useState("raw");
+  const loginState = useSelector((state: State) => state.connectState)
 
   //const textAreaRef_: React.RefObject<HTMLDivElement> = React.createRef();
   //const textTarget: React.RefObject<HTMLTextAreaElement> = React.createRef();
@@ -44,7 +47,17 @@ export const Editor: React.FC<{ webcomm: WebComm }> = (props) => {
   }
 
   const send = (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-    alert("TODO: Send blog to database");
+    if (!loginState.loggedIn) {
+      console.log("Blog will be saved in local storage")
+    }
+  }
+
+  const storeLocal = (name: string, content: string) => {
+    window.localStorage.setItem(name, content);
+  }
+
+  const storeDb = (user: string, name: string, content: string) => {
+    
   }
 
   const setEditActive = (evt: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
