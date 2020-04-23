@@ -1,16 +1,17 @@
 /// <reference types="cypress"/>
 
-let khadgaUrl = "https://khadga.app";
-if (process.env["NODE_ENV"] === "test") {
-  khadgaUrl = "https://stoner-test:7001";
-}
+import { getSigninButton } from "../../src/locators";
+
+// FIXME: We need a way to figure out what the hostname is for our test service.
+const khadgaUrl = "https://stoner-test:7001";
+const logger = console;
+
 
 describe('Tests khadga login', () => {
-  before("Start up dev servers", () => {
-    // Start up dev servers.  We can use docker stack for this
-  });
+  it('Visits khadga.app', () => {
+    cy.visit(khadgaUrl);
 
-  it('Does not do much!', function() {
-    expect(true).to.equal(true)
+    // We will log in through Google API, rather than clicking
+    
   });
 })

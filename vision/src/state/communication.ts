@@ -116,7 +116,7 @@ export class WebComm {
   signout$: Subject<boolean>;
   ping$: Subject<WsMessage<any>>;
   currentUser: string;
-  //store: StoreType;
+  testSock: WebSocket;
 
   constructor(
     webcamDispath: typeof webcamCamAction,
@@ -134,7 +134,7 @@ export class WebComm {
     this.signout$ = new Subject();
     this.ping$ = new Subject();
     this.currentUser = "";
-    //this.store = store;
+    this.testSock = new WebSocket("ws://localhost:13172")
 
     /** Helper for sending over the websocket */
     const { sock$, subscription: socksub } = this.makeSocketStream();

@@ -104,6 +104,9 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
     }
   }
 
+  /**
+   * Sets the redux store state when a user logs in
+   */
   authListener = () => {
     const oldState = this.props.connectState.loggedIn;
     let newState: boolean = oldState;
@@ -121,10 +124,11 @@ class GoogleAuth extends React.Component<PropsFromRedux, LoggedInState> {
     // Otherwise, we need to set our new state
     const action = newState ? USER_LOGIN : USER_LOGOUT;
     const alreadyConnected = this.props.connectState.connected;
-    this.props.setConnectedUsers( alreadyConnected
-      , this.props.connectState.username
-      , this.props.connectState.auth2
-      , action);
+    this.props.setConnectedUsers(
+      alreadyConnected,
+      this.props.connectState.username,
+      this.props.connectState.auth2,
+      action);
   }
 
   static cookieExpireTime = () => {
