@@ -1,5 +1,4 @@
 import React from "react";
-import {connect, ConnectedProps} from "react-redux";
 
 export interface MessageBody {
 	body: string;

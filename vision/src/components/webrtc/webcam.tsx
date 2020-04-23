@@ -7,12 +7,11 @@
 import React from "react";
 import {connect, ConnectedProps} from "react-redux";
 
-import * as noesis from "@khadga/noesis";
 import {State} from "../../state/store";
 import {webcamCamAction, videoRefAction,} from "../../state/action-creators";
 import {WEBCAM_DISABLE} from "../../state/types";
 import dragElement, {resizeElement} from "../../utils/utils";
-import { LocalMediaStream } from "../../components/webrtc/communication";
+import { LocalMediaStream, WebComm } from "../../state/communication";
 
 const logger = console;
 
@@ -20,7 +19,6 @@ const mapStateToProps = (state: State) => {
   return {
     webcamActive: state.webcam.active,
     webcamId: state.webcam.videoId,
-    webcomm: state.webcomm.webcomm
   };
 };
 
@@ -33,7 +31,8 @@ export interface StreamProps {
   kind: "local" | "remote",
   target: string,
   stream?: MediaStream,
-  pos?: { top: string }
+  pos?: { top: string },
+  webcomm: WebComm
 }
 
 const connector = connect(mapStateToProps, mapPropsToDispatch);

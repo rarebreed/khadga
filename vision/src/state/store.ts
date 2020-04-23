@@ -3,39 +3,31 @@ import {
   modalReducer,
   loginReducer,
   webcamReducer,
-  websocketReducer,
   chatMessageReducer,
   selectedUsersReducer,
   peerConnReducer,
   videoRefReducer,
-  webcommReducer,
-  remoteVideoReducer
+  remoteVideoReducer,
+  mainTabReducer
 } from "./reducers";
 import {
   ModalState,
-  SignUp,
   LoginReducerState,
-  UserLogin,
   WebcamState,
-  WebSocketState,
-  VideoRefReducerState,
-  WebCommReducerState
+  VideoRefReducerState
 } from "./types";
 import {ChatMessageState} from "./message-types";
 
 export interface State {
   modal: ModalState,
-  signup: SignUp,
-  login: UserLogin,
   connectState: LoginReducerState,
   webcam: WebcamState
-  websocket: WebSocketState,
   messages: ChatMessageState[],
   selectedUsers: string[]
   peer: RTCPeerConnection,
   videoRef: VideoRefReducerState,
-  webcomm: WebCommReducerState,
-  remoteVideo: Map<string, MediaStream>
+  remoteVideo: Map<string, MediaStream>,
+  tab: string
 }
 
 /**
@@ -45,13 +37,12 @@ export const reducers = combineReducers({
   modal: modalReducer,
   connectState: loginReducer,
   webcam: webcamReducer,
-  websocket: websocketReducer,
   messages: chatMessageReducer,
   selectedUsers: selectedUsersReducer,
   peer: peerConnReducer,
   videoRef: videoRefReducer,
-  webcomm: webcommReducer,
-  remoteVideo: remoteVideoReducer
+  remoteVideo: remoteVideoReducer,
+  tab: mainTabReducer
 });
 
 export default {

@@ -8,11 +8,10 @@ import {
   createLoginAction,
   setLoginFormAction,
   webcamCamAction,
-  websocketAction,
   chatMessageAction,
   videoRefAction,
-  webcommAction,
-  remoteVideoAction
+  remoteVideoAction,
+  mainTabAction
 } from "../state/action-creators";
 import {
   WEBCAM_ENABLE,
@@ -21,7 +20,7 @@ import {
 import {NavBarItem, NavBarDropDown} from "./navbar-item";
 import GoogleAuth from "./google-signin";
 import WebCamSettings from "../components/webrtc/settings";
-import {WebComm, WSSetup} from "../components/webrtc/communication";
+import {WebComm} from "../state/communication";
 
 const logger = console;
 
@@ -40,10 +39,8 @@ const mapState = (state: State) => {
     loggedIn: state.connectState.loggedIn,
     connected: state.connectState.connected,
     auth: state.connectState.auth2,
-    socket: state.websocket.socket,
     camState: state.webcam,
-    videoRef: state.videoRef.videoRefId,
-    webcomm: state.webcomm.webcomm
+    videoRef: state.videoRef.videoRefId
   };
 };
 
@@ -52,15 +49,16 @@ const mapDispatch = {
   connection: createLoginAction,
   setLoginForm: setLoginFormAction,
   webcam: webcamCamAction,
-  websocket: websocketAction,
   chatMessage: chatMessageAction,
   video: videoRefAction,
-  setWebComm: webcommAction,
-  remoteVideo: remoteVideoAction
+  remoteVideo: remoteVideoAction,
+  activeTab: mainTabAction
 };
 
 const connector = connect(mapState, mapDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector>;
+type PropsFromRedux = ConnectedProps<typeof connector> & {
+  webcomm: WebComm
+};
 
 interface AppSettings {
   videoSubj: Subject<MediaDeviceInfo>;
@@ -72,6 +70,7 @@ class NavBar extends React.Component<PropsFromRedux> {
   videoSubj: Subject<MediaDeviceInfo>;
   audioOutSubj: Subject<MediaDeviceInfo>;
   audioInSubj: Subject<MediaDeviceInfo>;
+  webcomm: WebComm;
 
   constructor(props: PropsFromRedux) {
     super(props);
@@ -79,6 +78,7 @@ class NavBar extends React.Component<PropsFromRedux> {
     this.videoSubj = new Subject();
     this.audioOutSubj = new Subject();
     this.audioInSubj =  new Subject();
+    this.webcomm = props.webcomm;
 
     // Rx-ify our state.  When webcam settings changes, it will call next(), so we subscribe here
     this.videoSubj.subscribe({
@@ -118,12 +118,6 @@ class NavBar extends React.Component<PropsFromRedux> {
 
   /**
    * Creates the WebComm object that handles the state for the websocket and MediaStreams
-   * 
-   * FIXME: Probably not the best place to put the WebComm object in the redux store.  Ideally this
-   * should be a top-level variable in <App> and then use React Context to "share" it.  The only
-   * problem with this is that we need to know the username to fully instantiate it.  This could be
-   * solved with rxjs and making it a Subject, but that will add a ton of complexity for something
-   * that should only happen when the user logs out and back in as a different.
    */
   createWebComm = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     if (!this.props.loggedIn) {
@@ -131,22 +125,25 @@ class NavBar extends React.Component<PropsFromRedux> {
       return;
     }
 
-    // Create and initialize our WebComm object
-    const webcomm = new WebComm(
-      this.props.user,
-      this.props.webcam,
-      this.props.remoteVideo
-    );
-    const wssetup: WSSetup = {
-      auth: this.props.auth,
-      loginAction: this.props.connection,
-      chatAction: this.props.chatMessage,
-    };
-    webcomm.socketSetup(wssetup);
+    // At this point, we should be logged in, so pass the username to webcomm
+    // This will generate the websocket for this user.  This is why we are calling user$.next()
+    // here, rather than in the GoogleAuth component.  We only need the websocket if the user wants
+    // to chat
+    this.webcomm.user$.next(this.props.user);
 
-    // Set our state in the redux store
-    this.props.setWebComm(webcomm, "CREATE_WEBCOMM");
-    this.props.websocket(webcomm.socket);
+    // We also need to tell the TabNav to make the chat Tab the active window.
+    this.props.activeTab("chat", "SET_ACTIVE_TAB");
+  }
+
+  setBlog = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    this.props.activeTab("blog", "SET_ACTIVE_TAB");
+  }
+
+  setCreate = (_: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    if (!this.props.loggedIn) {
+      alert("You are not logged in.  Blog will be saved in local indexed store")
+    }
+    this.props.activeTab("editor", "SET_ACTIVE_TAB");
   }
 
   render() {
@@ -162,7 +159,13 @@ class NavBar extends React.Component<PropsFromRedux> {
             <NavBarDropDown value="Menu">
               <a className="dropdown-item"
                 href="#"
+                onClick={ this.setBlog }>Welcome</a>
+              <a className="dropdown-item"
+                href="#"
                 onClick={ this.createWebComm }>Chat</a>
+              <a className="dropdown-item"
+                href="#"
+                onClick={ this.setCreate }>Create Blog</a>
               <a className="dropdown-item"
                 href="#"
                 onClick={ this.launchWebCam }>Webcam</a>
@@ -176,7 +179,7 @@ class NavBar extends React.Component<PropsFromRedux> {
             </NavBarDropDown>
           </div>
           <div className="navsection justify-right">
-            <GoogleAuth />
+            <GoogleAuth webcomm={ this.webcomm }/>
           </div>
         </div>
 

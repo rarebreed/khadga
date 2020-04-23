@@ -3,13 +3,11 @@ import {connect, ConnectedProps} from "react-redux";
 
 import {State} from "../state/store";
 import {loginReducer} from "../state/reducers";
-
-const logger = console;
+import { WebComm } from "../state/communication";
 
 const mapPropsToState = (state: State) => {
   return {
     connectState: state.connectState,
-    socket: state.websocket.socket
   };
 };
 
@@ -18,7 +16,9 @@ const mapPropsToDispatch = {
 };
 
 const connector = connect(mapPropsToState, mapPropsToDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector>;
+type PropsFromRedux = ConnectedProps<typeof connector> & {
+  webcomm: WebComm
+};
 
 import ListItem from "./user";
 
@@ -30,16 +30,20 @@ class SideBar extends React.Component<PropsFromRedux>  {
       .filter(user => user !== "")
       .map((user) => {
         // const item = <li key={user}>{user}</li>;
-        const item2 = <ListItem classStyle="username" name={ user } />;
+        const item2 = <ListItem webcomm={ this.props.webcomm }
+                                classStyle="username" 
+                                name={ user } />;
         return item2;
       });
+    
+    const show = this.props.connectState.connected.length > 0;
 
     return (
       <div className="user-sidebar">
         <div className="user-section">
           <h2 className="user-header">Users</h2>
           <ul className="users">
-            { this.props.socket ? listItems : null }
+            { show? listItems : null }
           </ul>
         </div>
       </div>

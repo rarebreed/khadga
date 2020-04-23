@@ -11,3 +11,12 @@ tls:
 # FIXME: Need to rename the service in kubernetes.  These are mimir settings
 host: localhost
 port: 3000
+db:
+  tables:
+    users: users
+    posts: posts
+    accounts: accounts
+    uploads: uploads
+    comments: comments
+  port: 5432
+  tls: true

@@ -16,7 +16,7 @@ import {
 import { ClickEvent } from "../state/types";
 import { logger } from "../logger";
 import webcam from "./webrtc/webcam";
-import { LocalMediaStream } from "./webrtc/communication";
+import { LocalMediaStream, WebComm } from "../state/communication";
 
 interface Item {
   classStyle: string,
@@ -38,7 +38,9 @@ const mapPropsToDispatch = {
 };
 
 const connector = connect(mapPropsToState, mapPropsToDispatch);
-type PropsFromRedux = ConnectedProps<typeof connector> & Item;
+type PropsFromRedux = ConnectedProps<typeof connector> & Item & {
+  webcomm: WebComm
+};
 
 interface PopupState {
   enabled: boolean;
@@ -50,6 +52,7 @@ class ListItem extends React.Component<PropsFromRedux, PopupState> {
   checked: boolean;
   userId: React.RefObject<HTMLLIElement>;
   labelId: React.RefObject<HTMLLabelElement>;
+  webcomm: WebComm;
 
   constructor(props: PropsFromRedux) {
     super(props);
@@ -63,6 +66,8 @@ class ListItem extends React.Component<PropsFromRedux, PopupState> {
       x: 0,
       y: 0
     };
+
+    this.webcomm = props.webcomm;
   }
 
   componentDidMount() {
@@ -129,7 +134,7 @@ class ListItem extends React.Component<PropsFromRedux, PopupState> {
           </label>
           <i className="far fa-user" style={{color, margin: "0 4px"}} />
         </div>
-        <PopupMenu classStyle={ popstateClassName }
+        <PopupMenu webcomm={ this.webcomm } classStyle={ popstateClassName }
           name={ this.props.name }
           x={ this.state.x }
           y={ this.state.y }
@@ -146,14 +151,15 @@ interface PopupProps {
   name: string;
   classStyle: string;
   disable: (evt?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
-  setPeer: typeof peerConnAction
+  setPeer: typeof peerConnAction,
+  webcomm: WebComm
 }
 
 /**
  * Functional component
  */
 const PopupMenu = (props: PopupProps) => {
-  const webcomm = useSelector((state: State) => state.webcomm.webcomm);
+  const webcomm = props.webcomm;
   const webcamActive = useSelector((state: State) => state.webcam.active);
   const dispatch = useDispatch();
 

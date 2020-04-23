@@ -1,8 +1,9 @@
 import {
+  Observable,
   Subject,
   Subscription,
   of,
-  BehaviorSubject,
+  BehaviorSubject
 } from "rxjs";
 import {
   map,
@@ -11,6 +12,7 @@ import {
   withLatestFrom,
   tap
 } from "rxjs/operators";
+// import { createStore, StoreEnhancer } from "redux";
 
 import {
   WsMessage,
@@ -18,15 +20,31 @@ import {
   CHAT_MESSAGE_ADD,
   WsCommand,
   MessageEvent as MsgEvent
-} from "../../state/message-types";
+} from "./message-types";
 import {
   createLoginAction,
   chatMessageAction,
   webcamCamAction,
   remoteVideoAction
-} from "../../state/action-creators";
-import { USER_CONNECTION_EVT } from "../../state/types";
-import { shuffle, take } from "../../utils/utils";
+} from "./action-creators";
+import { USER_CONNECTION_EVT } from "./types";
+import { shuffle, take } from "../utils/utils";
+
+// import { reducers } from "../state/store";
+// type WindowWithDevTools = Window & {
+//   __REDUX_DEVTOOLS_EXTENSION__: () => StoreEnhancer<unknown, {}>
+//  };
+
+// const isReduxDevtoolsExtenstionExist = (
+//   arg: Window | WindowWithDevTools
+// ): arg is WindowWithDevTools  => {
+//   return  "__REDUX_DEVTOOLS_EXTENSION__" in arg;
+// };
+
+// const foo = isReduxDevtoolsExtenstionExist(window) ?
+//   window.__REDUX_DEVTOOLS_EXTENSION__() : undefined;
+// const store = createStore(reducers, foo);
+// type StoreType = typeof store;
 
 const logger = console;
 const log = logger.log;
@@ -58,15 +76,15 @@ export class LocalMediaStream {
 /**
  * This class holds all the data and functionality for communication between clients
  * 
- * @field user: Holds username
+ * @field user$: Holds username
  * @field targets$: usernames that user clicks to do video chat with
- * @field socket: websocket object
+ * @field socket$: websocket object
  * @field send$: Helper to let other clients send to websocket
  * @field peer: FIXME make this a map of RTCPeerConnections
  * @field #commHandlers: Map of handlers for CommandRequest messages
  * @field streamLocal$: stream of local videocam streams
  * @field streamRemotes$: stream of remote videocam streams
- * @field cmdHandler: A map of string to handler functions
+ * @field cmdHandler: A map of string to handler functions to handle websocket messages
  * @field transceiver: transceiver to control send/rcv messages
  * @field videoOfferSubscription: Subscription to cancel Video Offer
  * @field webcamDispatch: dispatch function to set webcam state in redux
@@ -77,9 +95,9 @@ export class LocalMediaStream {
  * @field evtIceCandidate$: Subject<RTCPeerConnectionIceEvent>
  */
 export class WebComm {
-  user: string;
+  user$: Subject<string>;
   targets$: Subject<string>;
-  socket: WebSocket;
+  socket$: Subject<WebSocket>;
   send$: Subject<string>;
   peer: RTCPeerConnection | null;
   #commHandlers: Map<string, Hdlr>;
@@ -95,21 +113,32 @@ export class WebComm {
   evtVideoOffer$: Subject<WsMessage<WsCommand<string>>>;
   evtIceCandidate$: Subject<RTCIceCandidate | null>
   iceEvtSub: Subscription;
+  signout$: Subject<boolean>;
+  ping$: Subject<WsMessage<any>>;
+  currentUser: string;
+  testSock: WebSocket;
 
   constructor(
-    user: string,
     webcamDispath: typeof webcamCamAction,
     remoteVideoDispatch: typeof remoteVideoAction,
+    //store: StoreType
   ) {
-    this.user = user;
+    this.user$ = new Subject();
     this.targets$ = new Subject();  // Stream of remote usernames
-    this.socket = this.createSocket();
-    this.send$ = new Subject();
+    this.socket$ = new Subject(); 
     this.peer = null;
     this.#commHandlers = new Map();
     this.streamLocal$ = new BehaviorSubject(new LocalMediaStream(null));
     this.transceiver = null;
     this.videoOfferSubscription = null;
+    this.signout$ = new Subject();
+    this.ping$ = new Subject();
+    this.currentUser = "";
+    this.testSock = new WebSocket("ws://localhost:13172")
+
+    /** Helper for sending over the websocket */
+    const { sock$, subscription: socksub } = this.makeSocketStream();
+    this.send$ = sock$;
 
     /** Dispatches to hook into redux */
     this.webcamDispatch = webcamDispath;
@@ -128,9 +157,52 @@ export class WebComm {
     this.cmdHandler = new CommandHandler(this);
     this.setupCmdHandlers();
 
-    // When we get event from handleTrackEvent, it will push a MediaStream into evtMediaStream$.  We
-    // combine this with our latest target value.  Then, we push the map of {target:stream} to
-    // streamRemotes$.
+    this.initHandleTrackEvent();
+    this.initWebsockOnUser();
+    this.initSignoutStream();
+    
+  }
+
+  initSignoutStream = () => {
+    this.signout$.pipe(
+      withLatestFrom(this.socket$)
+    ).subscribe({
+      next: ([res, socket]) => {
+        if (!res) return
+        socket.close();
+        this.user$.next("");
+      }
+    });
+  }
+
+  /**
+   * Once we get a new user pushed to user$, we need to create a websocket
+   */
+  initWebsockOnUser = () => {
+    this.user$.subscribe({
+      next: (user) => {
+        logger.log("In user$, got user", user)
+        if (user === "") {
+          this.currentUser = user;
+          return;
+        }
+        if (user !== this.currentUser) {
+          logger.log("Setting user to ", user);
+          this.currentUser = user;
+          this.createSocket(user);
+        } else {
+          logger.warn("Same user, reusing existing socket");
+        }
+      }
+    });
+  }
+
+  /**
+   * When we get event from handleTrackEvent, it will push a MediaStream into evtMediaStream$.  We
+   * combine this with our latest target value.  Then, we push the map of {target:stream} to
+   * streamRemotes$.
+   */
+  initHandleTrackEvent = () => {
     this.evtMediaStream$.pipe(
       withLatestFrom(this.targets$)
     ).subscribe({
@@ -143,18 +215,19 @@ export class WebComm {
         logger.info("Got track event for", target, stream);
         let obj: Map<string, MediaStream> = new Map();
         obj.set(target, stream);
+        
         // Send event to dispatch so that the VideoStream component will update
         this.remoteVideoDispatch(obj, "REMOTE_EVENT");
       }
     });
   }
 
-  createSocket = () => {
+  createSocket = (user: string) => {
     const origin = window.location.host;
     // FIXME:  Add JWT token
-    const url = `wss://${origin}/chat/${this.user}`;
+    const url = `wss://${origin}/chat/${user}`;
     logger.log(`Connecting to ${url}`);
-    return new WebSocket(url);
+    this.socket$.next(new WebSocket(url));
   }
 
   /**
@@ -169,47 +242,55 @@ export class WebComm {
    * ```
    */
   makeSocketStream = () => {
-    const socket = this.socket;
-    if (!socket) {
-      return null;
-    }
-
     let sock$: Subject<string> = new Subject();
-    let subscription = sock$.subscribe(msg => socket.send(msg));
+    let msgSock$ = sock$.pipe(
+      withLatestFrom(this.socket$)
+    )
+    let subscription = msgSock$.subscribe(([msg, socket]) => socket.send(msg));
     return {sock$, subscription};
   }
 
   /**
    * Handles Websocket intialization when the user selects Menu -> Chat
+   * 
+   * This is where we sort out the messages received by the websocket.
    */
   socketSetup = (props: WSSetup) => {
-    this.socket.onmessage = (evt: MessageEvent) => {
-      const msg: WsMessage<any> = JSON.parse(evt.data);
-      const auth = props.auth;
-  
-      // Log the events separately, so we dont get a flood of messages from Ping/Pong events
-      switch (msg.event_type) {
-      case "Disconnect":
-      case "Connect":
-        logger.log(`Got ${msg.event_type} websocket event`, msg);
-        const {connected_users} = msg.body as ConnectionEvent;
-        props.loginAction(connected_users, "", auth, USER_CONNECTION_EVT);
-        break;
-      case "Data":
-        logger.log(`Got ${msg.event_type} websocket event`, msg);
-        break;
-      case "Message":
-        logger.log(`Got ${msg.event_type} websocket event`, msg);
-        props.chatAction(makeChatMessage(msg), CHAT_MESSAGE_ADD);
-        break;
-      case "CommandRequest":
-        // Pass it to the commandHandler
-        this.commandHandler(msg).catch(logger.error);
-        break;
-      default:
-        logger.log("Unknown message type", msg.event_type);
-      }
-    };
+    this.socket$.subscribe({
+      next: (socket) => {
+        socket.onmessage = (evt: MessageEvent) => {
+          const msg: WsMessage<any> = JSON.parse(evt.data);
+          const auth = props.auth;
+      
+          // Log the events separately, so we dont get a flood of messages from Ping/Pong events
+          switch (msg.event_type) {
+          case "Disconnect":
+          case "Connect":
+            logger.log(`Got ${msg.event_type} websocket event`, msg);
+            const {connected_users} = msg.body as ConnectionEvent;
+            logger.log("Connected users: ", connected_users);
+            props.loginAction(connected_users, "", auth, USER_CONNECTION_EVT);
+            logger.log(`loginAction is`, props.loginAction);
+            break;
+          case "Data":
+            logger.log(`Got ${msg.event_type} websocket event`, msg);
+            break;
+          case "Message":
+            logger.log(`Got ${msg.event_type} websocket event`, msg);
+            props.chatAction(makeChatMessage(msg), CHAT_MESSAGE_ADD);
+            break;
+          case "CommandRequest":
+            // Pass it to the commandHandler
+            this.commandHandler(msg).catch(logger.error);
+            break;
+          default:
+            logger.log("Unknown message type", msg.event_type);
+          }
+        };
+      }, 
+      error: (err) => logger.error(err),
+      complete: () => logger.info("this.socket$ got complete event")
+    })
   }
 
   /**
@@ -242,6 +323,7 @@ export class WebComm {
     this.addCmdHdlr("SDPOffer", this.cmdHandler.handleVideoOfferMsg);
     this.addCmdHdlr("SDPAnswer", this.cmdHandler.handleVideoAnswerMsg);
     this.addCmdHdlr("IceCandidate", this.cmdHandler.handleNewICECandidateMsg);
+    
   }
 
   /**
@@ -285,9 +367,13 @@ export class WebComm {
   }
 
   configIceCandidateEventStream = () => {
+    let userAndTarget$ = this.targets$.pipe(
+      withLatestFrom(this.user$)
+    );
+
     const iceHandler$ = this.evtIceCandidate$.pipe(
-      withLatestFrom(this.targets$),
-      map(([candidate, receiver]) => {
+      withLatestFrom(userAndTarget$),
+      map(([candidate, [receiver, user]]) => {
         if (receiver === "") {
           logger.debug("Dummy value for target");
           return null;
@@ -296,7 +382,7 @@ export class WebComm {
           logger.debug("No candidate in event");
           return null;
         }
-        const mesg = makeWsICECandMsg(this.user, receiver, {
+        const mesg = makeWsICECandMsg(user, receiver, {
           type: "new-ice-candidate",
           candidate: JSON.stringify(candidate)
         });
@@ -310,7 +396,7 @@ export class WebComm {
           logger.debug("Unable to create new-ice-candidate message");
           return;
         }
-        this.socket.send(JSON.stringify(msg));
+        this.send$.next(JSON.stringify(msg));
       },
       error: err => logger.error(err),
       complete: () => logger.log("User subject has completed")
@@ -327,14 +413,18 @@ export class WebComm {
   };
 
   negotiationTargetSetup = (peer: RTCPeerConnection) => {
-    const { socket } = this;
+    const { send$ } = this;
+
+    const userAndTarget$ = this.targets$.pipe(
+      withLatestFrom(this.user$)
+    )
 
     const handle$ = this.evtNegotiation$.pipe(
-      withLatestFrom(this.targets$),
-      flatMap(([_, sender]) => {
+      withLatestFrom(userAndTarget$),
+      flatMap(([_, [sender, user]]) => {
         logger.log("Creating offer for: ", sender);
         return peer.createOffer().then((offer) => {
-          return { sender, offer };
+          return { sender, user, offer };
         });
       }),
       map((state) => {
@@ -352,7 +442,7 @@ export class WebComm {
       }),
       flatMap(state => state),
       map((state) => {
-        const { sender } = state;
+        const { sender, user } = state;
         // Send the offer to the remote peer.  This will be received by the remote websocket
         logger.log(`---> Sending the offer to the remote peer ${sender}`);
         logger.debug("---> peer.localDescription", peer.localDescription);
@@ -361,8 +451,8 @@ export class WebComm {
           sdp: JSON.stringify(peer.localDescription)
         });
         logger.debug("---> sdp is ", sdp);
-        const msg = makeWsSDPMessage(this.user, sender, sdp);
-        socket.send(JSON.stringify(msg));
+        const msg = makeWsSDPMessage(user, sender, sdp);
+        send$.next(JSON.stringify(msg));
         return true;
       }),
       catchError((err) => {
@@ -558,6 +648,14 @@ export const makeWsICECandMsg = (sender: string, reciever: string, cand: ICECand
   return msg;
 };
 
+/**
+ * Creates Websocket messages to be sent to remote user
+ * 
+ * @param sender 
+ * @param receiver 
+ * @param sdp 
+ * @param kind 
+ */
 export const makeWsSDPMessage = (
   sender: string,
   receiver: string,
@@ -609,6 +707,9 @@ export const makeGenericMsg = <T>(
   return msg;
 }
 
+/**
+ * Handler for websocket messages
+ */
 class CommandHandler {
   webcomm: WebComm;
   streamLocalConfigured: boolean;
@@ -616,6 +717,39 @@ class CommandHandler {
   constructor(wc: WebComm) {
     this.webcomm = wc;
     this.streamLocalConfigured = false;
+    this.setupPingSubscription();
+  }
+
+  /**
+   * Sets up the stream that receives CommandRequest of Ping type
+   * 
+   * We do all the setup of what the stream does here to avoid cluttering the constructor
+   */
+  private setupPingSubscription = () => {
+    this.webcomm.ping$.pipe(
+      withLatestFrom(this.webcomm.user$)
+    ).subscribe({
+      next: ([msg, user]) => {
+        const cmd = msg.body as WsCommand<any>;
+        const args = cmd.args as string[];
+        const replyMsg: WsMessage<string> = {
+          sender: msg.sender,
+          recipients: msg.recipients,
+          event_type: "CommandReply",
+          time: Date.now(),
+          body: JSON.stringify({
+            cmd: {
+              op: "pong",
+              ack: false,
+              id: user
+            },
+            args
+          })
+        };
+        this.webcomm.send$.next(JSON.stringify(replyMsg));
+        logger.debug("Sent reply: ", replyMsg);
+      }
+    });
   }
 
   /**
@@ -624,24 +758,7 @@ class CommandHandler {
    * @param socket
    */
   initPingRequestHandler = async (msg: WsMessage<any>) => {
-    const cmd = msg.body as WsCommand<any>;
-    const args = cmd.args as string[];
-    const replyMsg: WsMessage<string> = {
-      sender: msg.sender,
-      recipients: msg.recipients,
-      event_type: "CommandReply",
-      time: Date.now(),
-      body: JSON.stringify({
-        cmd: {
-          op: "pong",
-          ack: false,
-          id: this.webcomm.user
-        },
-        args
-      })
-    };
-    this.webcomm.socket.send(JSON.stringify(replyMsg));
-    logger.debug("Sent reply: ", replyMsg);
+    this.webcomm.ping$.next(msg);
   }
 
   /**
@@ -657,7 +774,10 @@ class CommandHandler {
 
     // The WebComm dynamically gets MediaStream's as they are created and destroyed.  So we have to
     // subscribe to the stream of them.
-    const sdp$ = this.webcomm.evtVideoOffer$.pipe(
+    const sdp$: Observable<{
+      msg: WsMessage<WsCommand<string>>,
+      success: boolean
+    }> = this.webcomm.evtVideoOffer$.pipe(
       withLatestFrom(this.webcomm.streamLocal$),
       // At this point, we should have a valid MediaStream.  Create 
       flatMap(([msg, { stream }]) => {
@@ -746,8 +866,16 @@ class CommandHandler {
       })
     );
 
-    this.webcomm.videoOfferSubscription = sdp$.subscribe({
-      next: ({msg, success}) => {
+    const userAndSdp$ = sdp$.pipe(
+      withLatestFrom(this.webcomm.user$)
+    )
+
+    this.webcomm.videoOfferSubscription = userAndSdp$.subscribe({
+      next: ([{msg, success}, user]) => {
+        if (!success) {
+          logger.error("Unable to make SDP Message");
+          return;
+        }
         if ( msg.sender === "") {
           logger.error("No targets added yet.  Waiting for real target");
           return;
@@ -760,11 +888,11 @@ class CommandHandler {
         
         // Create the SDPMessage with the SDPAnswer
         const mesg = makeWsSDPMessage(
-          this.webcomm.user,
+          user,
           msg.sender,
           finalPeer.localDescription,
           "SDPAnswer");
-        this.webcomm.socket.send(JSON.stringify(mesg));
+        this.webcomm.send$.next(JSON.stringify(mesg));
       },
       error: logger.error,
       complete: () => logger.info("videoRefLocal$ is complete")
@@ -839,6 +967,10 @@ class CommandHandler {
     } catch(err) {
       logger.warn(err);
     }
+  }
+
+  handleEditorMsg = (msg: WsMessage<WsCommand<string>>) => {
+
   }
 }
 

@@ -3,7 +3,8 @@ export type MessageEvent = "Connect"
                          | "Message"
                          | "Data"
                          | "CommandRequest"
-                         | "CommandReply";
+                         | "CommandReply"
+                         ;
 
 export const CHAT_MESSAGE_ADD = "CHAT_MESSAGE_ADD";
 export const CHAT_MESSAGE_DELETE = "CHAT_MESSAGE_DELETE";
@@ -12,7 +13,8 @@ export const CHAT_MESSAGE_REPLY = "CHAT_MESSAGE_REPLY";
 export type CHAT_MESSAGE_ACTIONS = "CHAT_MESSAGE_ADD"
                                  | "CHAT_MESSAGE_DELETE"
                                  | "CHAT_MESSAGE_EDIT"
-                                 | "CHAT_MESSAGE_REPLY";
+                                 | "CHAT_MESSAGE_REPLY"
+                                 ;
 
 export interface UserConnectionEventMessage {
   connected_users: string[]
@@ -31,7 +33,9 @@ export type WsCommandTypes = "Ping"
                            | "Pong"
                            | "SDPOffer"
                            | "SDPAnswer"
-                           | "IceCandidate";
+                           | "IceCandidate"
+                           | "Editor"
+                           ;
 
 // FIXME: The args should be generic
 // We might also want fixed op types.

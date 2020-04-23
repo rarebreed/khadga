@@ -1,9 +1,10 @@
 import React from "react";
 import {connect, ConnectedProps} from "react-redux";
 
-import {WsMessage} from "../../state/message-types";
-import {State} from "../../state/store";
-import {chatMessageAction} from "../../state/action-creators";
+import {WsMessage} from "../state/message-types";
+import {State} from "../state/store";
+import {chatMessageAction} from "../state/action-creators";
+import { WebComm } from "../state/communication";
 
 const logger = console;
 
@@ -14,11 +15,11 @@ interface TextState {
 
 const mapPropsToState = (store: State) => {
   return {
-    socket: store.websocket.socket,
     loggedIn: store.connectState.loggedIn,
     connected: store.connectState.connected,
     username: store.connectState.username,
-    selectedUsers: store.selectedUsers
+    selectedUsers: store.selectedUsers,
+    activeTab: store.tab
   };
 };
 
@@ -27,18 +28,22 @@ const mapPropsToDispatch = {
 };
 
 const textInputConnector = connect(mapPropsToState, mapPropsToDispatch);
-type PropsFromReduxLogin = ConnectedProps<typeof textInputConnector>;
+type PropsFromReduxLogin = ConnectedProps<typeof textInputConnector> & {
+  webcomm: WebComm
+};
 
 class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
   message: string;
   target: React.RefObject<HTMLTextAreaElement>;
   ctlKeyDown: boolean;
+  mode: "single" | "multi";
 
   constructor(props: PropsFromReduxLogin) {
     super(props);
     this.message = "";
     this.target = React.createRef();
     this.ctlKeyDown = false;
+    this.mode = props.activeTab === "chat" ? "single" : "multi";
 
     this.state = {
       message: this.message,
@@ -85,11 +90,13 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
         recipients = this.props.selectedUsers;
       }
     }
+
     // Always include ourself in the recipients list
     if (!this.props.selectedUsers.includes(this.props.username)) {
       recipients.push(this.props.username);
     }
 
+    // Check to see if we are only messaging certain users
     if (this.state.message.startsWith("[")) {
       let results = this.state.message.split(/\[(.+)\]/);
       results = results.filter(r => r !== "");
@@ -99,16 +106,13 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
       }
       recipients = results[0].split(",").map(user => user.replace("@", ""));
     }
+
+    // Create the WsMessage type that will be sent to the websocket handler in WebComm
     const msg = this.makeWSMessage(this.state.message);
     msg.recipients = recipients;
 
     logger.log("sending", msg);
-    if (this.props.socket) {
-      this.props.socket.send(JSON.stringify(msg));
-    } else {
-      logger.log("this.ws:", this.props);
-      alert("No websocket connection.\nLog out and back in");
-    }
+    this.props.webcomm.send$.next(JSON.stringify(msg));
 
     if (this.target.current) {
       this.target.current.value = "";
@@ -117,6 +121,54 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
     this.setState({
       message: ""
     });
+  }
+
+  /**
+   * This is the simple editor used for one author writing things at a time.
+   * 
+   * It is simple because it's just passing along the entire contents which will then be sent to the
+   * div
+   */
+  private editor = () => {
+    
+  }
+
+  /**
+   * This is the complex editor used for collaborative writing.
+   *
+   * This method will send  _changes_ to a linked list.  We need to keep track of where the user's
+   * cursor is.  This will be the node where the user is currently editing.  When another user edits
+   * a part of the text, only the part that has changed will be transmitted.  Each message will
+   * therefore contain:
+   *
+   * - If an insertion:
+   *   - The nth node of where the edit is happening (where n is the node insertion before editing)
+   *   - The length of the new insertion
+   * - If a deletion
+   *   - Count how many nodes are being deleted
+   *   - _snip_ it from the common linked list
+   * - If an edit
+   *   - Get the insertion point
+   *   - Overwrite N nodes with the new values
+   *
+   * This data is actually itself a new linked list.  The advantage of linked lists is inserting. If
+   * this was done as an array, and someone inserted something in the middle, you would have to
+   * shift many items and quite possibly allocate a new array.  Might look into using immutablejs as
+   * the common data structure for the editor data backing.
+   *
+   * Note that we also need to have some kind of debouncing here.  We don't want every single
+   * keystroke the user enters to be sent over.  We also don't want to force the user to have to
+   * click the "Send" button.  All the editing should be seen in semi real time.  We can use rxjs's
+   * debounce operator to handle this.
+   *
+   * TODO:  We might want to subclass main-input.tsx into multiple classes rather than have a
+   * "mode".  This way you only have one kind of "editor" function. If the activeTab is chat, it's
+   * the old style and you only have one function which is the original sendMessage.  If you're in
+   * "blog" as the activeTab, then you use the simple `editor` method.  Otherwise, you use the
+   * multiEditor style functionality.  This will be cleaner
+   */
+  private multiEditor = () => {
+
   }
 
   send = (evt: React.MouseEvent<HTMLButtonElement>) => {
@@ -140,11 +192,14 @@ class ChatInput extends React.Component<PropsFromReduxLogin, TextState> {
   }
 
   render() {
+    let cname = this.props.activeTab === "chat" ? "chat-input" : "disabled";
+
     return (
-      <div className="chat-input">
+      <div className={ cname }>
         <div className="field-group">
           <textarea className="chat-text"
             cols={1}
+            rows={ 2 }
             wrap={"hard"}
             ref={this.target}
             onKeyDown={this.onDown}

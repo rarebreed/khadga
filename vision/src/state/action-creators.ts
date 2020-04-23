@@ -5,7 +5,6 @@ import {
   LoginFormAction,
   LOGIN_ACTIONS,
   LoginAction,
-  WebSocketAction,
   NamePropState,
   SET_SIGNUP,
   SET_LOGIN_FORM,
@@ -18,17 +17,17 @@ import {
   PeerConnAction,
   VIDEO_REF_ACTION,
   VideoRefAction,
-  WebCommAction,
-  WebCommActions,
   VideoReducerAction,
-  VideoReducerActions
+  VideoReducerActions,
+  MainTabAction,
+  MainTabActions,
+  MainTabData
 } from "./types";
 import {
   ChatMessageState,
   CHAT_MESSAGE_ACTIONS
 } from "./message-types";
 import {logger} from "../logger";
-import {WebComm} from "../components/webrtc/communication";
 
 export const setActive = (isActive: boolean, action: SET_MODAL_ACTIVE): ModalAction => {
   return {
@@ -76,23 +75,6 @@ export const webcamCamAction = (state: WebcamState, action: WEBCAM_ACTIONS): Web
   };
 };
 
-/**
- * Action creator for Websockets
- *
- * If called with WEBSOCKET
- * @param ws
- * @param action
- */
-export const websocketAction = ( ws: WebSocket | any | null)
-                               : WebSocketAction => {
-  return {
-    type: ws !== null ? "WEBSOCKET_CREATE" : "WEBSOCKET_CLOSE",
-    socket: {
-      socket: ws
-    }
-  };
-};
-
 export const chatMessageAction = (message: ChatMessageState, action: CHAT_MESSAGE_ACTIONS) => {
   return {
     type: action,
@@ -129,24 +111,26 @@ export const videoRefAction = (
   };
 };
 
-export const webcommAction = (
-  webcomm: WebComm | null,
-  action: WebCommActions
-) => {
-  let act: WebCommAction = {
-    type: action
-  };
-
-  if (webcomm !== null) {
-    act.data = webcomm;
-  }
-  return act;
-};
-
 export const remoteVideoAction = (
   data: Map<string, MediaStream>,
   action: VideoReducerActions
 ): VideoReducerAction => {
+  return {
+    type: action,
+    data
+  }
+}
+
+/**
+ * Creates an action for selecting which tab will be active
+ * 
+ * @param data 
+ * @param action 
+ */
+export const mainTabAction = (
+  data: MainTabData,
+  action: MainTabActions
+): MainTabAction => {
   return {
     type: action,
     data

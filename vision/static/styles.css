@@ -1,5 +1,6 @@
 body {
   font-family: "Roboto";
+  overflow: hidden;
 }
 
 nav {
@@ -19,6 +20,19 @@ nav {
   justify-content: flex-end;
 }
 
+.justify-top {
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.justify-bottom {
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.align-top.grow {
+  flex-grow: 1;
+}
 
 /*********************************************************************************************
  * navbar styling
@@ -96,11 +110,21 @@ nav {
   background-color: #e7d998;
 }
 
-.dropbtn {
+.dropbtn,
+.panelbtn {
   color: rgb(0, 0, 0);
   text-decoration: none;
 /*   line-height: 10px; */
   font-weight: bold;
+}
+
+.panelbtn {
+  padding: 8px;
+}
+
+.panelbtn:hover {
+  background-color: rgb(113, 47, 218);
+  color: rgb(238, 203, 88);
 }
 
 /* When we hover over the dropdown element, or its content, we will set display from 
@@ -132,19 +156,22 @@ head {
  * +=================================================================================+ 1
  * |                          NavBar (.navbar-grid-area)                             |
  * +===============+==============================================+==================+ 2
- * | .user-sidebar |          .main-body                   | .extra-sidebar   |
+ * | .user-sidebar |          .main-body                          | .extra-sidebar   |
  * |               |                                              |                  |
  * |               |                                              |                  |
  * |               +==============================================+                  | 3
  * |               |          .chat-input                         |                  |
  * +=================================================================================+ 4
  */
+#app {
+  height: 100%;
+}
+
 .app {
   display: grid;
   grid-template-columns: 1.5fr 6fr 1.5fr;
   grid-template-rows: auto auto minmax(100%, 1fr);
-  /* height: 100%; */
-  height: 97vh;
+  height: 100%;
 }
 
 /*
@@ -183,9 +210,9 @@ head {
 
 .main-body {
   grid-column: 2 / 3;
-  grid-row: 2 / 3;
-  overflow-anchor: none;
-  align-self: end;
+  grid-row: 2 / -1;
+  align-self: auto;
+  overflow: auto;
 }
 
 /* End grid layouyt
@@ -317,11 +344,6 @@ html, body {
   cursor: nwse-resize;
 }
 
-.vision-container {
-	flex-direction: column;
-  height: 100vh;
-}
-
 .vision-navbar {
 	background-color: rgb(145, 171, 201);
 }
@@ -416,4 +438,75 @@ html, body {
   margin: 4px;
   border: 1px solid black;
   overflow: visible;
+}
+
+.tab-nav {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.editor-section {
+  display: flex;
+  flex-direction: column;
+  height: 95%;
+}
+
+.button-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.tabs-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.active-tab {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.inactive-tab {
+  display: none
+}
+
+.tab-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
+.tab-button-group {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+}
+
+.editor-text {
+  padding: 0;
+  margin: 0;
+  width: calc(100% - 1px);
+  height: 100%;
+  display: flex;
+}
+
+textarea {
+  height: auto;
+}
+
+textarea.editor-text {
+  height: 100%;
+  resize: none;
+  font-family: monospace;
+  font-size: large;
+}
+
+.disabled {
+  display: none;
 }

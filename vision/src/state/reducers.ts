@@ -28,20 +28,15 @@ import {
   , WEBCAM_ENABLE
   , WEBCAM_RESIZE
   , USER_CONNECTION_EVT
-  , WebSocketAction
-  , WebSocketState
   , AUTH_CREATED
   , AUTH_EXPIRED
-  , WEBSOCKET_CLOSE
-  , WEBSOCKET_CREATE
   , SelectUsersAction
   , PeerConnState
   , PeerConnAction
   , VideoRefReducerState
   , VideoRefAction
-  , WebCommReducerState
-  , WebCommAction
   , VideoReducerAction
+  , MainTabAction
 } from "./types";
 import {ChatMessageState
   , ChatMessageAction
@@ -51,7 +46,7 @@ import {ChatMessageState
   , CHAT_MESSAGE_REPLY
 } from "./message-types";
 import {logger} from "../logger";
-import {WebComm} from "../components/webrtc/communication";
+import {WebComm} from "./communication";
 
 const initialModalState: ModalState = {
   signup: {
@@ -316,28 +311,6 @@ export const webcamReducer = (
   return newstate;
 };
 
-export const websocketReducer = ( 
-  previous: WebSocketState = {socket: null},
-  action: WebSocketAction
-): WebSocketState => {
-  const sockState: WebSocketState = {
-    socket: null
-  };
-
-  switch(action.type) {
-  case WEBSOCKET_CLOSE:
-    logger.log("Got a WEBSOCKET_CLOSE action");
-    return sockState;
-  case WEBSOCKET_CREATE:
-    logger.log("Got a WEBSOCKET_CREATE action");
-    logger.log(`socket is ${action.socket.socket}`);
-    sockState.socket = action.socket.socket;
-    return sockState;
-  default:
-    return previous;
-  }
-};
-
 export const chatMessageReducer = ( 
   previous: ChatMessageState[] = [],
   action: ChatMessageAction
@@ -431,33 +404,6 @@ export const videoRefReducer = ( previous: VideoRefReducerState = initialVideoRe
   }
 };
 
-
-const InitialWebCommState: WebCommReducerState = {
-  webcomm: null
-};
-
-export const webcommReducer = (
-  previous: WebCommReducerState = InitialWebCommState,
-  action: WebCommAction
-) => {
-  switch(action.type) {
-  case "CREATE_WEBCOMM":
-    if (!action.data) {
-      logger.warn("No WebComm object supplied.   Returning previous");
-      return previous;
-    }
-    return {
-      webcomm: action.data
-    };
-  case "DELETE_WEBCOMM":
-    return {
-      webcomm: null
-    };
-  default:
-    return previous;
-  }
-};
-
 export const remoteVideoReducer = (
   previous: Map<string, MediaStream> = new Map(),
   action: VideoReducerAction
@@ -470,4 +416,14 @@ export const remoteVideoReducer = (
   }
 }
 
-"For"
+export const mainTabReducer = (
+  previous: string = "blog",
+  action: MainTabAction
+) => {
+  switch (action.type) {
+    case "SET_ACTIVE_TAB":
+      return action.data
+    default:
+      return previous;
+  }
+}

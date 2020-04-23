@@ -35,6 +35,7 @@ COPY ./build-docker.sh /src
 WORKDIR /src
 
 RUN source ~/.bashrc \
+    && cat /src/khadga/Cargo.toml \
     && source ~/.cargo/env \
     && ./build-docker.sh \
     && ls -al
@@ -46,13 +47,15 @@ FROM fedora:31
 
 RUN dnf update -y \
     && dnf upgrade -y \
-    && dnf install -y libpq
+    && dnf install -y libpq \
+    && dnf clean all
 
 RUN mkdir -p /apps/vision
 
 COPY --from=builder /apps/vision /apps/vision
 
 WORKDIR /apps/vision
+VOLUME /apps/vision
 
 EXPOSE 7001
 

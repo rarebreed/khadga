@@ -24,7 +24,10 @@
 //! user's system.
 
 use crate::{data::User,
-            jwt::jwt::{create_jwt, JWTResponse}};
+            jwt::jwt::{create_jwt, JWTResponse},
+            pgdb::{pgdb,
+                   models}};
+use tokio_postgres::{Client};
 use chrono::{Utc, Duration};
 use serde::{Deserialize,
             Serialize};
@@ -34,7 +37,13 @@ use warp::{filters::BoxedFilter,
                   StatusCode},
            Filter,
            Reply};
-use log::{info};
+use log::{info, error};
+use lazy_static::lazy_static;
+use crate::config::Settings;
+
+lazy_static! {
+    pub static ref CONFIG: Settings = { Settings::new().expect("Unable to get config settings") };
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
@@ -46,6 +55,8 @@ struct Claims {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LoginParams {
     uname: String,
+    first: String,
+    last: String,
     email: String,
     token: String,
 }
@@ -61,6 +72,8 @@ pub struct RegisterParams {
 struct AuthPost {
     token: String
 }
+
+
 
 /// FIXME: This method is now deprecated, but might return once we have a freemium/premium model
 /*
@@ -152,6 +165,20 @@ pub async fn make_verify_request(
         .json(&post_data)
         .send()
         .await;
+
+    // Lookup user in database.  If he doesn't exist, generate a user.
+    let db_client: Client;
+    match pgdb::establish_connection("test_db").await {
+        Ok((client, _)) => {
+            db_client = client;
+        },
+        Err(e) => {
+            let resp = builder.status(StatusCode::from_u16(500).unwrap())
+                .body(format!("Unable to create connection to postgresql database: {}", e))
+                .expect("Unable to create HTTP Response");
+            return Ok(resp)
+        }
+    };
     
     let resp = match response {
         Ok(resp) => {
@@ -160,9 +187,45 @@ pub async fn make_verify_request(
                     .status(resp.status())
                     .body(format!("Unable to generate JWT token"))
             } else {                      // Generate JWT
+                let dbuser = models::User {
+                    email: user.email.clone(),
+                    first_name: String::from(""),
+                    last_name: String::from(""),
+                    username: user.user_name.clone(),
+                    user_id: -1
+                };
+                match pgdb::lookup_user(&db_client, "users", &dbuser).await {
+                    Ok(user_id) => {
+                        if user_id.len() != 1 {
+                            error!("There is an error with query or multiple usernames found");
+                            panic!("Integrity with database is compromised");
+                        }
+                        let userid = user_id[0];
+                        info!("User ID is {}", userid);
+                        // TODO, perform any other logic here
+                    },
+                    Err(_) => {  // In this case, we haven't seen this user before, so let's add him
+                        match pgdb::insert_user(&db_client, "users", &dbuser).await {
+                            Ok(count) => {
+                                if count != 1 {
+                                    return Ok(builder.status(StatusCode::from_u16(500).unwrap())
+                                        .body("Unable to insert user into database".into())
+                                        .expect("Unable to create HTTP Response"));
+                                }
+                            },
+                            Err(e) => {
+                                return Ok(builder.status(StatusCode::from_u16(500).unwrap())
+                                    .body(format!("Unable to insert user into database: {}", e))
+                                    .expect("Unable to create HTTP Response"))
+                            }
+                        }
+                    }
+                };
+
                 match create_jwt(&user.user_name, &user.email) {
                     Ok(jwt) => {
-                        let jwt_resp: JWTResponse = serde_json::from_str(&jwt).expect("Could not deserialize");
+                        let jwt_resp: JWTResponse = serde_json::from_str(&jwt)
+                            .expect("Could not deserialize");
 
                         let duration = Duration::minutes(15);
                         let exp = Utc::now() + duration;
@@ -214,7 +277,7 @@ pub async fn make_verify_request(
                 .body(format!("Failed getting response: {}", err))
         }
     };
-    
+
     Ok(resp.expect("Could not build response"))
 }
 
@@ -232,10 +295,12 @@ pub fn login() -> BoxedFilter<(impl Reply,)> {
         .map(|login_params: LoginParams| {
             // TODO: Need a login handler and a websocket endpoint
             // When a user logs in, they will be given an auth token which can be used
-            // to hain access to chat and video for as long as the session maintains activity
+            // to gain access to chat and video for as long as the session maintains activity
             let params_copy = login_params.clone();
             let user = User::new(
                 login_params.uname,
+                login_params.first,
+                login_params.last,
                 login_params.email,
                 login_params.token
             );
