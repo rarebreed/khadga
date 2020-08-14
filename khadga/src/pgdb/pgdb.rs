@@ -9,6 +9,7 @@ use tokio_postgres::{
 use tokio::{fs::{File},
             io::{AsyncReadExt}};
 use chrono::{Utc, DateTime};
+use log::{error, info};
 use crate::pgdb::{models};
 
 pub type DbConnection = Connection<Socket, NoTlsStream>;
@@ -27,10 +28,13 @@ pub async fn establish_connection(dbname: &str) -> Result<ConnectReturn, Error> 
             match File::open("/run/secrets/postgres-secret").await {
                 Ok(mut f) => {
                     let mut contents = vec![];
-                    f.read_to_end(&mut contents).await;
+                    let res = f.read_to_end(&mut contents).await;
+                    res.map( |read_in| {
+                        info!("{} bytes were read in", read_in);
+                    }).expect("Unable to read in file")
                 },
                 Err(e) => {
-
+                    error!("Error while getting khadga database: {}", e)
                 }
             }
             
