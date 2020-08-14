@@ -42,7 +42,7 @@ use lazy_static::lazy_static;
 use crate::config::Settings;
 
 lazy_static! {
-    pub static ref CONFIG: Settings = { Settings::new().expect("Unable to get config settings") };
+    pub static ref CONFIG: Settings =  Settings::new().expect("Unable to get config settings");
 }
 
 #[derive(Debug, Serialize, Deserialize)]

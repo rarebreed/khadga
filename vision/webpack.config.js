@@ -30,8 +30,10 @@ module.exports = {
     extensions: [ '.tsx', '.ts', '.js' ],
   },
   plugins: [
-    new CopyPlugin([
-      path.resolve(__dirname, "static")
-    ])
+    new CopyPlugin({
+      patterns: [
+        { from: path.resolve(__dirname, "static"), to: dist }
+      ]
+    })
   ]
 };
