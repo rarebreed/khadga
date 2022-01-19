@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@khadga/noesis": "^0.1.0",
-    "@tensorflow/tfjs": "^1.7.4",
+    "@tensorflow/tfjs": "^2.5.0",
     "@types/dompurify": "^2.0.3",
     "dompurify": "^2.0.12",
     "highlight.js": "^9.18.3",
