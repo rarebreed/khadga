@@ -12,10 +12,10 @@
   "license": "Apache-2.0",
   "devDependencies": {},
   "dependencies": {
-    "@cypress/webpack-preprocessor": "^4.1.5",
-    "cypress": "^4.12.1",
+    "@cypress/webpack-preprocessor": "^5.0.0",
+    "cypress": "^7.6.0",
     "ts-loader": "^6.2.2",
     "typescript": "^3.9.7",
-    "webpack": "^4.44.1"
+    "webpack": "^5.0.0"
   }
 }
