@@ -25,9 +25,9 @@
     "@nestjs/core": "^6.11.11",
     "@nestjs/platform-express": "^6.11.11",
     "google-auth-library": "^5.10.1",
-    "jest": "^26.4.0",
+    "jest": "^29.0.0",
     "reflect-metadata": "^0.1.13",
-    "rimraf": "^3.0.0",
+    "rimraf": "^4.0.0",
     "rxjs": "^6.6.2"
   },
   "devDependencies": {
