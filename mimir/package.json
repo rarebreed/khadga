@@ -23,7 +23,7 @@
     "@nestjs/common": "^6.11.11",
     "@nestjs/config": "^0.2.4",
     "@nestjs/core": "^6.11.11",
-    "@nestjs/platform-express": "^6.11.11",
+    "@nestjs/platform-express": "^8.4.0",
     "google-auth-library": "^5.10.1",
     "jest": "^28.0.0",
     "reflect-metadata": "^0.1.13",
