@@ -16,6 +16,6 @@
     "cypress": "^4.12.1",
     "ts-loader": "^6.2.2",
     "typescript": "^3.9.7",
-    "webpack": "^4.44.1"
+    "webpack": "^5.1.1"
   }
 }
