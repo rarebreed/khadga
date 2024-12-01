@@ -14,8 +14,8 @@
   "dependencies": {
     "@cypress/webpack-preprocessor": "^4.1.5",
     "cypress": "^4.12.1",
-    "ts-loader": "^6.2.2",
+    "ts-loader": "^8.0.14",
     "typescript": "^3.9.7",
-    "webpack": "^4.44.1"
+    "webpack": "^5.0.0"
   }
 }
