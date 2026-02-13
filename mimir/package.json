@@ -20,10 +20,10 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/common": "^6.11.11",
+    "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^0.2.4",
     "@nestjs/core": "^6.11.11",
-    "@nestjs/platform-express": "^6.11.11",
+    "@nestjs/platform-express": "^10.4.22",
     "google-auth-library": "^5.10.1",
     "jest": "^28.0.0",
     "reflect-metadata": "^0.1.13",
